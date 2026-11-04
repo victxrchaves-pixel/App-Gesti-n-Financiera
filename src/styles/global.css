@@ -10,13 +10,13 @@
   --line: rgba(0, 0, 0, 0.08);
   --line-strong: rgba(0, 0, 0, 0.14);
 
-  --primary: #d4b8f4;
-  --primary-hover: #c5a1ee;
-  --primary-soft: #f0e7fa;
-  --primary-ink: #68418b;
+  --primary: #dddddd;
+  --primary-hover: #cccccc;
+  --primary-soft: #f2f2f2;
+  --primary-ink: #444444;
   --on-primary: #171717;
 
-  --positive: #68418b;
+  --positive: #444444;
   --warning: #171717;
   --warning-soft: #eeeeee;
   --danger: #171717;
@@ -551,7 +551,7 @@ table.sr-only { display: block; }
 .donut-seg { transition: opacity 0.15s; cursor: default; }
 .donut-seg.dim { opacity: 0.35; }
 
-/* Tarjetas principales: lila para el mes, negro para el patrimonio. */
+/* Tarjetas principales con tonos de tema y patrimonio en negro. */
 .card-highlight { background: var(--primary); box-shadow: none; }
 .card-highlight .eyebrow, .card-highlight .kpi-label { color: #393939; }
 .card-highlight .kpis { border-top: 1px solid rgba(0, 0, 0, 0.14); padding-top: 18px; margin-top: 24px; }

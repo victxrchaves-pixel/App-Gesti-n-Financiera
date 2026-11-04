@@ -48,6 +48,10 @@ export interface Categoria {
 
 export interface Ajustes {
   id: 'ajustes';
+  colorAcento?: string | null;
+  colorIngresos?: string | null;
+  colorGastos?: string | null;
+  colorInversiones?: string | null;
   nombre: string;
   autonomo: boolean;
   inicioCompletado: boolean;
@@ -92,6 +96,7 @@ export interface HistorialCartera {
 
 /** Límite personal por categoría y mes, en céntimos. */
 export interface Presupuesto {
+  color?: string | null;
   id: string;
   mes: string;
   categoriaId: string;

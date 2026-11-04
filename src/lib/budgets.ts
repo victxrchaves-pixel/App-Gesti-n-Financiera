@@ -1,3 +1,4 @@
+import { esColor } from './colors';
 import type { Cuenta, Movimiento, Presupuesto } from '../db/types';
 import { config } from '../config/neto.config';
 import { isISODate } from './dates';
@@ -7,6 +8,7 @@ export function validarPresupuesto(p: Omit<Presupuesto, 'id'>): string | null {
   if (typeof p.mes !== 'string' || !mesValido(p.mes)) return 'Elige un mes válido.';
   if (typeof p.categoriaId !== 'string' || !p.categoriaId.trim()) return 'Elige una categoría de gasto.';
   if (!Number.isSafeInteger(p.limite) || p.limite <= 0) return 'El límite debe ser mayor que 0 y estar expresado en céntimos válidos.';
+  if (p.color != null && !esColor(p.color)) return 'El color del presupuesto no es válido.';
   return null;
 }
 export function gastosPresupuesto(movimientos: Movimiento[], cuentas: Cuenta[], mes: string, hoy: string): Movimiento[] {

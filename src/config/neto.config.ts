@@ -22,30 +22,30 @@ export const config = {
   ],
 
   /**
-   * Paleta de categorías: lila y neutros. Las leyendas incluyen siempre nombre e
+   * Paleta inicial de categorías en grises. Las leyendas incluyen siempre nombre e
    * importe para que la información no dependa del color.
    */
-  paleta: ['#8860B0', '#363636', '#A080C0', '#595959', '#745095', '#707070', '#9675B6'],
+  paleta: ['#333333', '#555555', '#707070', '#858585', '#999999', '#AAAAAA', '#BBBBBB'],
   colorOtros: '#858585',
 
   /** Colores del gráfico de líneas (ingresos frente a gastos). */
-  graficos: { ingresos: '#8860B0', gastos: '#363636' },
+  graficos: { ingresos: '#707070', gastos: '#363636' },
 
   /** Categorías con las que empieza la app. Se pueden editar desde Ajustes. */
   categoriasIniciales: {
     gasto: [
-      { nombre: 'Casa', color: '#8860B0' },
+      { nombre: 'Casa', color: '#707070' },
       { nombre: 'Comida', color: '#363636' },
-      { nombre: 'Transporte', color: '#A080C0' },
+      { nombre: 'Transporte', color: '#707070' },
       { nombre: 'Ocio', color: '#595959' },
-      { nombre: 'Salud', color: '#745095' },
+      { nombre: 'Salud', color: '#707070' },
       { nombre: 'Ropa', color: '#707070' },
-      { nombre: 'Suscripciones', color: '#9675B6' },
+      { nombre: 'Suscripciones', color: '#707070' },
       { nombre: 'Otros', color: '#858585' },
     ],
     ingreso: [
-      { nombre: 'Nómina', color: '#8860B0' },
-      { nombre: 'Otros ingresos', color: '#A080C0' },
+      { nombre: 'Nómina', color: '#707070' },
+      { nombre: 'Otros ingresos', color: '#707070' },
     ],
   },
 
@@ -107,20 +107,14 @@ export const config = {
 
   copiaSeguridad: {
     /** Versión del formato del archivo de copia. Súbela si cambia la estructura de los datos. */
-    version: 3,
+    version: 4,
     prefijoArchivo: 'neto-copia',
   },
 } as const;
 
 export type Config = typeof config;
 
-/** Adapta colores antiguos/importados solo al mostrarlos; conserva los datos guardados. */
+/** Acepta colores personalizados seguros, sin limitar la paleta del usuario. */
 export function colorCategoria(color?: string): string {
-  if (!color) return config.colorOtros;
-  const normalizado = color.toUpperCase();
-  const permitidos: readonly string[] = [...config.paleta, config.colorOtros];
-  if (permitidos.includes(normalizado)) return normalizado;
-  const anteriores = ['#2E7D55', '#D46191', '#2F73C9', '#DB6F36', '#169A8C', '#E3A21E', '#C8433E'];
-  const indice = anteriores.indexOf(normalizado);
-  return indice >= 0 ? config.paleta[indice] : config.colorOtros;
+  return color && /^#[0-9a-f]{6}$/i.test(color) ? color : config.colorOtros;
 }

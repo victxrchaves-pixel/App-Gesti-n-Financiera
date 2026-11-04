@@ -1,3 +1,4 @@
+import { CAMPOS_COLOR, esColor } from '../lib/colors';
 import { config } from '../config/neto.config';
 import { newId } from '../lib/id';
 import { db, type NetoDB } from './db';
@@ -14,8 +15,11 @@ export async function obtenerAjustes(d: NetoDB = db): Promise<Ajustes> {
 }
 
 export async function guardarAjustes(cambios: Partial<Omit<Ajustes, 'id'>>, d: NetoDB = db): Promise<void> {
-  const actual = await obtenerAjustes(d);
-  await d.ajustes.put({ ...actual, ...cambios, id: 'ajustes' });
+  for (const campo of CAMPOS_COLOR) if (cambios[campo] != null && !esColor(cambios[campo])) throw new Error('Color no válido. Usa un código hexadecimal como #336699.');
+  await d.transaction('rw', d.ajustes, async () => {
+    const actual = await obtenerAjustes(d);
+    await d.ajustes.put({ ...actual, ...cambios, id: 'ajustes' });
+  });
 }
 
 export function categoriasIniciales(): Categoria[] {
@@ -117,6 +121,7 @@ export async function borrarMovimiento(id: string, d: NetoDB = db): Promise<void
 // ── Categorías ─────────────────────────────────────────────────────────────
 
 export async function crearCategoria(nombre: string, tipo: TipoCategoria, color: string, d: NetoDB = db): Promise<string> {
+  if (!esColor(color)) throw new Error('Color no válido.');
   const id = newId();
   const orden = await d.categorias.where('tipo').equals(tipo).count();
   await d.categorias.add({ id, nombre: nombre.trim(), tipo, color, orden });
@@ -124,6 +129,7 @@ export async function crearCategoria(nombre: string, tipo: TipoCategoria, color:
 }
 
 export async function actualizarCategoria(id: string, cambios: Partial<Pick<Categoria, 'nombre' | 'color'>>, d: NetoDB = db): Promise<void> {
+  if (cambios.color !== undefined && !esColor(cambios.color)) throw new Error('Color no válido.');
   await d.categorias.update(id, cambios);
 }
 

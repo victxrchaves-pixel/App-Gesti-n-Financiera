@@ -1,3 +1,4 @@
+import { ColorPicker } from '../ui/ColorPicker';
 import { useRef, useState } from 'react';
 import { colorCategoria, config } from '../config/neto.config';
 import { cargarEjemplo } from '../db/ejemplo';
@@ -32,6 +33,7 @@ function FilaCategoria({ c, usos, onBorrar }: { c: Categoria; usos: number; onBo
       </div>
       {abierta && (
         <div className="swatches" style={{ padding: '4px 0 10px 36px' }}>
+          <ColorPicker etiqueta={`Color de ${c.nombre}`} valor={colorCategoria(c.color)} onChange={color => { void actualizarCategoria(c.id, { color }); }} restablecer={() => { void actualizarCategoria(c.id, { color: config.colorOtros }); }} textoRestablecer="Usar gris" />
           {COLORES.map((col) => (
             <button key={col} className="swatch" style={{ background: col }} aria-pressed={col === colorCategoria(c.color)} aria-label={`Color ${col}`} onClick={() => { void actualizarCategoria(c.id, { color: col }); setAbierta(false); }} />
           ))}
@@ -195,6 +197,17 @@ export function Ajustes() {
           </div>
         </section>
 
+        <section className="card">
+          <div className="card-header"><h2 className="card-title">Apariencia y colores</h2></div>
+          <p className="muted">La base es blanca, negra y gris. Añade los colores que quieras; cada elección se guarda en este navegador y en tus copias de seguridad.</p>
+          <div className="stack">
+            <ColorPicker etiqueta="Color de destaque" valor={ajustes.colorAcento ?? '#444444'} onChange={colorAcento => { void guardarAjustes({ colorAcento }); }} restablecer={() => { void guardarAjustes({ colorAcento: null }); }} textoRestablecer="Sin destaque de color" />
+            <ColorPicker etiqueta="Gráfico de ingresos" valor={ajustes.colorIngresos ?? ajustes.colorAcento ?? '#444444'} onChange={colorIngresos => { void guardarAjustes({ colorIngresos }); }} restablecer={() => { void guardarAjustes({ colorIngresos: null }); }} />
+            <ColorPicker etiqueta="Gráfico de gastos" valor={ajustes.colorGastos ?? '#858585'} onChange={colorGastos => { void guardarAjustes({ colorGastos }); }} restablecer={() => { void guardarAjustes({ colorGastos: null }); }} />
+            <ColorPicker etiqueta="Gráfico de inversiones" valor={ajustes.colorInversiones ?? ajustes.colorAcento ?? '#444444'} onChange={colorInversiones => { void guardarAjustes({ colorInversiones }); }} restablecer={() => { void guardarAjustes({ colorInversiones: null }); }} />
+          </div>
+          <p className="field-hint">El destaque se aplica a la navegación, tarjetas y controles. Los colores claros se oscurecen en textos y trazos para conservar el contraste. Los presupuestos se personalizan al crearlos o editarlos.</p>
+        </section>
         <section className="card">
           <div className="card-header"><h2 className="card-title">Categorías</h2></div>
           <div className="grid grid-2" style={{ gap: 32 }}>

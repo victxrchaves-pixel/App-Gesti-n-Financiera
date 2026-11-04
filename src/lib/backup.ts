@@ -1,3 +1,4 @@
+import { CAMPOS_COLOR, esColor, neutralizarInicial } from './colors';
 import { config } from '../config/neto.config';
 import { db, TABLAS, type NetoDB, type NombreTabla } from '../db/db';
 import { isISODate } from './dates';
@@ -53,6 +54,8 @@ export function validarCopia(entrada: unknown): ResultadoValidacion {
     }
     datos[t] = filas;
   }
+  for (const a of datos.ajustes as Record<string, unknown>[]) for (const campo of CAMPOS_COLOR) if (a[campo] != null && !esColor(a[campo])) return { ok: false, error: 'La copia contiene un color de apariencia no válido.' };
+  for (const c of datos.categorias as Record<string, unknown>[]) if (!esColor(c.color)) return { ok: false, error: 'La copia contiene un color de categoría no válido.' };
   for (const c of datos.cuentas as Record<string, unknown>[]) {
     if (!esEntero(c.saldoInicial)) return { ok: false, error: `La cuenta «${String(c.nombre)}» tiene un saldo no válido.` };
   }
@@ -95,7 +98,8 @@ export async function restaurarCopia(copia: CopiaNeto, d: NetoDB = db): Promise<
   await d.transaction('rw', d.tables, async () => {
     for (const t of TABLAS) {
       await d.table(t).clear();
-      await d.table(t).bulkAdd(copia.datos[t] ?? []);
+      const filas = copia.datos[t] ?? [];
+      await d.table(t).bulkAdd(t === 'categorias' && copia.version < 4 ? (filas as { nombre: string; color: string }[]).map(c => ({ ...c, color: neutralizarInicial(c) })) : filas);
     }
   });
 }

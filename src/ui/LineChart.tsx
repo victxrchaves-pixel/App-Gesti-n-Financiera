@@ -1,5 +1,4 @@
 import { useId, useRef, useState } from 'react';
-import { config } from '../config/neto.config';
 import { formatMoney } from '../lib/money';
 import { useWidth } from './useWidth';
 
@@ -46,7 +45,7 @@ export function LineChart({ datos, titulo }: { datos: PuntoMensual[]; titulo: st
   const ingresos = datos.map((d, i) => ({ x: x(i), y: y(d.ingresos) }));
   const gastos = datos.map((d, i) => ({ x: x(i), y: y(d.gastos) }));
   const lineaIngresos = trazado(ingresos);
-  const colores = config.graficos;
+  const colores = { ingresos: 'var(--chart-income)', gastos: 'var(--chart-expense)' };
   const compacto = new Intl.NumberFormat('es-ES', { notation: 'compact', maximumFractionDigits: 1 });
 
   return (
@@ -55,7 +54,7 @@ export function LineChart({ datos, titulo }: { datos: PuntoMensual[]; titulo: st
         <div className="chart-period">{dato.nombre}{dato.enCurso && <span> · En curso</span>}</div>
         <div className="chart-values">
           <div><span className="chart-key"><i style={{ background: colores.ingresos }} />Ingresos</span><strong>{formatMoney(dato.ingresos)}</strong></div>
-          <div><span className="chart-key"><i className="key-expense" />Gastos</span><strong>{formatMoney(dato.gastos)}</strong></div>
+          <div><span className="chart-key"><i className="key-expense" style={{ background: colores.gastos }} />Gastos</span><strong>{formatMoney(dato.gastos)}</strong></div>
         </div>
       </div>
       <div className="line-plot" ref={ref} role="group" aria-label={titulo}>

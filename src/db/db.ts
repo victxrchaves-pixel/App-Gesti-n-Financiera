@@ -1,3 +1,4 @@
+import { neutralizarInicial } from '../lib/colors';
 import Dexie, { type EntityTable } from 'dexie';
 import type { Ajustes, Categoria, Cuenta, Movimiento, Suscripcion, Inversion, HistorialCartera, Presupuesto } from './types';
 
@@ -27,6 +28,9 @@ export class NetoDB extends Dexie {
       historialCartera: 'id, fecha',
     });
     this.version(3).stores({ presupuestos: 'id, mes, categoriaId, &[mes+categoriaId]' });
+    this.version(4).stores({}).upgrade(async tx => {
+      await tx.table('categorias').toCollection().modify(c => { c.color = neutralizarInicial(c); });
+    });
   }
 }
 

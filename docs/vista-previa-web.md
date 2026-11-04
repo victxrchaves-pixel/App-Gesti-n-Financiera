@@ -92,3 +92,18 @@ faltan, sin sobrescribir límites existentes ni copiar gastos. Eliminar un lími
 conserva los movimientos. Al borrar una categoría desde Ajustes, sus límites se
 trasladan a la categoría de destino y se suman por mes, junto con sus movimientos.
 Esta operación y las copias entre meses son transaccionales.
+
+## Apariencia personalizable
+
+La interfaz, categorías iniciales y gráficos son neutros por defecto. Ajustes →
+Apariencia y colores permite elegir cualquier hexadecimal RGB para el destaque,
+ingresos, gastos e inversiones. Las categorías tienen selector libre y los
+presupuestos pueden heredar su color o guardar uno propio, que se copia al mes
+siguiente. Quitar el destaque general conserva los colores independientes.
+
+Las variables del tema se actualizan desde IndexedDB sin recargar. Se generan
+tonos claros para superficies y tonos con contraste mínimo 4,5:1 sobre blanco
+para texto/trazos. Los indicadores siguen incluyendo etiquetas y cifras.
+Las copias v4 conservan todas las elecciones; se admiten copias anteriores.
+La migración v4 neutraliza solo los antiguos colores iniciales de categorías
+que conservan su nombre y color originales; conserva otras combinaciones.

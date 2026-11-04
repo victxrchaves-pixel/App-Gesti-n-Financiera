@@ -1,3 +1,4 @@
+import { Theme } from './ui/Theme';
 import { useAjustes } from './db/hooks';
 import { Shell } from './layout/Shell';
 import { esEscritorio, esMac } from './lib/platform';
@@ -47,6 +48,7 @@ function Pantalla() {
 export function App() {
   return (
     <ToastProvider>
+      <Theme />
       <ConfirmProvider>
         <Pantalla />
       </ConfirmProvider>
