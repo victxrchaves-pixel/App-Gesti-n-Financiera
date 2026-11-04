@@ -1,27 +1,26 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 
 export function Modal({ titulo, onClose, children, pequeno = false }: { titulo: string; onClose: () => void; children: ReactNode; pequeno?: boolean }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    const primero = ref.current?.querySelector<HTMLElement>('[data-autofocus]') ?? ref.current?.querySelector<HTMLElement>('input, select, button');
+    const dialog = ref.current;
+    dialog?.showModal();
+    const primero = dialog?.querySelector<HTMLElement>('[data-autofocus]') ?? dialog?.querySelector<HTMLElement>('input, select, button');
     primero?.focus();
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+    return () => dialog?.close();
+  }, []);
 
   return (
-    <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={`modal${pequeno ? ' modal-sm' : ''}`} role="dialog" aria-modal="true" aria-label={titulo} ref={ref}>
-        <h2 className="modal-title">{titulo}</h2>
-        {children}
-      </div>
-    </div>
+    <dialog className={`modal${pequeno ? ' modal-sm' : ''}`} aria-label={titulo} ref={ref}
+      onCancel={e => { e.preventDefault(); onClose(); }}
+      onClick={e => {
+        if (e.target !== e.currentTarget) return;
+        const r = e.currentTarget.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) onClose();
+      }}>
+      <h2 className="modal-title">{titulo}</h2>
+      {children}
+    </dialog>
   );
 }
 

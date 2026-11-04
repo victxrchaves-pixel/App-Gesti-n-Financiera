@@ -9,10 +9,13 @@ const PERSONAL: { ruta: Ruta; texto: string }[] = [
   { ruta: 'movimientos', texto: 'Movimientos' },
   { ruta: 'presupuestos', texto: 'Presupuestos' },
   { ruta: 'metas', texto: 'Metas' },
+  { ruta: 'suscripciones', texto: 'Suscripciones' },
+  { ruta: 'inversion', texto: 'Inversión' },
   { ruta: 'cuentas', texto: 'Cuentas' },
 ];
 
 const NEGOCIO: { ruta: Ruta; texto: string }[] = [
+  { ruta: 'suscripciones-negocio', texto: 'Suscripciones' },
   { ruta: 'facturas', texto: 'Facturas' },
   { ruta: 'gastos', texto: 'Gastos' },
   { ruta: 'impuestos', texto: 'Impuestos' },
@@ -65,6 +68,8 @@ export function Shell({ ruta, children }: { ruta: Ruta; children: ReactNode }) {
       <dialog ref={menu} className="mobile-menu" aria-labelledby="menu-title" onClick={e => { if (e.target === e.currentTarget) menu.current?.close(); }}>
         <div className="card-header"><h2 id="menu-title" className="card-title">Explora Neto</h2><button type="button" className="btn btn-secondary btn-icon" aria-label="Cerrar menú" onClick={() => menu.current?.close()}><Icon name="cerrar" size={18} /></button></div>
         <nav aria-label="Más secciones" onClick={e => { if ((e.target as HTMLElement).closest('a')) menu.current?.close(); }}>
+          <Enlace ruta="suscripciones" texto="Suscripciones" activa={ruta === 'suscripciones'} />
+          <Enlace ruta="inversion" texto="Inversión" activa={ruta === 'inversion'} />
           <Enlace ruta="presupuestos" texto="Presupuestos" activa={ruta === 'presupuestos'} />
           <Enlace ruta="metas" texto="Metas" activa={ruta === 'metas'} />
           {ajustes?.autonomo && <><div className="nav-section">Negocio</div>{NEGOCIO.map(e => <Enlace key={e.ruta} {...e} activa={ruta === e.ruta} />)}</>}

@@ -3,9 +3,10 @@ import { useEffect, useState } from 'react';
 /** Navegación por "#/ruta": funciona igual en el navegador y en la app de escritorio. */
 export type Ruta =
   | 'inicio' | 'movimientos' | 'presupuestos' | 'metas' | 'cuentas'
+  | 'suscripciones' | 'suscripciones-negocio' | 'inversion'
   | 'facturas' | 'gastos' | 'impuestos' | 'ajustes';
 
-const RUTAS: Ruta[] = ['inicio', 'movimientos', 'presupuestos', 'metas', 'cuentas', 'facturas', 'gastos', 'impuestos', 'ajustes'];
+const RUTAS: Ruta[] = ['inicio', 'suscripciones', 'suscripciones-negocio', 'inversion', 'movimientos', 'presupuestos', 'metas', 'cuentas', 'facturas', 'gastos', 'impuestos', 'ajustes'];
 
 function leer(): Ruta {
   const r = window.location.hash.replace(/^#\/?/, '').split('?')[0] as Ruta;

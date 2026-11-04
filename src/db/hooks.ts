@@ -33,3 +33,7 @@ export function useMapaCategorias(): Map<string, Categoria> {
   const categorias = useCategorias();
   return useMemo(() => new Map(categorias.map((c) => [c.id, c])), [categorias]);
 }
+
+export function useSuscripciones() { return useLiveQuery(() => db.suscripciones.orderBy('proximaFecha').toArray(), [], []); }
+export function useInversiones() { return useLiveQuery(() => db.inversiones.toArray(), [], []); }
+export function useHistorialCartera() { return useLiveQuery(() => db.historialCartera.orderBy('fecha').toArray(), [], []); }

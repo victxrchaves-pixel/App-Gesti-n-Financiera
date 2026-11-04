@@ -1,5 +1,8 @@
 /** Iconos de trazo fino dibujados a mano (sin emojis ni librerías). */
 const paths: Record<string, string> = {
+  suscripciones: 'M4 7h16v13H4zM4 10h16M8 4v5M16 4v5M9 15h6',
+  'suscripciones-negocio': 'M4 7h16v13H4zM4 10h16M8 4v5M16 4v5M9 15h6',
+  inversion: 'M4 19V5M4 19h16M7 14l4-4 4 2 5-7M16 5h4v4',
   inicio: 'M3.5 10.5 12 4l8.5 6.5V19a1.5 1.5 0 0 1-1.5 1.5h-4v-6h-6v6H5A1.5 1.5 0 0 1 3.5 19z',
   movimientos: 'M7 4v16m0 0-3.5-3.5M7 20l3.5-3.5M17 20V4m0 0-3.5 3.5M17 4l3.5 3.5',
   presupuestos: 'M12 3a9 9 0 1 0 9 9h-9z M14.5 3.3A9 9 0 0 1 20.7 9.5H14.5z',

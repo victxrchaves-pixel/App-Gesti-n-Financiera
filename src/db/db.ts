@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Ajustes, Categoria, Cuenta, Movimiento } from './types';
+import type { Ajustes, Categoria, Cuenta, Movimiento, Suscripcion, Inversion, HistorialCartera } from './types';
 
 /** Base de datos local (IndexedDB). Los datos nunca salen del ordenador. */
 export class NetoDB extends Dexie {
@@ -7,6 +7,10 @@ export class NetoDB extends Dexie {
   movimientos!: EntityTable<Movimiento, 'id'>;
   categorias!: EntityTable<Categoria, 'id'>;
   ajustes!: EntityTable<Ajustes, 'id'>;
+
+  suscripciones!: EntityTable<Suscripcion, 'id'>;
+  inversiones!: EntityTable<Inversion, 'id'>;
+  historialCartera!: EntityTable<HistorialCartera, 'id'>;
 
   constructor(nombre = 'neto') {
     super(nombre);
@@ -16,11 +20,16 @@ export class NetoDB extends Dexie {
       categorias: 'id, tipo, orden',
       ajustes: 'id',
     });
+    this.version(2).stores({
+      suscripciones: 'id, ambito, estado, categoria, proximaFecha',
+      inversiones: 'id, tipo, activoId',
+      historialCartera: 'id, fecha',
+    });
   }
 }
 
 export const db = new NetoDB();
 
 /** Tablas incluidas en la copia de seguridad. Añade aquí las nuevas tablas. */
-export const TABLAS = ['cuentas', 'movimientos', 'categorias', 'ajustes'] as const;
+export const TABLAS = ['cuentas', 'movimientos', 'categorias', 'ajustes', 'suscripciones', 'inversiones', 'historialCartera'] as const;
 export type NombreTabla = (typeof TABLAS)[number];

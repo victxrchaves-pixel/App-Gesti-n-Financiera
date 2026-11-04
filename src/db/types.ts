@@ -52,3 +52,40 @@ export interface Ajustes {
   autonomo: boolean;
   inicioCompletado: boolean;
 }
+
+export interface Suscripcion {
+  id: string;
+  nombre: string;
+  categoria: string;
+  ambito: Ambito;
+  importe: number;
+  periodo: 'mensual' | 'trimestral' | 'anual';
+  proximaFecha: string;
+  /** Mantiene el día original (p. ej. 31) al pasar por meses más cortos. */
+  diaCobro: number;
+  estado: 'activa' | 'pausada' | 'cancelada';
+  nota: string;
+}
+
+export interface Inversion {
+  id: string;
+  nombre: string;
+  tipo: 'cripto' | 'divisa' | 'accion' | 'fondo' | 'otra';
+  activoId: string | null;
+  /** Unidades decimales; los importes totales sí son céntimos enteros. */
+  cantidad: number;
+  coste: number;
+  /** Precio por unidad en EUR, con precisión para divisas y cripto. */
+  precioEUR: number;
+  precioFecha: string;
+  fuente: string;
+  nota: string;
+}
+
+export interface HistorialCartera {
+  id: string;
+  fecha: string;
+  total: number;
+  coste: number;
+  valores: Record<string, number>;
+}

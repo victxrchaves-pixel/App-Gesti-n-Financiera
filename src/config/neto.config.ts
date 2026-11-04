@@ -69,6 +69,16 @@ export const config = {
     maxCategoriasDona: 6,
   },
 
+  suscripciones: {
+    categorias: ['Entretenimiento', 'Software', 'Asociaciones', 'Formación', 'Salud y deporte', 'Servicios', 'Otros'],
+    periodos: [{ id: 'mensual', nombre: 'Mensual', meses: 1 }, { id: 'trimestral', nombre: 'Trimestral', meses: 3 }, { id: 'anual', nombre: 'Anual', meses: 12 }],
+    avisoDias: 7,
+  },
+  inversiones: {
+    tipos: [{ id: 'cripto', nombre: 'Criptomoneda' }, { id: 'divisa', nombre: 'Divisa' }, { id: 'accion', nombre: 'Acción' }, { id: 'fondo', nombre: 'Fondo / ETF' }, { id: 'otra', nombre: 'Otra inversión' }],
+    antiguedadAvisoHoras: 48,
+  },
+
   presupuestos: {
     /** Porcentaje a partir del cual se avisa. */
     avisoPorcentaje: 80,
@@ -97,7 +107,7 @@ export const config = {
 
   copiaSeguridad: {
     /** Versión del formato del archivo de copia. Súbela si cambia la estructura de los datos. */
-    version: 1,
+    version: 2,
     prefijoArchivo: 'neto-copia',
   },
 } as const;

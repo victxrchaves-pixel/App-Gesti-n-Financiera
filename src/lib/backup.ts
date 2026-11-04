@@ -1,6 +1,9 @@
 import { config } from '../config/neto.config';
 import { db, TABLAS, type NetoDB, type NombreTabla } from '../db/db';
 import { isISODate } from './dates';
+import { validarSuscripcion } from './subscriptions';
+import { validarInversion } from './investments';
+import type { Inversion, Suscripcion } from '../db/types';
 
 /** Formato del archivo de copia de seguridad. */
 export interface CopiaNeto {
@@ -40,10 +43,12 @@ export function validarCopia(entrada: unknown): ResultadoValidacion {
   if (!esObjeto(entrada.datos)) return { ok: false, error: 'La copia está incompleta.' };
   const datos = {} as Record<NombreTabla, unknown[]>;
   for (const t of TABLAS) {
+    const ids = new Set<string>();
     const filas = entrada.datos[t] ?? [];
     if (!Array.isArray(filas)) return { ok: false, error: `La tabla «${t}» de la copia no es válida.` };
     for (const fila of filas) {
-      if (!esObjeto(fila) || typeof fila.id !== 'string') return { ok: false, error: `Hay un registro sin identificador en «${t}».` };
+      if (!esObjeto(fila) || typeof fila.id !== 'string' || !fila.id || ids.has(fila.id)) return { ok: false, error: `Hay un registro sin identificador en «${t}».` };
+      ids.add(fila.id);
     }
     datos[t] = filas;
   }
@@ -53,6 +58,19 @@ export function validarCopia(entrada: unknown): ResultadoValidacion {
   for (const m of datos.movimientos as Record<string, unknown>[]) {
     if (!esEntero(m.importe) || (m.importe as number) <= 0 || typeof m.fecha !== 'string' || !isISODate(m.fecha)) {
       return { ok: false, error: 'Hay movimientos con importe o fecha no válidos.' };
+    }
+  }
+  for (const s of datos.suscripciones) {
+    const error = validarSuscripcion(s as Suscripcion);
+    if (error) return { ok: false, error: `Suscripción no válida: ${error}` };
+  }
+  for (const i of datos.inversiones) {
+    const error = validarInversion(i as Inversion);
+    if (error) return { ok: false, error: `Inversión no válida: ${error}` };
+  }
+  for (const h of datos.historialCartera as Record<string, unknown>[]) {
+    if (typeof h.fecha !== 'string' || !Number.isFinite(Date.parse(h.fecha)) || !esEntero(h.total) || (h.total as number) < 0 || !esEntero(h.coste) || (h.coste as number) < 0 || !esObjeto(h.valores) || !Object.values(h.valores).every(n => esEntero(n) && (n as number) >= 0)) {
+      return { ok: false, error: 'El historial de inversiones contiene una valoración no válida.' };
     }
   }
   return { ok: true, copia: { app: 'neto', version: entrada.version as number, exportadaEn: String(entrada.exportadaEn ?? ''), datos } };
@@ -70,5 +88,5 @@ export async function restaurarCopia(copia: CopiaNeto, d: NetoDB = db): Promise<
 
 export function resumenCopia(copia: CopiaNeto): string {
   const n = (t: NombreTabla) => copia.datos[t]?.length ?? 0;
-  return `${n('cuentas')} cuentas, ${n('movimientos')} movimientos y ${n('categorias')} categorías`;
+  return `${n('cuentas')} cuentas, ${n('movimientos')} movimientos y ${n('categorias')} categorías, ${n('suscripciones')} suscripciones y ${n('inversiones')} inversiones`;
 }

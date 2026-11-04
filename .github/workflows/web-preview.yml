@@ -21,6 +21,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Actualizar cotizaciones públicas
+        run: python3 scripts/update-quotes.py
       - run: npm ci
       - run: npm test
       - name: Compilar para la ruta del repositorio
