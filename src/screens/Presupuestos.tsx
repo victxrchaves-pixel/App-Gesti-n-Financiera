@@ -1,0 +1,89 @@
+import { useState } from 'react';
+import { useCategorias, useCuentas, useMovimientos, usePresupuestos } from '../db/hooks';
+import type { Categoria, Movimiento, Presupuesto } from '../db/types';
+import { borrarPresupuesto, copiarPresupuestos, guardarPresupuesto } from '../db/budgets';
+import { estadoPresupuesto, gastosPresupuesto, mesValido, resumenPresupuestos, seriePresupuesto } from '../lib/budgets';
+import { addMonths, monthKey, monthLabel, todayISO } from '../lib/dates';
+import { formatMoney } from '../lib/money';
+import { config } from '../config/neto.config';
+import { PageHeader } from '../layout/Shell';
+import { AmountInput, useAmountField } from '../ui/AmountInput';
+import { Icon } from '../ui/Icon';
+import { Modal, useConfirm, useToast } from '../ui/Modal';
+import { BudgetChart } from '../ui/BudgetChart';
+import { MovimientoForm } from '../ui/MovimientoForm';
+import { MovimientoRow } from '../ui/MovimientoRow';
+
+function Formulario({ mes, categorias, actual, cerrar }: { mes: string; categorias: Categoria[]; actual?: Presupuesto; cerrar: () => void }) {
+  const [categoriaId, setCategoriaId] = useState(actual?.categoriaId ?? categorias[0]?.id ?? '');
+  const importe = useAmountField(actual?.limite);
+  const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
+  const confirmar = useConfirm(); const avisar = useToast();
+  return <Modal titulo={actual ? 'Editar presupuesto' : 'Nuevo presupuesto'} onClose={cerrar}><form className="modal-body" onSubmit={async e => {
+    e.preventDefault(); if (busy) return; setBusy(true); setError('');
+    try { await guardarPresupuesto({ mes, categoriaId, limite: importe.cents ?? 0 }, actual?.id); avisar('Presupuesto guardado'); cerrar(); }
+    catch (e) { setError(e instanceof Error ? e.message : 'No se pudo guardar.'); } finally { setBusy(false); }
+  }}>
+    <p className="field-hint">Finanzas personales · {monthLabel(mes)}</p>
+    <div className="field"><label className="field-label" htmlFor="budget-category">Categoría</label><select id="budget-category" className="select" value={categoriaId} onChange={e => setCategoriaId(e.target.value)} required data-autofocus>{categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select></div>
+    <div className="field"><label className="field-label" htmlFor="budget-limit">Límite mensual</label><AmountInput id="budget-limit" texto={importe.texto} onChange={importe.setTexto} grande /><span className="field-hint">Este límite se aplica solo al mes seleccionado. Podrás copiarlo a otros meses.</span></div>
+    <p className="field-hint">Los gastos de esta categoría se suman automáticamente desde Movimientos. Crear un presupuesto no mueve dinero.</p>
+    {error && <div className="form-error" role="alert">{error}</div>}
+    <div className="modal-footer">{actual && <button type="button" className="btn btn-ghost left" disabled={busy} onClick={async () => {
+      if (!await confirmar({ titulo: 'Eliminar presupuesto', mensaje: 'Se eliminará el límite de esta categoría para este mes. Tus movimientos se conservarán.', confirmar: 'Eliminar', peligro: true })) return;
+      setBusy(true); try { await borrarPresupuesto(actual.id); avisar('Presupuesto eliminado'); cerrar(); } catch { setError('No se pudo eliminar.'); } finally { setBusy(false); }
+    }}>Eliminar</button>}<button className="btn btn-ghost" type="button" onClick={cerrar}>Cancelar</button><button className="btn btn-primary" disabled={busy || !categorias.length}>{busy ? 'Guardando…' : 'Guardar'}</button></div>
+  </form></Modal>;
+}
+
+function PlanMes({ mes }: { mes: string }) {
+  const categorias = useCategorias(); const cuentas = useCuentas(); const movimientos = useMovimientos();
+  const presupuestos = usePresupuestos(mes).filter(p => p.mes === mes);
+  const anterior = addMonths(mes, -1);
+  const previos = usePresupuestos(anterior).filter(p => p.mes === anterior);
+  const [form, setForm] = useState<{ actual?: Presupuesto; categoriaId?: string } | null>(null);
+  const [detalle, setDetalle] = useState<string | null>(null);
+  const [movimiento, setMovimiento] = useState<{ actual?: Movimiento } | null>(null);
+  const [seleccion, setSeleccion] = useState(''); const [busy, setBusy] = useState(false); const [error, setError] = useState('');
+  const confirmar = useConfirm(); const avisar = useToast();
+  const hoy = todayISO(); const gastos = gastosPresupuesto(movimientos, cuentas, mes, hoy);
+  const resumen = resumenPresupuestos(presupuestos, gastos);
+  const mapa = new Map(categorias.map(c => [c.id, c])); const mapaCuentas = new Map(cuentas.map(c => [c.id, c]));
+  const disponibles = categorias.filter(c => c.tipo === 'gasto' && !presupuestos.some(p => p.categoriaId === c.id));
+  const categoriasForm = categorias.filter(c => c.tipo === 'gasto' && (c.id === form?.actual?.categoriaId || disponibles.some(d => d.id === c.id)));
+  if (form?.categoriaId) categoriasForm.sort((a, b) => Number(b.id === form.categoriaId) - Number(a.id === form.categoriaId));
+  const seleccionado = presupuestos.find(p => p.categoriaId === seleccion);
+  const cubiertos = new Set(presupuestos.map(p => p.categoriaId));
+  const datosGrafico = gastos.filter(g => g.categoriaId && (seleccionado ? g.categoriaId === seleccionado.categoriaId : cubiertos.has(g.categoriaId)));
+  const serie = seriePresupuesto(datosGrafico, mes, hoy);
+  const avisos = resumen.filas.filter(p => p.gastado / p.limite * 100 >= config.presupuestos.avisoPorcentaje);
+  const sinLimite = new Map<string, number>();
+  for (const g of gastos) if (!g.categoriaId || !cubiertos.has(g.categoriaId)) sinLimite.set(g.categoriaId ?? '', (sinLimite.get(g.categoriaId ?? '') ?? 0) + g.importe);
+  const movimientosDetalle = gastos.filter(g => (g.categoriaId ?? '') === detalle).sort((a, b) => b.fecha.localeCompare(a.fecha));
+  return <div className="stack">
+    <div className="budget-actions"><span className="field-hint">Un plan para cada mes, a tu ritmo.</span><div><button className="btn btn-secondary" disabled={busy || !previos.some(p => !cubiertos.has(p.categoriaId))} onClick={async () => {
+      if (!await confirmar({ titulo: 'Copiar presupuestos', mensaje: `Se añadirán a ${monthLabel(mes)} los límites de ${monthLabel(anterior)} que todavía no existan. Se conservarán los límites actuales y no se copiarán movimientos.`, confirmar: 'Copiar límites' })) return;
+      setBusy(true); setError(''); try { const n = await copiarPresupuestos(anterior, mes); avisar(`${n} presupuestos copiados`); } catch (e) { setError(e instanceof Error ? e.message : 'No se pudo copiar.'); } finally { setBusy(false); }
+    }}>Copiar mes anterior</button><button className="btn btn-primary" disabled={!disponibles.length} onClick={() => setForm({})}><Icon name="mas" size={16} />Nuevo presupuesto</button></div></div>
+    {error && <div className="finance-notice" role="alert">{error}</div>}
+    <div className="grid grid-3"><section className="card card-inverse"><div className="eyebrow">Tu plan del mes</div><div className="mid-number">{formatMoney(resumen.limite)}</div><p className="field-hint">{presupuestos.length} categorías con límite</p></section><section className="card"><div className="eyebrow">Gastado del plan</div><div className="mid-number">{formatMoney(resumen.gastado)}</div><p className="field-hint">Gastos de las categorías con presupuesto.</p></section><section className="card card-highlight"><div className="eyebrow">{resumen.restante < 0 ? 'Por encima del plan' : 'Disponible del plan'}</div><div className="mid-number">{formatMoney(Math.abs(resumen.restante))}</div><p className="field-hint">{resumen.restante < 0 ? 'Los gastos superan la suma de tus límites.' : 'Límites menos gastos registrados.'}</p></section></div>
+    {avisos.length > 0 && <div className="finance-notice" role="status"><strong>{avisos.length} {avisos.length === 1 ? 'categoría necesita' : 'categorías necesitan'} atención.</strong> {avisos.map(p => `${mapa.get(p.categoriaId)?.nombre ?? 'Categoría'}: ${estadoPresupuesto(p.gastado, p.limite).toLowerCase()}`).join(' · ')}.</div>}
+    {!presupuestos.length ? <section className="card"><div className="empty"><span className="finance-avatar"><Icon name="presupuestos" /></span><h2 className="empty-title">Dale un destino a tu dinero</h2><p>Define cuánto quieres gastar en casa, comida, ocio o cualquier otra categoría este mes.</p>{!disponibles.length && <a className="btn btn-secondary" href="#/ajustes">Crear categorías en Ajustes</a>}<p className="field-hint">Puedes empezar con una categoría y añadir las demás después.</p></div></section> : <>
+      <section className="card"><div className="card-header"><div><h2 className="card-title">El ritmo de tus gastos</h2><div className="card-sub">{seleccionado ? mapa.get(seleccionado.categoriaId)?.nombre : 'Categorías con presupuesto'} · {monthLabel(mes)}</div></div><select className="select finance-select" aria-label="Categoría del gráfico" value={seleccionado?.categoriaId ?? ''} onChange={e => setSeleccion(e.target.value)}><option value="">Todo el plan</option>{presupuestos.map(p => <option key={p.id} value={p.categoriaId}>{mapa.get(p.categoriaId)?.nombre ?? 'Categoría'}</option>)}</select></div><BudgetChart key={seleccionado?.id ?? 'total'} puntos={serie.puntos} dias={serie.dias} limite={seleccionado?.limite ?? resumen.limite} /></section>
+      <section><div className="card-header"><h2 className="card-title">Tus límites por categoría</h2><span className="field-hint">Aviso a partir del {config.presupuestos.avisoPorcentaje} %</span></div><div className="budget-grid">{resumen.filas.sort((a, b) => (mapa.get(a.categoriaId)?.orden ?? 0) - (mapa.get(b.categoriaId)?.orden ?? 0)).map(p => {
+        const nombre = mapa.get(p.categoriaId)?.nombre ?? 'Categoría'; const restante = p.limite - p.gastado; const estado = estadoPresupuesto(p.gastado, p.limite);
+        return <article className="card budget-card" key={p.id} aria-label={`Presupuesto de ${nombre}`}><div className="budget-card-top"><span className="finance-avatar">{nombre.slice(0, 2).toUpperCase()}</span><h3>{nombre}</h3><button className="btn btn-ghost btn-sm" aria-label={`Editar presupuesto de ${nombre}`} onClick={() => setForm({ actual: p })}>Editar</button></div><div className="budget-remaining"><strong>{formatMoney(Math.abs(restante))}</strong><span>{restante < 0 ? 'por encima del límite' : 'disponibles'}</span></div><div className="budget-figures"><span>Gastado <b>{formatMoney(p.gastado)}</b></span><span>Límite <b>{formatMoney(p.limite)}</b></span></div><div className="budget-card-bottom"><span className={`budget-status${estado !== 'Dentro del límite' ? ' budget-status-attention' : ''}`}><i />{estado} · {(p.gastado / p.limite * 100).toLocaleString('es-ES', { maximumFractionDigits: 1 })} %</span><button className="btn btn-ghost btn-sm" aria-label={`Ver gastos de ${nombre}`} onClick={() => setDetalle(p.categoriaId)}>Ver gastos</button></div></article>;
+      })}</div></section>
+    </>}
+    {sinLimite.size > 0 && <section className="card"><div className="card-header"><div><h2 className="card-title">Gastos sin presupuesto</h2><div className="card-sub">No están incluidos en el disponible del plan.</div></div><strong>{formatMoney(resumen.sinPresupuesto)}</strong></div>{[...sinLimite].map(([id, importe]) => <div className="budget-unplanned" key={id}><button className="btn btn-ghost" onClick={() => setDetalle(id)}>{mapa.get(id)?.nombre ?? 'Sin categoría'}</button><strong>{formatMoney(importe)}</strong>{disponibles.some(c => c.id === id) && <button className="btn btn-secondary btn-sm" aria-label={`Asignar límite a ${mapa.get(id)?.nombre}`} onClick={() => setForm({ categoriaId: id })}>Asignar límite</button>}</div>)}</section>}
+    <p className="field-hint">Se cuentan los gastos de tus cuentas personales, incluidas las archivadas, con fecha hasta hoy dentro del mes seleccionado. Las transferencias y los gastos del negocio quedan fuera. Una suscripción cuenta cuando registras su pago en Movimientos. Los avisos se muestran dentro de la app.</p>
+    {form && <Formulario mes={mes} categorias={categoriasForm} actual={form.actual} cerrar={() => setForm(null)} />}
+    {detalle !== null && <Modal titulo={`Gastos de ${mapa.get(detalle)?.nombre ?? 'Sin categoría'}`} onClose={() => setDetalle(null)}><div className="modal-body"><p className="field-hint">{monthLabel(mes)} · {formatMoney(movimientosDetalle.reduce((s, m) => s + m.importe, 0))}</p>{movimientosDetalle.length ? <div className="list">{movimientosDetalle.map(m => <MovimientoRow key={m.id} m={m} categorias={mapa} cuentas={mapaCuentas} onClick={() => { setDetalle(null); setMovimiento({ actual: m }); }} />)}</div> : <div className="empty">Todavía no hay gastos en esta categoría este mes.</div>}<div className="modal-footer"><button className="btn btn-secondary" onClick={() => setDetalle(null)}>Cerrar</button></div></div></Modal>}
+    {movimiento && <MovimientoForm movimiento={movimiento.actual} onClose={() => setMovimiento(null)} />}
+  </div>;
+}
+
+export function Presupuestos() {
+  const [mes, setMes] = useState(monthKey(todayISO()));
+  return <><PageHeader titulo="Presupuestos" subtitulo="Haz espacio para lo que importa." /><div className="toolbar budget-toolbar"><div className="month-nav"><button className="btn btn-ghost btn-icon" disabled={mes <= '1900-01'} onClick={() => setMes(addMonths(mes, -1))} aria-label="Mes anterior"><Icon name="izquierda" size={18} /></button><label className="sr-only" htmlFor="budget-month">Mes del presupuesto</label><input id="budget-month" className="input" type="month" value={mes} min="1900-01" max="9999-12" onChange={e => { if (mesValido(e.target.value) && e.target.value >= '1900-01') setMes(e.target.value); }} /><button className="btn btn-ghost btn-icon" disabled={mes >= '9999-12'} onClick={() => setMes(addMonths(mes, 1))} aria-label="Mes siguiente"><Icon name="derecha" size={18} /></button></div>{mes !== monthKey(todayISO()) && <button className="btn btn-ghost" onClick={() => setMes(monthKey(todayISO()))}>Volver a este mes</button>}<span className="budget-scope">Finanzas personales</span></div><PlanMes key={mes} mes={mes} /></>;
+}

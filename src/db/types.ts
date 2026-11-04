@@ -89,3 +89,11 @@ export interface HistorialCartera {
   coste: number;
   valores: Record<string, number>;
 }
+
+/** Límite personal por categoría y mes, en céntimos. */
+export interface Presupuesto {
+  id: string;
+  mes: string;
+  categoriaId: string;
+  limite: number;
+}

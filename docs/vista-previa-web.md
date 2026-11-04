@@ -71,3 +71,24 @@ La publicación periódica no modifica las posiciones guardadas en cada navegado
 se actualizan al abrir Inversión o pulsar Actualizar precios. La siguiente visita
 añade una valoración al histórico local; no se inventan valoraciones para los días
 que no se abrió la app.
+
+## Presupuestos personales
+
+La base v3 añade límites por categoría y mes, con índice único y copias v3. Las
+copias v1/v2 siguen siendo válidas; al restaurarlas, Presupuestos queda vacío.
+La pantalla `#/presupuestos` cuenta gastos de cuentas personales (también
+archivadas) fechados dentro del mes seleccionado y hasta el día local actual.
+Excluye ingresos, transferencias, negocio y movimientos futuros. Las cuotas de
+suscripción cuentan cuando su pago está registrado como gasto en Movimientos.
+
+El disponible es la suma de límites menos el gasto en categorías presupuestadas;
+los gastos sin límite se muestran aparte. Los avisos del 80 %, límite alcanzado y
+exceso son visibles dentro de la app. El gráfico acumula gastos diarios, con una
+referencia horizontal al límite y sin trazar días futuros; admite selección por
+teclado y táctil. El detalle de cada categoría permite editar sus movimientos.
+
+Cada mes conserva sus límites. Copiar el anterior solo añade categorías que
+faltan, sin sobrescribir límites existentes ni copiar gastos. Eliminar un límite
+conserva los movimientos. Al borrar una categoría desde Ajustes, sus límites se
+trasladan a la categoría de destino y se suman por mes, junto con sus movimientos.
+Esta operación y las copias entre meses son transaccionales.

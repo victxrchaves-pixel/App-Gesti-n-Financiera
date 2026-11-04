@@ -132,13 +132,23 @@ export async function actualizarCategoria(id: string, cambios: Partial<Pick<Cate
  * No deja borrar la última categoría de un tipo.
  */
 export async function borrarCategoria(id: string, destinoId?: string, d: NetoDB = db): Promise<void> {
-  await d.transaction('rw', d.categorias, d.movimientos, async () => {
+  await d.transaction('rw', d.categorias, d.movimientos, d.presupuestos, async () => {
     const cat = await d.categorias.get(id);
     if (!cat) return;
     const hermanas = (await d.categorias.where('tipo').equals(cat.tipo).toArray()).filter((c) => c.id !== id);
     if (hermanas.length === 0) throw new Error('Tiene que quedar al menos una categoría de este tipo.');
     const porDefecto = hermanas.find((c) => c.nombre === config.categoriaPorDefecto[cat.tipo]) ?? hermanas[hermanas.length - 1];
     const destino = destinoId ?? porDefecto.id;
+    if (!hermanas.some(c => c.id === destino)) throw new Error('Elige otra categoría del mismo tipo.');
+    for (const p of await d.presupuestos.where('categoriaId').equals(id).toArray()) {
+      const receptor = await d.presupuestos.where('[mes+categoriaId]').equals([p.mes, destino]).first();
+      if (receptor) {
+        const limite = receptor.limite + p.limite;
+        if (!Number.isSafeInteger(limite)) throw new Error('El presupuesto combinado supera el importe permitido.');
+        await d.presupuestos.update(receptor.id, { limite });
+        await d.presupuestos.delete(p.id);
+      } else await d.presupuestos.update(p.id, { categoriaId: destino });
+    }
     await d.movimientos.where('categoriaId').equals(id).modify({ categoriaId: destino });
     await d.categorias.delete(id);
   });

@@ -3,7 +3,8 @@ import { db, TABLAS, type NetoDB, type NombreTabla } from '../db/db';
 import { isISODate } from './dates';
 import { validarSuscripcion } from './subscriptions';
 import { validarInversion } from './investments';
-import type { Inversion, Suscripcion } from '../db/types';
+import type { Inversion, Suscripcion, Presupuesto } from '../db/types';
+import { validarPresupuesto } from './budgets';
 
 /** Formato del archivo de copia de seguridad. */
 export interface CopiaNeto {
@@ -73,6 +74,19 @@ export function validarCopia(entrada: unknown): ResultadoValidacion {
       return { ok: false, error: 'El historial de inversiones contiene una valoración no válida.' };
     }
   }
+  const claves = new Set<string>();
+  const totales = new Map<string, number>();
+  for (const p of datos.presupuestos as Presupuesto[]) {
+    const error = validarPresupuesto(p);
+    if (error) return { ok: false, error: `Presupuesto no válido: ${error}` };
+    const clave = JSON.stringify([p.mes, p.categoriaId]);
+    if (claves.has(clave)) return { ok: false, error: 'Hay presupuestos duplicados para la misma categoría y mes.' };
+    claves.add(clave);
+    if (!(datos.categorias as Record<string, unknown>[]).some(c => c.id === p.categoriaId && c.tipo === 'gasto')) return { ok: false, error: 'Un presupuesto usa una categoría de gasto que no existe en la copia.' };
+    const total = (totales.get(p.mes) ?? 0) + p.limite;
+    if (!Number.isSafeInteger(total)) return { ok: false, error: 'El presupuesto mensual supera el importe permitido.' };
+    totales.set(p.mes, total);
+  }
   return { ok: true, copia: { app: 'neto', version: entrada.version as number, exportadaEn: String(entrada.exportadaEn ?? ''), datos } };
 }
 
@@ -88,5 +102,5 @@ export async function restaurarCopia(copia: CopiaNeto, d: NetoDB = db): Promise<
 
 export function resumenCopia(copia: CopiaNeto): string {
   const n = (t: NombreTabla) => copia.datos[t]?.length ?? 0;
-  return `${n('cuentas')} cuentas, ${n('movimientos')} movimientos y ${n('categorias')} categorías, ${n('suscripciones')} suscripciones y ${n('inversiones')} inversiones`;
+  return `${n('cuentas')} cuentas, ${n('movimientos')} movimientos, ${n('categorias')} categorías, ${n('suscripciones')} suscripciones, ${n('inversiones')} inversiones y ${n('presupuestos')} presupuestos`;
 }

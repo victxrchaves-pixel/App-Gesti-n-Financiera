@@ -4,6 +4,7 @@ import { esEscritorio, esMac } from './lib/platform';
 import { useRuta } from './router';
 import { Suscripciones } from './screens/Suscripciones';
 import { Inversiones } from './screens/Inversiones';
+import { Presupuestos } from './screens/Presupuestos';
 import { Ajustes } from './screens/Ajustes';
 import { Cuentas } from './screens/Cuentas';
 import { Inicio } from './screens/Inicio';
@@ -36,8 +37,9 @@ function Pantalla() {
       {efectiva === 'suscripciones' && <Suscripciones />}
       {efectiva === 'suscripciones-negocio' && <Suscripciones ambito="negocio" />}
       {efectiva === 'inversion' && <Inversiones />}
+      {efectiva === 'presupuestos' && <Presupuestos />}
       {efectiva === 'ajustes' && <Ajustes />}
-      {['presupuestos', 'metas', 'facturas', 'gastos', 'impuestos'].includes(efectiva) && <Proximamente key={efectiva} seccion={efectiva} />}
+      {['metas', 'facturas', 'gastos', 'impuestos'].includes(efectiva) && <Proximamente key={efectiva} seccion={efectiva} />}
     </Shell>
   );
 }

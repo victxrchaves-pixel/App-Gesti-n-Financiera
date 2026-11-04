@@ -53,11 +53,11 @@ function BloqueCategorias({ tipo, categorias, usos }: { tipo: TipoCategoria; cat
     const n = usos.get(c.id) ?? 0;
     const ok = await confirmar({
       titulo: `Borrar «${c.nombre}»`,
-      mensaje: n > 0 ? `Sus ${n} movimientos pasarán a «${c.nombre === destino ? lista.find((x) => x.id !== c.id)?.nombre : destino}».` : 'No tiene movimientos.',
+      mensaje: (n > 0 ? `Sus ${n} movimientos pasarán a «${c.nombre === destino ? lista.find((x) => x.id !== c.id)?.nombre : destino}».` : 'No tiene movimientos.') + ' Si tiene presupuestos, sus límites también se trasladarán a la categoría de destino y se sumarán a los que ya existan en cada mes.',
       confirmar: 'Borrar',
       peligro: true,
     });
-    if (ok) await borrarCategoria(c.id);
+    if (ok) { try { await borrarCategoria(c.id); } catch (error) { avisar(error instanceof Error ? error.message : 'No se pudo borrar la categoría.'); } }
   };
 
   const anadir = async () => {

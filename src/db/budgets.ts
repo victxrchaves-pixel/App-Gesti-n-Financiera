@@ -1,0 +1,33 @@
+import { db, type NetoDB } from './db';
+import type { Presupuesto } from './types';
+import { mesValido, validarPresupuesto } from '../lib/budgets';
+import { newId } from '../lib/id';
+
+export async function guardarPresupuesto(datos: Omit<Presupuesto, 'id'>, id?: string, d: NetoDB = db) {
+  const error = validarPresupuesto(datos); if (error) throw new Error(error);
+  return d.transaction('rw', d.presupuestos, d.categorias, async () => {
+    if ((await d.categorias.get(datos.categoriaId))?.tipo !== 'gasto') throw new Error('La categoría de gasto ya no existe.');
+    if (id && !(await d.presupuestos.get(id))) throw new Error('El presupuesto ya no existe.');
+    const duplicado = await d.presupuestos.where('[mes+categoriaId]').equals([datos.mes, datos.categoriaId]).first();
+    if (duplicado && duplicado.id !== id) throw new Error('Esta categoría ya tiene un presupuesto para ese mes. Edítalo desde su tarjeta.');
+    const otros = (await d.presupuestos.where('mes').equals(datos.mes).toArray()).filter(p => p.id !== id);
+    if (!Number.isSafeInteger(otros.reduce((s, p) => s + p.limite, datos.limite))) throw new Error('El total supera el importe permitido.');
+    const clave = id ?? newId();
+    await d.presupuestos.put({ ...datos, id: clave });
+    return clave;
+  });
+}
+export async function borrarPresupuesto(id: string, d: NetoDB = db) { await d.presupuestos.delete(id); }
+/** Copia solo límites ausentes; nunca movimientos ni presupuestos existentes. */
+export async function copiarPresupuestos(origen: string, destino: string, d: NetoDB = db) {
+  if (!mesValido(origen) || !mesValido(destino) || origen === destino) throw new Error('Elige dos meses distintos y válidos.');
+  return d.transaction('rw', d.presupuestos, d.categorias, async () => {
+    const existentes = await d.presupuestos.where('mes').equals(destino).toArray();
+    const usados = new Set(existentes.map(p => p.categoriaId));
+    const categorias = new Set((await d.categorias.where('tipo').equals('gasto').toArray()).map(c => c.id));
+    const nuevos = (await d.presupuestos.where('mes').equals(origen).toArray()).filter(p => !usados.has(p.categoriaId) && categorias.has(p.categoriaId)).map(p => ({ ...p, id: newId(), mes: destino }));
+    if (!Number.isSafeInteger([...existentes, ...nuevos].reduce((s, p) => s + p.limite, 0))) throw new Error('El total supera el importe permitido.');
+    await d.presupuestos.bulkAdd(nuevos);
+    return nuevos.length;
+  });
+}
