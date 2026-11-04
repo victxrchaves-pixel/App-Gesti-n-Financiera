@@ -1,3 +1,4 @@
+import { colorCategoria } from '../config/neto.config';
 import type { Categoria, Cuenta, Movimiento } from '../db/types';
 import { formatMoney } from '../lib/money';
 import { Icon } from './Icon';
@@ -18,7 +19,7 @@ export function MovimientoRow({
   const sub = esTransfer
     ? `${cuenta?.nombre ?? '—'} → ${destino?.nombre ?? '—'}`
     : [m.nota ? cat?.nombre : null, cuenta?.nombre].filter(Boolean).join(' · ');
-  const color = esTransfer ? 'var(--text-3)' : cat?.color ?? 'var(--text-3)';
+  const color = esTransfer ? 'var(--text-3)' : colorCategoria(cat?.color);
 
   return (
     <button type="button" className="list-row" onClick={onClick}>

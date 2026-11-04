@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { config } from '../config/neto.config';
+import { colorCategoria, config } from '../config/neto.config';
 import { useAjustes, useCuentas, useMapaCategorias, useMovimientos } from '../db/hooks';
 import { patrimonio } from '../lib/balances';
 import { greeting, longDate, monthKey, monthLabel, monthShortLabel, todayISO } from '../lib/dates';
@@ -40,9 +40,9 @@ export function Inicio() {
     const resto = lista.slice(visibles.length).reduce((s, x) => s + x.importe, 0);
     const out: Porcion[] = visibles.map((x) => {
       const c = x.categoriaId ? categorias.get(x.categoriaId) : undefined;
-      return { id: x.categoriaId ?? 'sin', nombre: c?.nombre ?? 'Sin categoría', color: c?.color ?? config.colorOtros, importe: x.importe };
+      return { id: x.categoriaId ?? 'sin', nombre: c?.nombre ?? 'Sin categoría', color: colorCategoria(c?.color), importe: x.importe };
     });
-    if (resto > 0) out.push({ id: 'resto', nombre: 'Resto', color: '#C9C8C1', importe: resto });
+    if (resto > 0) out.push({ id: 'resto', nombre: 'Resto', color: config.colorOtros, importe: resto });
     return out;
   }, [movimientos, cuentas, mes, categorias]);
 
@@ -69,7 +69,7 @@ export function Inicio() {
       ) : (
         <div className="stack">
           <div className="grid grid-hero">
-            <section className="card">
+            <section className="card card-highlight">
               <div className="eyebrow">Te queda este mes</div>
               <div className={`big-number${resumen.neto < 0 ? ' danger-text' : ''}`}>{formatMoney(resumen.neto)}</div>
               <div className="kpis">
@@ -77,11 +77,12 @@ export function Inicio() {
                 <div><div className="kpi-label">Gastos de {monthLabel(mes, false)}</div><div className="kpi-value">{formatMoney(resumen.gastos)}</div></div>
               </div>
             </section>
-            <a className="card account-card" href="#/cuentas" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <a className="card account-card card-inverse" href="#/cuentas" style={{ textDecoration: 'none' }}>
               <div className="eyebrow">Patrimonio</div>
               <div className="mid-number">{formatMoney(total)}</div>
-              <div className="muted" style={{ marginTop: 'auto', fontSize: 14 }}>
-                {cuentasPersonales.length} cuenta{cuentasPersonales.length === 1 ? '' : 's'} · Ver cuentas
+              <div className="muted card-link" style={{ marginTop: 'auto', fontSize: 14 }}>
+                <span>{cuentasPersonales.length} cuenta{cuentasPersonales.length === 1 ? '' : 's'} · Ver cuentas</span>
+                <Icon name="cuentas" size={24} />
               </div>
             </a>
           </div>

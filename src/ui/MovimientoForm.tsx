@@ -1,3 +1,4 @@
+import { colorCategoria } from '../config/neto.config';
 import { useMemo, useState } from 'react';
 import { useAjustes, useCategorias, useCuentas } from '../db/hooks';
 import { actualizarMovimiento, borrarMovimiento, crearMovimiento, validarMovimiento, type DatosMovimiento } from '../db/repo';
@@ -158,7 +159,7 @@ export function MovimientoForm({ movimiento, onClose }: { movimiento?: Movimient
             <div className="chips" role="group" aria-label="Categoría">
               {catsTipo.map((c) => (
                 <button key={c.id} type="button" className="chip" aria-pressed={c.id === categoriaValida} onClick={() => { setCategoriaId(c.id); setError(null); }}>
-                  <span className="dot" style={{ background: c.color }} />
+                  <span className="dot" style={{ background: colorCategoria(c.color) }} />
                   {c.nombre}
                 </button>
               ))}

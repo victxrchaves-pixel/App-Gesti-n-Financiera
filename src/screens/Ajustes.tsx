@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { config } from '../config/neto.config';
+import { colorCategoria, config } from '../config/neto.config';
 import { cargarEjemplo } from '../db/ejemplo';
 import { useAjustes, useCategorias, useMovimientos } from '../db/hooks';
 import { actualizarCategoria, borrarCategoria, borrarTodo, crearCategoria, guardarAjustes } from '../db/repo';
@@ -25,7 +25,7 @@ function FilaCategoria({ c, usos, onBorrar }: { c: Categoria; usos: number; onBo
   return (
     <div>
       <div className="cat-row">
-        <button className="color-btn" style={{ background: c.color }} onClick={() => setAbierta(!abierta)} aria-label={`Cambiar color de ${c.nombre}`} />
+        <button className="color-btn" style={{ background: colorCategoria(c.color) }} onClick={() => setAbierta(!abierta)} aria-label={`Cambiar color de ${c.nombre}`} />
         <input className="input" value={nombre} onChange={(e) => setNombre(e.target.value)} onBlur={guardarNombre} onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()} aria-label="Nombre de la categoría" maxLength={40} />
         <span className="faint" style={{ fontSize: 12, whiteSpace: 'nowrap', minWidth: 74, textAlign: 'right' }}>{usos} mov.</span>
         <button className="btn btn-ghost btn-icon" onClick={onBorrar} aria-label={`Borrar ${c.nombre}`}><Icon name="papelera" size={18} /></button>
@@ -33,7 +33,7 @@ function FilaCategoria({ c, usos, onBorrar }: { c: Categoria; usos: number; onBo
       {abierta && (
         <div className="swatches" style={{ padding: '4px 0 10px 36px' }}>
           {COLORES.map((col) => (
-            <button key={col} className="swatch" style={{ background: col }} aria-pressed={col === c.color} aria-label={`Color ${col}`} onClick={() => { void actualizarCategoria(c.id, { color: col }); setAbierta(false); }} />
+            <button key={col} className="swatch" style={{ background: col }} aria-pressed={col === colorCategoria(c.color)} aria-label={`Color ${col}`} onClick={() => { void actualizarCategoria(c.id, { color: col }); setAbierta(false); }} />
           ))}
         </div>
       )}
@@ -64,7 +64,7 @@ function BloqueCategorias({ tipo, categorias, usos }: { tipo: TipoCategoria; cat
     const n = nueva.trim();
     if (!n) return;
     if (lista.some((c) => c.nombre.toLowerCase() === n.toLowerCase())) return avisar('Ya existe una categoría con ese nombre.');
-    const color = COLORES.find((col) => !lista.some((c) => c.color === col)) ?? config.colorOtros;
+    const color = COLORES.find((col) => !lista.some((c) => colorCategoria(c.color) === col)) ?? config.colorOtros;
     await crearCategoria(n, tipo, color);
     setNueva('');
   };

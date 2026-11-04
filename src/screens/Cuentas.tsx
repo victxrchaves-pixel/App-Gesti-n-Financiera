@@ -42,7 +42,7 @@ export function Cuentas() {
       />
 
       <div className="stack">
-        <section className="card">
+        <section className="card card-inverse">
           <div className="eyebrow">{autonomo ? 'Patrimonio personal' : 'Patrimonio'}</div>
           <div className="big-number" style={{ marginBottom: autonomo ? 14 : 0 }}>{formatMoney(totalPersonal)}</div>
           {autonomo && (

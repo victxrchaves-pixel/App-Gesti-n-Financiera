@@ -22,30 +22,30 @@ export const config = {
   ],
 
   /**
-   * Paleta de categorías, en orden fijo. Validada para que cada color se distinga del
-   * siguiente también con daltonismo. El gris queda reservado para «Otros».
+   * Paleta de categorías: lila y neutros. Las leyendas incluyen siempre nombre e
+   * importe para que la información no dependa del color.
    */
-  paleta: ['#2E7D55', '#D46191', '#2F73C9', '#DB6F36', '#169A8C', '#E3A21E', '#C8433E'],
-  colorOtros: '#9A9A93',
+  paleta: ['#8860B0', '#363636', '#A080C0', '#595959', '#745095', '#707070', '#9675B6'],
+  colorOtros: '#858585',
 
   /** Colores del gráfico de barras (ingresos frente a gastos). */
-  graficos: { ingresos: '#2E7D55', gastos: '#D46191' },
+  graficos: { ingresos: '#B493D5', gastos: '#363636' },
 
   /** Categorías con las que empieza la app. Se pueden editar desde Ajustes. */
   categoriasIniciales: {
     gasto: [
-      { nombre: 'Casa', color: '#2E7D55' },
-      { nombre: 'Comida', color: '#D46191' },
-      { nombre: 'Transporte', color: '#2F73C9' },
-      { nombre: 'Ocio', color: '#DB6F36' },
-      { nombre: 'Salud', color: '#169A8C' },
-      { nombre: 'Ropa', color: '#E3A21E' },
-      { nombre: 'Suscripciones', color: '#C8433E' },
-      { nombre: 'Otros', color: '#9A9A93' },
+      { nombre: 'Casa', color: '#8860B0' },
+      { nombre: 'Comida', color: '#363636' },
+      { nombre: 'Transporte', color: '#A080C0' },
+      { nombre: 'Ocio', color: '#595959' },
+      { nombre: 'Salud', color: '#745095' },
+      { nombre: 'Ropa', color: '#707070' },
+      { nombre: 'Suscripciones', color: '#9675B6' },
+      { nombre: 'Otros', color: '#858585' },
     ],
     ingreso: [
-      { nombre: 'Nómina', color: '#2E7D55' },
-      { nombre: 'Otros ingresos', color: '#2F73C9' },
+      { nombre: 'Nómina', color: '#8860B0' },
+      { nombre: 'Otros ingresos', color: '#A080C0' },
     ],
   },
 
@@ -102,3 +102,14 @@ export const config = {
 } as const;
 
 export type Config = typeof config;
+
+/** Adapta colores antiguos/importados solo al mostrarlos; conserva los datos guardados. */
+export function colorCategoria(color?: string): string {
+  if (!color) return config.colorOtros;
+  const normalizado = color.toUpperCase();
+  const permitidos: readonly string[] = [...config.paleta, config.colorOtros];
+  if (permitidos.includes(normalizado)) return normalizado;
+  const anteriores = ['#2E7D55', '#D46191', '#2F73C9', '#DB6F36', '#169A8C', '#E3A21E', '#C8433E'];
+  const indice = anteriores.indexOf(normalizado);
+  return indice >= 0 ? config.paleta[indice] : config.colorOtros;
+}
