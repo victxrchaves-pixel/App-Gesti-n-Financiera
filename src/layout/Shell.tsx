@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { useAjustes } from '../db/hooks';
 import { esEscritorio, esMac } from '../lib/platform';
 import { type Ruta } from '../router';
@@ -29,6 +29,8 @@ function Enlace({ ruta, texto, activa }: { ruta: Ruta; texto: string; activa: bo
 
 export function Shell({ ruta, children }: { ruta: Ruta; children: ReactNode }) {
   const ajustes = useAjustes();
+  const menu = useRef<HTMLDialogElement>(null);
+  const masActiva = !['inicio', 'movimientos', 'cuentas', 'ajustes'].includes(ruta);
   return (
     <div className="shell">
       {esEscritorio() && esMac() && <div className="drag-strip" data-tauri-drag-region />}
@@ -37,6 +39,7 @@ export function Shell({ ruta, children }: { ruta: Ruta; children: ReactNode }) {
           <span className="brand-mark"><BrandMark /></span>
           <span>Neto</span>
         </div>
+        <div className="nav-section">Personal</div>
         {PERSONAL.map((e) => <Enlace key={e.ruta} {...e} activa={ruta === e.ruta} />)}
         {ajustes?.autonomo && (
           <>
@@ -48,9 +51,25 @@ export function Shell({ ruta, children }: { ruta: Ruta; children: ReactNode }) {
         <div className="sidebar-spacer" />
         <Enlace ruta="ajustes" texto="Ajustes" activa={ruta === 'ajustes'} />
       </nav>
-      <main className="main">
+      <main className="main" key={ruta}>
+        <div className="mobile-brand"><span className="brand-mark"><BrandMark /></span><span>Neto</span><span className="mobile-context">Tu dinero, en orden.</span></div>
         <div className="page">{children}</div>
       </main>
+      <nav className="mobile-dock" aria-label="Navegación principal">
+        <Enlace ruta="inicio" texto="Inicio" activa={ruta === 'inicio'} />
+        <Enlace ruta="movimientos" texto="Movimientos" activa={ruta === 'movimientos'} />
+        <Enlace ruta="cuentas" texto="Cuentas" activa={ruta === 'cuentas'} />
+        <Enlace ruta="ajustes" texto="Ajustes" activa={ruta === 'ajustes'} />
+        <button type="button" className={`nav-link${masActiva ? ' active' : ''}`} aria-haspopup="dialog" onClick={() => menu.current?.showModal()}><Icon name="otra" /><span>Más</span></button>
+      </nav>
+      <dialog ref={menu} className="mobile-menu" aria-labelledby="menu-title" onClick={e => { if (e.target === e.currentTarget) menu.current?.close(); }}>
+        <div className="card-header"><h2 id="menu-title" className="card-title">Explora Neto</h2><button type="button" className="btn btn-secondary btn-icon" aria-label="Cerrar menú" onClick={() => menu.current?.close()}><Icon name="cerrar" size={18} /></button></div>
+        <nav aria-label="Más secciones" onClick={e => { if ((e.target as HTMLElement).closest('a')) menu.current?.close(); }}>
+          <Enlace ruta="presupuestos" texto="Presupuestos" activa={ruta === 'presupuestos'} />
+          <Enlace ruta="metas" texto="Metas" activa={ruta === 'metas'} />
+          {ajustes?.autonomo && <><div className="nav-section">Negocio</div>{NEGOCIO.map(e => <Enlace key={e.ruta} {...e} activa={ruta === e.ruta} />)}</>}
+        </nav>
+      </dialog>
     </div>
   );
 }

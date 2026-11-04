@@ -6,7 +6,8 @@ import { greeting, longDate, monthKey, monthLabel, monthShortLabel, todayISO } f
 import { formatMoney } from '../lib/money';
 import { gastoPorCategoria, ordenarMovimientos, resumenMes, ultimosMeses } from '../lib/stats';
 import { PageHeader } from '../layout/Shell';
-import { Bars } from '../ui/Bars';
+import { LineChart } from '../ui/LineChart';
+import { Segmented } from '../ui/Segmented';
 import { Donut, type Porcion } from '../ui/Donut';
 import { Icon } from '../ui/Icon';
 import { MovimientoForm } from '../ui/MovimientoForm';
@@ -20,13 +21,15 @@ export function Inicio() {
   const categorias = useMapaCategorias();
   const [form, setForm] = useState<{ movimiento?: Movimiento } | null>(null);
 
+  const [periodo, setPeriodo] = useState<string>(config.inicio.periodoInicial);
+  const meses = Number(periodo);
   const hoy = todayISO();
   const mes = monthKey(hoy);
   const ahora = new Date();
 
   const resumen = useMemo(() => resumenMes(movimientos, cuentas, mes), [movimientos, cuentas, mes]);
   const total = useMemo(() => patrimonio(cuentas, movimientos, 'personal'), [cuentas, movimientos]);
-  const serie = useMemo(() => ultimosMeses(movimientos, cuentas, mes, config.inicio.mesesHistorico), [movimientos, cuentas, mes]);
+  const serie = useMemo(() => ultimosMeses(movimientos, cuentas, mes, meses), [movimientos, cuentas, mes, meses]);
   const mapaCuentas = useMemo(() => new Map(cuentas.map((c) => [c.id, c])), [cuentas]);
   const recientes = useMemo(
     () => ordenarMovimientos(movimientos.filter((m) => mapaCuentas.get(m.cuentaId)?.ambito === 'personal')).slice(0, config.inicio.ultimosMovimientos),
@@ -70,43 +73,45 @@ export function Inicio() {
         <div className="stack">
           <div className="grid grid-hero">
             <section className="card card-highlight">
-              <div className="eyebrow">Te queda este mes</div>
+              <div className="hero-heading"><span className="eyebrow">Balance del mes</span><span className="hero-month">{monthLabel(mes, false)}</span></div>
               <div className={`big-number${resumen.neto < 0 ? ' danger-text' : ''}`}>{formatMoney(resumen.neto)}</div>
+              <p className="hero-caption">Lo que has ingresado menos lo que has gastado.</p>
               <div className="kpis">
                 <div><div className="kpi-label">Ingresos de {monthLabel(mes, false)}</div><div className="kpi-value">{formatMoney(resumen.ingresos)}</div></div>
                 <div><div className="kpi-label">Gastos de {monthLabel(mes, false)}</div><div className="kpi-value">{formatMoney(resumen.gastos)}</div></div>
               </div>
             </section>
             <a className="card account-card card-inverse" href="#/cuentas" style={{ textDecoration: 'none' }}>
-              <div className="eyebrow">Patrimonio</div>
+              <div className="hero-heading"><span className="eyebrow">Tu patrimonio</span><span className="glass-icon"><Icon name="cuentas" size={20} /></span></div>
               <div className="mid-number">{formatMoney(total)}</div>
               <div className="muted card-link" style={{ marginTop: 'auto', fontSize: 14 }}>
                 <span>{cuentasPersonales.length} cuenta{cuentasPersonales.length === 1 ? '' : 's'} · Ver cuentas</span>
-                <Icon name="cuentas" size={24} />
+                <span className="glass-icon"><Icon name="flecha" size={18} /></span>
               </div>
             </a>
           </div>
 
-          <div className="grid grid-2">
-            <section className="card">
+          <div className="grid grid-insights">
+            <section className="card evolution-card">
               <div className="card-header">
-                <h2 className="card-title">Gasto por categoría</h2>
-                <span className="card-sub">{monthLabel(mes)}</span>
+                <div><h2 className="card-title">Tu evolución</h2><div className="card-sub">Ingresos y gastos, mes a mes</div></div>
+                <Segmented opciones={config.inicio.periodosGrafico} valor={periodo} onChange={setPeriodo} etiqueta="Periodo del gráfico" />
+              </div>
+              <LineChart
+                key={periodo}
+                titulo={`Ingresos y gastos de los últimos ${meses} meses`}
+                datos={serie.map((s) => ({ clave: s.mes, etiqueta: monthShortLabel(s.mes), nombre: monthLabel(s.mes), enCurso: s.mes === mes, ingresos: s.ingresos, gastos: s.gastos }))}
+              />
+            </section>
+            <section className="card category-card">
+              <div className="card-header">
+                <div><h2 className="card-title">Dónde va tu dinero</h2><div className="card-sub">Gastos de {monthLabel(mes, false)}</div></div>
               </div>
               {porciones.length === 0 ? (
                 <div className="empty"><div>Todavía no hay gastos este mes.</div></div>
               ) : (
                 <Donut porciones={porciones} titulo={`Gasto por categoría en ${monthLabel(mes)}`} />
               )}
-            </section>
-            <section className="card">
-              <div className="card-header">
-                <h2 className="card-title">Últimos {config.inicio.mesesHistorico} meses</h2>
-              </div>
-              <Bars
-                titulo={`Ingresos y gastos de los últimos ${config.inicio.mesesHistorico} meses`}
-                datos={serie.map((s) => ({ clave: s.mes, etiqueta: monthShortLabel(s.mes), ingresos: s.ingresos, gastos: s.gastos, destacada: s.mes === mes }))}
-              />
             </section>
           </div>
 

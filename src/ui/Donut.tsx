@@ -27,7 +27,7 @@ export function Donut({ porciones, titulo }: { porciones: Porcion[]; titulo: str
   const total = porciones.reduce((s, p) => s + p.importe, 0);
   const size = 180;
   const r = size / 2;
-  const grosor = 22;
+  const grosor = 12;
   const hueco = porciones.length > 1 ? 0.012 * TAU : 0; // separación de 2px aprox. entre porciones
 
   let ang = 0;
@@ -65,10 +65,14 @@ export function Donut({ porciones, titulo }: { porciones: Porcion[]; titulo: str
       </svg>
       <div className="legend">
         {porciones.map((p) => (
-          <div
+          <button
+            type="button"
             key={p.id}
             className="legend-row"
             onPointerEnter={() => setActiva(p.id)}
+            onFocus={() => setActiva(p.id)}
+            onBlur={() => setActiva(null)}
+            onClick={() => setActiva(p.id)}
             onPointerLeave={() => setActiva(null)}
             style={{ opacity: activa && activa !== p.id ? 0.45 : 1 }}
           >
@@ -76,7 +80,7 @@ export function Donut({ porciones, titulo }: { porciones: Porcion[]; titulo: str
             <span className="name">{p.nombre}</span>
             <span className="pct">{porcentaje(p.importe, total)} %</span>
             <span className="amt">{formatMoney(p.importe)}</span>
-          </div>
+          </button>
         ))}
       </div>
     </div>

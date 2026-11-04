@@ -28,8 +28,8 @@ export const config = {
   paleta: ['#8860B0', '#363636', '#A080C0', '#595959', '#745095', '#707070', '#9675B6'],
   colorOtros: '#858585',
 
-  /** Colores del gráfico de barras (ingresos frente a gastos). */
-  graficos: { ingresos: '#B493D5', gastos: '#363636' },
+  /** Colores del gráfico de líneas (ingresos frente a gastos). */
+  graficos: { ingresos: '#8860B0', gastos: '#363636' },
 
   /** Categorías con las que empieza la app. Se pueden editar desde Ajustes. */
   categoriasIniciales: {
@@ -60,8 +60,9 @@ export const config = {
   ],
 
   inicio: {
-    /** Meses que muestra el gráfico de barras. */
-    mesesHistorico: 6,
+    /** Periodos disponibles en el gráfico de evolución. */
+    periodoInicial: '6',
+    periodosGrafico: [{ valor: '3', texto: '3M' }, { valor: '6', texto: '6M' }, { valor: '12', texto: '1A' }],
     /** Movimientos recientes que aparecen en Inicio. */
     ultimosMovimientos: 5,
     /** Categorías que se muestran en la leyenda de la dona antes de agrupar el resto. */
