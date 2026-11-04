@@ -1,0 +1,61 @@
+name: Neto
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: neto-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Tests y tipos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  instaladores:
+    name: Instalador ${{ matrix.nombre }}
+    needs: tests
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nombre: macOS
+            sistema: macos-latest
+            args: --target universal-apple-darwin
+            rust_targets: aarch64-apple-darwin,x86_64-apple-darwin
+            archivos: src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          - nombre: Windows
+            sistema: windows-latest
+            args: ''
+            rust_targets: ''
+            archivos: src-tauri/target/release/bundle/nsis/*.exe
+    runs-on: ${{ matrix.sistema }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_targets }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - run: npm run tauri build -- ${{ matrix.args }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Neto-${{ matrix.nombre }}
+          path: ${{ matrix.archivos }}
+          if-no-files-found: error

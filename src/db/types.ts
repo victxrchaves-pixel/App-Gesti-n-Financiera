@@ -1,0 +1,54 @@
+/** Modelo de datos de Neto. Todos los importes son céntimos enteros. */
+
+export type Ambito = 'personal' | 'negocio';
+export type TipoCuenta = 'banco' | 'efectivo' | 'ahorro' | 'otra';
+
+export interface Cuenta {
+  id: string;
+  nombre: string;
+  tipo: TipoCuenta;
+  ambito: Ambito;
+  /** Saldo con el que se dio de alta la cuenta (puede ser negativo). */
+  saldoInicial: number;
+  archivada: boolean;
+  orden: number;
+  creadaEn: string;
+}
+
+export type TipoMovimiento = 'ingreso' | 'gasto' | 'transferencia';
+
+export interface Movimiento {
+  id: string;
+  tipo: TipoMovimiento;
+  /** "AAAA-MM-DD" */
+  fecha: string;
+  /** Siempre positivo: el signo lo da el tipo. */
+  importe: number;
+  /** Cuenta de la que sale (gasto, transferencia) o a la que entra (ingreso). */
+  cuentaId: string;
+  /** Solo en transferencias: cuenta de destino. */
+  cuentaDestinoId?: string;
+  /** Ingresos y gastos; las transferencias no llevan categoría. */
+  categoriaId?: string;
+  nota: string;
+  origen: 'manual' | 'recurrente' | 'importado' | 'ejemplo';
+  creadoEn: string;
+  actualizadoEn: string;
+}
+
+export type TipoCategoria = 'gasto' | 'ingreso';
+
+export interface Categoria {
+  id: string;
+  nombre: string;
+  tipo: TipoCategoria;
+  color: string;
+  orden: number;
+}
+
+export interface Ajustes {
+  id: 'ajustes';
+  nombre: string;
+  autonomo: boolean;
+  inicioCompletado: boolean;
+}
