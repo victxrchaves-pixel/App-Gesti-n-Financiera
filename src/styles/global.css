@@ -16,11 +16,11 @@
   --primary-ink: #444444;
   --on-primary: #171717;
 
-  --positive: #444444;
-  --warning: #171717;
-  --warning-soft: #eeeeee;
-  --danger: #171717;
-  --danger-soft: #eeeeee;
+  --positive: #16803C;
+  --warning: #9A6700;
+  --warning-soft: #FFF6DB;
+  --danger: #C73535;
+  --danger-soft: #FFF0F0;
 
   --radius-card: 26px;
   --radius-control: 12px;

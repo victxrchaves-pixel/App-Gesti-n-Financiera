@@ -155,3 +155,21 @@ aportaciones ni gastos. Editar otros datos de la meta conserva el desglose.
 Se ve dentro de la tarjeta del viaje en Presupuestos y Metas. Las copias v6 lo
 incluyen y validan; las anteriores siguen admitidas sin desglose. No hay tablas
 ni índices nuevos para este campo opcional.
+
+## Colores funcionales y tarjetas de suscripciones
+
+El fondo, texto y selección siguen siendo neutros. Los valores iniciales usan
+verde para ingresos, rojo para gastos y azul para la evolución de inversiones.
+Cada categoría tiene un color coherente: comida verde, transporte azul, casa
+violeta, ocio ámbar, salud turquesa y ropa rosa. Los gráficos y presupuestos usan
+estos colores, y los avisos conservan texto y símbolos además de ámbar/rojo.
+Los colores de gráficos/categorías elegidos expresamente siguen siendo editables.
+La migración de base v6 y restauración de copias antiguas reemplazan únicamente
+los tonos iniciales grises identificables; conservan otras elecciones.
+Las copias v7 preservan el resultado. Las marcas usan sus colores en máscaras
+SVG locales; no necesitan descargas externas al abrir la aplicación.
+
+Las suscripciones guardadas aparecen en una cuadrícula de tres columnas en
+escritorio, dos en anchuras intermedias y una en móvil. Cada tarjeta incluye
+servicio, categoría, cuota y periodicidad, estado, fecha y acciones de edición y
+renovación. Se mantienen filtros, ámbitos personal/negocio y confirmaciones.

@@ -77,8 +77,8 @@ export function Inicio() {
               <div className={`big-number${resumen.neto < 0 ? ' danger-text' : ''}`}>{formatMoney(resumen.neto)}</div>
               <p className="hero-caption">Lo que has ingresado menos lo que has gastado.</p>
               <div className="kpis">
-                <div><div className="kpi-label">Ingresos de {monthLabel(mes, false)}</div><div className="kpi-value">{formatMoney(resumen.ingresos)}</div></div>
-                <div><div className="kpi-label">Gastos de {monthLabel(mes, false)}</div><div className="kpi-value">{formatMoney(resumen.gastos)}</div></div>
+                <div><div className="kpi-label">Ingresos de {monthLabel(mes, false)}</div><div className="kpi-value income-text">{formatMoney(resumen.ingresos)}</div></div>
+                <div><div className="kpi-label">Gastos de {monthLabel(mes, false)}</div><div className="kpi-value expense-text">{formatMoney(resumen.gastos)}</div></div>
               </div>
             </section>
             <a className="card account-card card-inverse" href="#/cuentas" style={{ textDecoration: 'none' }}>

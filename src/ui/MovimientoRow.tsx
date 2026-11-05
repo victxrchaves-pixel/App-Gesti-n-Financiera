@@ -30,7 +30,7 @@ export function MovimientoRow({
         <div className="row-title">{titulo}</div>
         <div className="row-sub">{sub}</div>
       </span>
-      <span className={`row-amount${m.tipo === 'ingreso' ? ' positive' : ''}${esTransfer ? ' faint' : ''}`}>
+      <span className={`row-amount${m.tipo === 'ingreso' ? ' positive' : m.tipo === 'gasto' ? ' expense-text' : ''}${esTransfer ? ' faint' : ''}`}>
         {formatMoney(m.tipo === 'gasto' ? -m.importe : m.importe, { signo: m.tipo === 'ingreso' ? 'siempre' : 'auto' })}
       </span>
     </button>

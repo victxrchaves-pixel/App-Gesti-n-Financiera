@@ -1,6 +1,6 @@
 import { validarMeta, validarAporte } from '../db/goals';
 import type { Meta, AporteMeta } from '../db/types';
-import { CAMPOS_COLOR, esColor, neutralizarInicial } from './colors';
+import { CAMPOS_COLOR, esColor, neutralizarInicial, colorSemanticoInicial } from './colors';
 import { config } from '../config/neto.config';
 import { db, TABLAS, type NetoDB, type NombreTabla } from '../db/db';
 import { isISODate } from './dates';
@@ -123,7 +123,7 @@ export async function restaurarCopia(copia: CopiaNeto, d: NetoDB = db): Promise<
     for (const t of TABLAS) {
       await d.table(t).clear();
       const filas = copia.datos[t] ?? [];
-      await d.table(t).bulkAdd(t === 'categorias' && copia.version < 4 ? (filas as { nombre: string; color: string }[]).map(c => ({ ...c, color: neutralizarInicial(c) })) : filas);
+      await d.table(t).bulkAdd(t === 'categorias' && copia.version < 7 ? (filas as { nombre: string; color: string }[]).map(c => ({ ...c, color: colorSemanticoInicial({ ...c, color: copia.version < 4 ? neutralizarInicial(c) : c.color }) })) : filas);
     }
   });
 }

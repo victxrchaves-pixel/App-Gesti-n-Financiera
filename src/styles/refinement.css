@@ -81,7 +81,7 @@ body { background: radial-gradient(ellipse at 92% 0%, rgba(0,0,0,.015), transpar
 .chart-values > div { min-width: 0; }
 .chart-key { display: flex; align-items: center; gap: 7px; color: var(--text-2); font-size: 11px; }
 .chart-key i { width: 7px; height: 7px; border-radius: 50%; }
-.chart-key .key-expense { background: #363636; border-radius: 1px; }
+.chart-key .key-expense { background: var(--chart-expense); border-radius: 1px; }
 .chart-values strong { display: block; font-size: 23px; font-weight: 550; letter-spacing: -.04em; font-variant-numeric: tabular-nums; margin-top: 4px; }
 .line-plot { position: relative; margin-top: 20px; padding-bottom: 30px; min-width: 0; }
 .line-plot svg { display: block; overflow: visible; }
@@ -176,7 +176,7 @@ body { background: radial-gradient(ellipse at 92% 0%, rgba(0,0,0,.015), transpar
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
-:root { --chart-income:#444444; --chart-expense:#858585; --chart-investment:#444444; }
+:root { --chart-income:#16803C; --chart-expense:#C73535; --chart-investment:#2563B8; }
 .color-setting { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:13px; }
 .color-controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .color-controls input[type=color] { width:40px; height:40px; padding:3px; background:var(--card); border:1px solid var(--line-strong); border-radius:10px; cursor:pointer; }

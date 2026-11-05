@@ -104,7 +104,7 @@ export function Movimientos() {
       <div className="card">
         <div className="summary-strip">
           <div><div className="kpi-label">Ingresos</div><div className="kpi-value positive">{formatMoney(totales.ingresos)}</div></div>
-          <div><div className="kpi-label">Gastos</div><div className="kpi-value">{formatMoney(totales.gastos)}</div></div>
+          <div><div className="kpi-label">Gastos</div><div className="kpi-value expense-text">{formatMoney(totales.gastos)}</div></div>
           <div><div className="kpi-label">Balance</div><div className="kpi-value">{formatMoney(totales.ingresos - totales.gastos)}</div></div>
           {buscando && <div className="muted" style={{ alignSelf: 'flex-end', fontSize: 13 }}>Buscando en todos los meses · {filtrados.length} resultado{filtrados.length === 1 ? '' : 's'}</div>}
         </div>

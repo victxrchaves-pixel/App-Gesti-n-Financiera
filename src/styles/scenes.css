@@ -170,3 +170,47 @@
 .trip-editor-row>.field { min-width:0; margin:0; }
 .trip-editor-row>.btn { margin-bottom:1px; width:36px; }
 @media(max-width:380px) { .trip-summary { gap:8px; padding:12px; } .trip-summary strong { font-size:16px; } .trip-editor-row { grid-template-columns:minmax(0,1fr) minmax(0,.8fr) 30px; gap:6px; } .trip-editor-row>.btn { width:30px; } }
+/* Functional color: neutral navigation, consistent financial meaning. */
+.income-text { color:var(--positive); }
+.expense-text { color:var(--danger); }
+.line-chart .chart-values>div:first-child strong { color:var(--chart-income); }
+.line-chart .chart-values>div:last-child strong { color:var(--chart-expense); }
+.budget-card .budget-status-attention { color:var(--warning); }
+.budget-card .budget-status-attention i { background:var(--warning); box-shadow:0 0 0 4px var(--warning-soft); }
+.budget-card .budget-status-exceeded { color:var(--danger); }
+.budget-card .budget-status-exceeded i { background:var(--danger); box-shadow:0 0 0 4px var(--danger-soft); }
+.fill-track.over-limit { --fill-color:var(--danger)!important; }
+.envelope-grid .budget-figures>span:first-child b { color:var(--danger); }
+.service-icon { color:var(--brand-color,#64748B); border-color:color-mix(in srgb,var(--brand-color,#64748B) 15%,#e6e6e6); background:color-mix(in srgb,var(--brand-color,#64748B) 5%,white); }
+.service-logo-mask { display:block; width:25px; height:25px; background:var(--brand-color,#64748B); mask-repeat:no-repeat; mask-position:center; mask-size:contain; -webkit-mask-repeat:no-repeat; -webkit-mask-position:center; -webkit-mask-size:contain; }
+.renewal-timeline .service-logo-mask { width:19px; height:19px; }
+.service-shelf { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.subscriptions-collection>.card-title { margin:4px 0 20px; }
+.subscription-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+.subscription-card { display:flex; flex-direction:column; gap:20px; min-width:0; padding:24px; background:white; border:1px solid var(--line); border-radius:22px; box-shadow:0 4px 18px rgba(0,0,0,.025); }
+.subscription-card-heading { display:flex; align-items:center; gap:12px; background:none; border:0; padding:0; text-align:left; color:var(--text); width:100%; }
+.subscription-card-heading>span:nth-child(2) { flex:1; min-width:0; }
+.subscription-card-heading strong { display:block; font-size:15px; font-weight:550; overflow-wrap:anywhere; }
+.subscription-card-heading small { display:block; font-size:11px; color:var(--text-3); margin-top:5px; }
+.subscription-card-heading>svg { flex:none; color:var(--text-3); }
+.subscription-card-price { display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+.subscription-card-price strong { font-size:30px; letter-spacing:-.045em; font-weight:550; }
+.subscription-card-price>span { font-size:12px; color:var(--text-3); }
+.subscription-card-state { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.subscription-state { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:500; }
+.subscription-state i { display:block; width:6px; height:6px; border-radius:50%; background:currentColor; }
+.state-activa { color:var(--positive); }
+.state-pausada,.renewal-warning { color:var(--warning); }
+.state-cancelada { color:var(--text-3); }
+.renewal-warning { background:var(--warning-soft); font-size:10px; border-radius:6px; padding:3px 6px; }
+.subscription-card-date { display:flex; flex-direction:column; gap:7px; border-top:1px solid var(--line); padding-top:16px; }
+.subscription-card-date>span { font-size:11px; color:var(--text-3); }
+.subscription-card-date>strong { font-size:14px; font-weight:500; }
+.subscription-card-note { font-size:12px; color:var(--text-2); margin:0; overflow-wrap:anywhere; }
+.subscription-card-footer { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-top:auto; }
+@media(max-width:1100px) { .subscription-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:640px) { .service-shelf { grid-template-columns:repeat(2,minmax(0,1fr)); } .subscription-grid { grid-template-columns:1fr; gap:16px; } .subscription-card { padding:22px; } }
+.subscription-card-price strong { color:var(--danger); }
+.goal-top>svg { color:var(--positive); }
+.goal-top:has(.goal-kind) svg { flex-shrink:0; }
+.goal-mark { display:inline-flex; flex-shrink:0; }

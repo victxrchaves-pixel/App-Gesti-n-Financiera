@@ -1,3 +1,4 @@
+import { COLORES_UX, COLORES_CATEGORIAS } from '../lib/colors';
 /**
  * Configuración de Neto.
  *
@@ -22,30 +23,30 @@ export const config = {
   ],
 
   /**
-   * Paleta inicial de categorías en grises. Las leyendas incluyen siempre nombre e
+   * Colores funcionales de categorías. Las leyendas incluyen siempre nombre e
    * importe para que la información no dependa del color.
    */
-  paleta: ['#333333', '#555555', '#707070', '#858585', '#999999', '#AAAAAA', '#BBBBBB'],
+  paleta: ['#16803C', '#2563B8', '#8B5FBF', '#C07816', '#0F817D', '#BA4E83', '#5D62C2'],
   colorOtros: '#858585',
 
   /** Colores del gráfico de líneas (ingresos frente a gastos). */
-  graficos: { ingresos: '#707070', gastos: '#363636' },
+  graficos: { ingresos: COLORES_UX.ingreso, gastos: COLORES_UX.gasto },
 
   /** Categorías con las que empieza la app. Se pueden editar desde Ajustes. */
   categoriasIniciales: {
     gasto: [
-      { nombre: 'Casa', color: '#707070' },
-      { nombre: 'Comida', color: '#363636' },
-      { nombre: 'Transporte', color: '#707070' },
-      { nombre: 'Ocio', color: '#595959' },
-      { nombre: 'Salud', color: '#707070' },
-      { nombre: 'Ropa', color: '#707070' },
-      { nombre: 'Suscripciones', color: '#707070' },
-      { nombre: 'Otros', color: '#858585' },
+      { nombre: 'Casa', color: COLORES_CATEGORIAS['Casa'] },
+      { nombre: 'Comida', color: COLORES_CATEGORIAS['Comida'] },
+      { nombre: 'Transporte', color: COLORES_CATEGORIAS['Transporte'] },
+      { nombre: 'Ocio', color: COLORES_CATEGORIAS['Ocio'] },
+      { nombre: 'Salud', color: COLORES_CATEGORIAS['Salud'] },
+      { nombre: 'Ropa', color: COLORES_CATEGORIAS['Ropa'] },
+      { nombre: 'Suscripciones', color: COLORES_CATEGORIAS['Suscripciones'] },
+      { nombre: 'Otros', color: COLORES_CATEGORIAS['Otros'] },
     ],
     ingreso: [
-      { nombre: 'Nómina', color: '#707070' },
-      { nombre: 'Otros ingresos', color: '#707070' },
+      { nombre: 'Nómina', color: COLORES_CATEGORIAS['Nómina'] },
+      { nombre: 'Otros ingresos', color: COLORES_CATEGORIAS['Otros ingresos'] },
     ],
   },
 
@@ -107,7 +108,7 @@ export const config = {
 
   copiaSeguridad: {
     /** Versión del formato del archivo de copia. Súbela si cambia la estructura de los datos. */
-    version: 6,
+    version: 7,
     prefijoArchivo: 'neto-copia',
   },
 } as const;
