@@ -58,6 +58,7 @@ export interface Ajustes {
 }
 
 export interface Suscripcion {
+  servicioId?: string | null;
   id: string;
   nombre: string;
   categoria: string;
@@ -101,4 +102,30 @@ export interface Presupuesto {
   mes: string;
   categoriaId: string;
   limite: number;
+}
+
+export interface Meta {
+  cuentaOrigenId?: string | null;
+  cuentaAhorroId?: string | null;
+  porcentaje?: number | null;
+  baseMensual?: number | null;
+  categoriaAhorro?: string;
+  pausadaDesde?: string | null;
+  id: string;
+  nombre: string;
+  objetivo: number;
+  inicial: number;
+  mensual: number;
+  mesInicio: string;
+  automatica: boolean;
+  activa: boolean;
+  color?: string | null;
+}
+export interface AporteMeta {
+  id: string;
+  metaId: string;
+  mes: string;
+  importe: number;
+  origen: 'plan' | 'confirmado' | 'transferencia';
+  movimientoId?: string;
 }

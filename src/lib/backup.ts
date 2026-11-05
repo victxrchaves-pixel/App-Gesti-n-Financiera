@@ -1,3 +1,5 @@
+import { validarMeta, validarAporte } from '../db/goals';
+import type { Meta, AporteMeta } from '../db/types';
 import { CAMPOS_COLOR, esColor, neutralizarInicial } from './colors';
 import { config } from '../config/neto.config';
 import { db, TABLAS, type NetoDB, type NombreTabla } from '../db/db';
@@ -77,6 +79,28 @@ export function validarCopia(entrada: unknown): ResultadoValidacion {
       return { ok: false, error: 'El historial de inversiones contiene una valoración no válida.' };
     }
   }
+  for (const m of datos.metas as Meta[]) {
+    const error = validarMeta(m); if (error) return { ok: false, error: `Meta no válida: ${error}` };
+    if (m.cuentaOrigenId) {
+      const cuentas = datos.cuentas as { id:string; ambito:string }[];
+      if (!cuentas.some(c=>c.id===m.cuentaOrigenId&&c.ambito==='personal') || !cuentas.some(c=>c.id===m.cuentaAhorroId&&c.ambito==='personal') || m.cuentaOrigenId===m.cuentaAhorroId) return {ok:false,error:'Una meta tiene cuentas de origen o destino no válidas.'};
+    }
+  }
+  const aportesUnicos = new Set<string>();
+  const totalesMetas = new Map((datos.metas as Meta[]).map(m => [m.id, m.inicial]));
+  for (const a of datos.aportesMetas as AporteMeta[]) {
+    const key = JSON.stringify([a.metaId, a.mes]);
+    if (!validarAporte(a) || !totalesMetas.has(a.metaId) || aportesUnicos.has(key)) return { ok: false, error: 'Hay aportaciones de metas inválidas o duplicadas.' };
+    if (a.origen==='transferencia' && a.importe>0) {
+      const movimiento = (datos.movimientos as {id:string;tipo:string;importe:number;cuentaDestinoId?:string}[]).find(m=>m.id===a.movimientoId);
+      const meta = (datos.metas as Meta[]).find(m=>m.id===a.metaId);
+      if (!movimiento || movimiento.tipo!=='transferencia' || movimiento.cuentaDestinoId!==meta?.cuentaAhorroId || movimiento.importe!==a.importe) return {ok:false,error:'Una reserva de ahorro no coincide con su transferencia.'};
+    }
+    aportesUnicos.add(key);
+    const total = totalesMetas.get(a.metaId)! + a.importe;
+    if (!Number.isSafeInteger(total)) return { ok: false, error: 'El total de una meta supera el importe permitido.' };
+    totalesMetas.set(a.metaId, total);
+  }
   const claves = new Set<string>();
   const totales = new Map<string, number>();
   for (const p of datos.presupuestos as Presupuesto[]) {
@@ -106,5 +130,5 @@ export async function restaurarCopia(copia: CopiaNeto, d: NetoDB = db): Promise<
 
 export function resumenCopia(copia: CopiaNeto): string {
   const n = (t: NombreTabla) => copia.datos[t]?.length ?? 0;
-  return `${n('cuentas')} cuentas, ${n('movimientos')} movimientos, ${n('categorias')} categorías, ${n('suscripciones')} suscripciones, ${n('inversiones')} inversiones y ${n('presupuestos')} presupuestos`;
+  return `${n('cuentas')} cuentas, ${n('movimientos')} movimientos, ${n('categorias')} categorías, ${n('suscripciones')} suscripciones, ${n('inversiones')} inversiones y ${n('presupuestos')} presupuestos y ${n('metas')} metas`;
 }

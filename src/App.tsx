@@ -1,3 +1,5 @@
+import { SavingsSync } from './ui/SavingsSync';
+import { Metas } from './screens/Metas';
 import { Theme } from './ui/Theme';
 import { useAjustes } from './db/hooks';
 import { Shell } from './layout/Shell';
@@ -38,9 +40,10 @@ function Pantalla() {
       {efectiva === 'suscripciones' && <Suscripciones />}
       {efectiva === 'suscripciones-negocio' && <Suscripciones ambito="negocio" />}
       {efectiva === 'inversion' && <Inversiones />}
+      {efectiva === 'metas' && <Metas />}
       {efectiva === 'presupuestos' && <Presupuestos />}
       {efectiva === 'ajustes' && <Ajustes />}
-      {['metas', 'facturas', 'gastos', 'impuestos'].includes(efectiva) && <Proximamente key={efectiva} seccion={efectiva} />}
+      {['facturas', 'gastos', 'impuestos'].includes(efectiva) && <Proximamente key={efectiva} seccion={efectiva} />}
     </Shell>
   );
 }
@@ -49,6 +52,7 @@ export function App() {
   return (
     <ToastProvider>
       <Theme />
+      <SavingsSync />
       <ConfirmProvider>
         <Pantalla />
       </ConfirmProvider>

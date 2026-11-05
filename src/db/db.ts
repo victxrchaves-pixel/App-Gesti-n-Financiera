@@ -1,6 +1,6 @@
 import { neutralizarInicial } from '../lib/colors';
 import Dexie, { type EntityTable } from 'dexie';
-import type { Ajustes, Categoria, Cuenta, Movimiento, Suscripcion, Inversion, HistorialCartera, Presupuesto } from './types';
+import type { Ajustes, Categoria, Cuenta, Movimiento, Suscripcion, Inversion, HistorialCartera, Presupuesto, Meta, AporteMeta } from './types';
 
 /** Base de datos local (IndexedDB). Los datos nunca salen del ordenador. */
 export class NetoDB extends Dexie {
@@ -13,6 +13,9 @@ export class NetoDB extends Dexie {
   inversiones!: EntityTable<Inversion, 'id'>;
   historialCartera!: EntityTable<HistorialCartera, 'id'>;
   presupuestos!: EntityTable<Presupuesto, 'id'>;
+
+  metas!: EntityTable<Meta, 'id'>;
+  aportesMetas!: EntityTable<AporteMeta, 'id'>;
 
   constructor(nombre = 'neto') {
     super(nombre);
@@ -28,6 +31,7 @@ export class NetoDB extends Dexie {
       historialCartera: 'id, fecha',
     });
     this.version(3).stores({ presupuestos: 'id, mes, categoriaId, &[mes+categoriaId]' });
+    this.version(5).stores({ metas: 'id, mesInicio', aportesMetas: 'id, metaId, mes, &[metaId+mes]' });
     this.version(4).stores({}).upgrade(async tx => {
       await tx.table('categorias').toCollection().modify(c => { c.color = neutralizarInicial(c); });
     });
@@ -37,5 +41,5 @@ export class NetoDB extends Dexie {
 export const db = new NetoDB();
 
 /** Tablas incluidas en la copia de seguridad. Añade aquí las nuevas tablas. */
-export const TABLAS = ['cuentas', 'movimientos', 'categorias', 'ajustes', 'suscripciones', 'inversiones', 'historialCartera', 'presupuestos'] as const;
+export const TABLAS = ['cuentas', 'movimientos', 'categorias', 'ajustes', 'suscripciones', 'inversiones', 'historialCartera', 'presupuestos', 'metas', 'aportesMetas'] as const;
 export type NombreTabla = (typeof TABLAS)[number];

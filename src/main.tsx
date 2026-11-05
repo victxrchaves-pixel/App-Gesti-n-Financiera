@@ -5,6 +5,7 @@ import './styles/global.css';
 import './styles/refinement.css';
 import './styles/finance.css';
 import './styles/budgets.css';
+import './styles/scenes.css';
 
 // Pide al sistema que no borre los datos de Neto si falta espacio (en el navegador).
 void navigator.storage?.persist?.();

@@ -70,6 +70,7 @@ export async function borrarCuenta(id: string, d: NetoDB = db): Promise<void> {
   if ((await movimientosDeCuenta(id, d)) > 0) {
     throw new Error('La cuenta tiene movimientos. Archívala en lugar de borrarla.');
   }
+  if ((await d.metas.toArray()).some(m => m.cuentaOrigenId === id || m.cuentaAhorroId === id)) throw new Error('Esta cuenta está vinculada a una meta. Cambia su cuenta de origen o elimina la meta antes de borrar la cuenta.');
   await d.cuentas.delete(id);
 }
 

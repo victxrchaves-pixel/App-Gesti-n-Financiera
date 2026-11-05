@@ -1,3 +1,4 @@
+import { SERVICIOS } from './services';
 import { config } from '../config/neto.config';
 import type { Suscripcion } from '../db/types';
 import { isISODate } from './dates';
@@ -14,6 +15,7 @@ export function siguienteRenovacion(s: Suscripcion): string {
   return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(Math.min(s.diaCobro, ultimo)).padStart(2, '0')}`;
 }
 export function validarSuscripcion(s: Omit<Suscripcion, 'id'>): string | null {
+  if (s.servicioId != null && !SERVICIOS.some(p => p.id === s.servicioId)) return 'El servicio seleccionado no es válido.';
   if (typeof s.nombre !== 'string' || !s.nombre.trim() || s.nombre.length > 80) return 'Escribe un nombre de hasta 80 caracteres.';
   if (typeof s.categoria !== 'string' || !s.categoria.trim() || s.categoria.length > 60) return 'Escribe una categoría de hasta 60 caracteres.';
   if (!['personal', 'negocio'].includes(s.ambito)) return 'El ámbito no es válido.';

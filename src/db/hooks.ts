@@ -38,3 +38,6 @@ export function useSuscripciones() { return useLiveQuery(() => db.suscripciones.
 export function useInversiones() { return useLiveQuery(() => db.inversiones.toArray(), [], []); }
 export function useHistorialCartera() { return useLiveQuery(() => db.historialCartera.orderBy('fecha').toArray(), [], []); }
 export function usePresupuestos(mes: string) { return useLiveQuery(() => db.presupuestos.where('mes').equals(mes).toArray(), [mes], []); }
+
+export function useMetas() { return useLiveQuery(() => db.metas.toArray(), [], []); }
+export function useAportesMetas() { return useLiveQuery(() => db.aportesMetas.orderBy('mes').toArray(), [], []); }

@@ -107,3 +107,36 @@ para texto/trazos. Los indicadores siguen incluyendo etiquetas y cifras.
 Las copias v4 conservan todas las elecciones; se admiten copias anteriores.
 La migración v4 neutraliza solo los antiguos colores iniciales de categorías
 que conservan su nombre y color originales; conserva otras combinaciones.
+
+## Apartados, metas y reservas de ahorro
+
+Las pantallas tienen composiciones distintas: Inicio conserva el resumen;
+Presupuestos usa sobres con barras de consumo y un panel de ahorro; Suscripciones
+combina catálogo y agenda; Inversión compara coste, valor actual y variación,
+con reparto por tipo y selector explícito de valor propio o precio por unidad.
+Las categorías sugeridas no crean límites hasta que el usuario los guarda.
+
+La base v5 añade metas y aportaciones únicas por meta/mes. Cada meta puede
+reservar un importe mensual o un porcentaje de un ingreso de referencia que
+introduce el usuario. Con origen, se crea una cuenta personal de ahorro y se
+registra una transferencia interna a ella. Sin origen, el registro es solamente
+planificado y se etiqueta como tal. No hay conexión bancaria ni órdenes externas.
+Las reservas requieren saldo disponible hasta hoy; si falta, quedan pendientes.
+Al abrir Neto, al cambiar movimientos/cuentas o transcurrir un minuto, se revisan
+los meses transcurridos. Se recuperan meses no registrados desde el inicio elegido;
+las transferencias se fechan en el día en que se registran. El objetivo limita
+las reservas automáticas; no se reescriben cuotas de meses ya registrados.
+Las pausas se respetan al reanudar. Las aportaciones confirmadas sustituyen el
+registro del mes. Editar o borrar su transferencia recalcula el progreso sin
+volver a crear la reserva anulada. El ahorro previo es seguimiento y no añade
+saldo bancario. Borrar una meta conserva sus cuentas y transferencias.
+
+Las copias v5 incluyen metas, aportaciones, cuentas de ahorro y reservas. Admiten
+v1–v4 sin metas. Se validan unicidad, cantidades y referencias de transferencias.
+
+Los servicios populares rellenan nombre, categoría e icono; Otros permite texto
+libre. Los iconos disponibles de Simple Icons se guardan localmente bajo CC0,
+con licencia en public/icons/services/LICENSE.md. Los servicios sin SVG usan un
+símbolo genérico o iniciales. La referencia Figma compartida por el usuario no
+pudo consultarse: el proxy del entorno deniega el dominio, por lo que sus recursos
+no se han importado ni se atribuyen como fuente de los SVG incluidos.

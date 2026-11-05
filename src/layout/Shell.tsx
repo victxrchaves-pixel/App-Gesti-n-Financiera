@@ -54,9 +54,9 @@ export function Shell({ ruta, children }: { ruta: Ruta; children: ReactNode }) {
         <div className="sidebar-spacer" />
         <Enlace ruta="ajustes" texto="Ajustes" activa={ruta === 'ajustes'} />
       </nav>
-      <main className="main" key={ruta}>
+      <main className={`main scene-${ruta}`} key={ruta}>
         <div className="mobile-brand"><span className="brand-mark"><BrandMark /></span><span>Neto</span><span className="mobile-context">Tu dinero, en orden.</span></div>
-        <div className="page">{children}</div>
+        <div className="page"><div className="scene-identity" aria-hidden="true"><Icon name={ruta} size={36}/></div>{children}</div>
       </main>
       <nav className="mobile-dock" aria-label="Navegación principal">
         <Enlace ruta="inicio" texto="Inicio" activa={ruta === 'inicio'} />
