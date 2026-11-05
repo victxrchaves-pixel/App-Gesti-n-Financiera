@@ -180,7 +180,7 @@
 .budget-card .budget-status-exceeded { color:var(--danger); }
 .budget-card .budget-status-exceeded i { background:var(--danger); box-shadow:0 0 0 4px var(--danger-soft); }
 .fill-track.over-limit { --fill-color:var(--danger)!important; }
-.envelope-grid .budget-figures>span:first-child b { color:var(--danger); }
+.envelope-grid .budget-figures>span:first-child b { color:var(--text); }
 .service-icon { color:var(--brand-color,#64748B); border-color:color-mix(in srgb,var(--brand-color,#64748B) 15%,#e6e6e6); background:color-mix(in srgb,var(--brand-color,#64748B) 5%,white); }
 .service-logo-mask { display:block; width:25px; height:25px; background:var(--brand-color,#64748B); mask-repeat:no-repeat; mask-position:center; mask-size:contain; -webkit-mask-repeat:no-repeat; -webkit-mask-position:center; -webkit-mask-size:contain; }
 .renewal-timeline .service-logo-mask { width:19px; height:19px; }
@@ -210,7 +210,9 @@
 .subscription-card-footer { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-top:auto; }
 @media(max-width:1100px) { .subscription-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:640px) { .service-shelf { grid-template-columns:repeat(2,minmax(0,1fr)); } .subscription-grid { grid-template-columns:1fr; gap:16px; } .subscription-card { padding:22px; } }
-.subscription-card-price strong { color:var(--danger); }
+.subscription-card-price strong { color:var(--text); }
 .goal-top>svg { color:var(--positive); }
 .goal-top:has(.goal-kind) svg { flex-shrink:0; }
 .goal-mark { display:inline-flex; flex-shrink:0; }
+
+.budget-status-number, .scene-presupuestos .row-amount { color:var(--text); }

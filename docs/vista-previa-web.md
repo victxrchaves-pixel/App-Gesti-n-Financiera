@@ -173,3 +173,9 @@ Las suscripciones guardadas aparecen en una cuadrícula de tres columnas en
 escritorio, dos en anchuras intermedias y una en móvil. Cada tarjeta incluye
 servicio, categoría, cuota y periodicidad, estado, fecha y acciones de edición y
 renovación. Se mantienen filtros, ámbitos personal/negocio y confirmaciones.
+
+En Presupuestos, Metas y Suscripciones, los importes informativos se presentan
+en negro (o en blanco sobre el resumen oscuro). El porcentaje de consumo y el
+detalle de gastos de un presupuesto también son neutros. El color de categoría,
+marca, barras y avisos se conserva; Inicio, Movimientos e Inversión mantienen
+el significado de ingreso/subida en verde y gasto/bajada en rojo.
