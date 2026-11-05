@@ -140,3 +140,18 @@ con licencia en public/icons/services/LICENSE.md. Los servicios sin SVG usan un
 símbolo genérico o iniciales. La referencia Figma compartida por el usuario no
 pudo consultarse: el proxy del entorno deniega el dominio, por lo que sus recursos
 no se han importado ni se atribuyen como fuente de los SVG incluidos.
+
+## Desglose de viajes
+
+Cada meta de viajes admite conceptos con nombre e importe previsto para el viaje
+completo. El editor ofrece vuelos, alojamiento, comida y ocio, transporte,
+actividades y seguro; permite conceptos propios, edición y eliminación.
+La suma no puede superar el objetivo y la diferencia queda como «Sin asignar».
+Reducir el objetivo por debajo del desglose existente requiere ajustar primero
+sus conceptos. El guardado valida contra el objetivo actual dentro de una
+transacción y modifica únicamente ese campo de la meta: no genera transferencias,
+aportaciones ni gastos. Editar otros datos de la meta conserva el desglose.
+
+Se ve dentro de la tarjeta del viaje en Presupuestos y Metas. Las copias v6 lo
+incluyen y validan; las anteriores siguen admitidas sin desglose. No hay tablas
+ni índices nuevos para este campo opcional.

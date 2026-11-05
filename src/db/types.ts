@@ -104,7 +104,14 @@ export interface Presupuesto {
   limite: number;
 }
 
+export interface PartidaViaje {
+  id: string;
+  nombre: string;
+  importe: number;
+}
+
 export interface Meta {
+  desglose?: PartidaViaje[];
   cuentaOrigenId?: string | null;
   cuentaAhorroId?: string | null;
   porcentaje?: number | null;

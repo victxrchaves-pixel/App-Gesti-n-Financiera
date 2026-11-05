@@ -91,7 +91,7 @@ describe('presupuestos mensuales', () => {
   });
   it('incluye presupuestos en copias y rechaza duplicados o referencias rotas antes de restaurar', async () => {
     await guardarPresupuesto({ mes, categoriaId:comida, limite:30000 }, undefined, d);
-    const copia = await crearCopia(d); expect(copia.version).toBe(5); expect(validarCopia(copia).ok).toBe(true);
+    const copia = await crearCopia(d); expect(copia.version).toBe(6); expect(validarCopia(copia).ok).toBe(true);
     await borrarTodo(d); await restaurarCopia(copia, d); expect(await crearCopia(d, new Date(copia.exportadaEn))).toEqual(copia);
     const roto = structuredClone(copia); (roto.datos.presupuestos[0] as { categoriaId:string }).categoriaId='no-existe'; expect(validarCopia(roto).ok).toBe(false);
     const duplicado = structuredClone(copia); duplicado.datos.presupuestos.push({ ...(duplicado.datos.presupuestos[0] as object), id:'otro' }); expect(validarCopia(duplicado).ok).toBe(false);

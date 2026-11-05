@@ -1,7 +1,8 @@
+import { validarDesglose } from '../lib/tripBreakdown';
 import { saldosPorCuenta } from '../lib/balances';
 import { crearCuenta, crearMovimiento } from './repo';
 import { db, type NetoDB } from './db';
-import type { AporteMeta, Meta } from './types';
+import type { AporteMeta, Meta, PartidaViaje } from './types';
 import { newId } from '../lib/id';
 import { addMonths, monthKey, todayISO } from '../lib/dates';
 import { mesValido } from '../lib/budgets';
@@ -18,7 +19,7 @@ export function validarMeta(m: Omit<Meta, 'id'>) {
   if (m.cuentaOrigenId != null && (typeof m.cuentaOrigenId !== 'string' || !m.cuentaOrigenId)) return 'Elige una cuenta de origen válida.';
   if (m.porcentaje != null && (!Number.isFinite(m.porcentaje) || m.porcentaje < 0 || m.porcentaje > 100 || !Number.isSafeInteger(m.baseMensual) || m.baseMensual! <= 0)) return 'El porcentaje debe estar entre 0 y 100 y tener un ingreso de referencia positivo.';
   if (m.color != null && !esColor(m.color)) return 'El color no es válido.';
-  return null;
+  return validarDesglose(m.desglose, m.objetivo);
 }
 export function validarAporte(a: Omit<AporteMeta, 'id'>) {
   return typeof a.metaId === 'string' && !!a.metaId && typeof a.mes === 'string' && mesValido(a.mes) && Number.isSafeInteger(a.importe) && a.importe >= 0 && ['plan', 'confirmado', 'transferencia'].includes(a.origen) && (a.origen !== 'transferencia' || (typeof a.movimientoId === 'string' && !!a.movimientoId));
@@ -63,6 +64,9 @@ export async function guardarMeta(datos: Omit<Meta, 'id'>, id?: string, d: NetoD
   await d.transaction('rw', d.metas, d.aportesMetas, d.cuentas, d.movimientos, async () => {
     const anterior = id ? await d.metas.get(id) : undefined;
     if (id && !anterior) throw new Error('La meta ya no existe.');
+    const desglose = datos.desglose ?? anterior?.desglose;
+    const errorDesglose = validarDesglose(desglose, datos.objetivo);
+    if (errorDesglose) throw new Error(errorDesglose);
     const aportes = await d.aportesMetas.where('metaId').equals(clave).toArray();
     if (!Number.isSafeInteger(aportes.reduce((s, a) => s + a.importe, datos.inicial))) throw new Error('El total supera el importe permitido.');
     const ahora = monthKey(todayISO());
@@ -82,7 +86,7 @@ export async function guardarMeta(datos: Omit<Meta, 'id'>, id?: string, d: NetoD
       if (!origen || origen.archivada || origen.ambito !== 'personal' || datos.cuentaOrigenId === cuentaAhorroId) throw new Error('Elige una cuenta personal de origen disponible, distinta del ahorro de la meta.');
       if (!cuentaAhorroId) cuentaAhorroId = await crearCuenta({ nombre:`Ahorro · ${datos.nombre.trim()}`, tipo:'ahorro', ambito:'personal', saldoInicial:0 }, d);
     }
-    await d.metas.put({ ...datos, cuentaAhorroId, pausadaDesde, nombre: datos.nombre.trim(), id: clave });
+    await d.metas.put({ ...datos, ...(desglose ? { desglose } : {}), cuentaAhorroId, pausadaDesde, nombre: datos.nombre.trim(), id: clave });
     await sincronizarMetas(undefined, d);
   });
   return clave;
@@ -108,4 +112,15 @@ export async function confirmarAporte(metaId: string, mes: string, importe: numb
 }
 export async function borrarMeta(id: string, d: NetoDB = db) {
   await d.transaction('rw', d.metas, d.aportesMetas, d.cuentas, d.movimientos, async () => { await d.aportesMetas.where('metaId').equals(id).delete(); await d.metas.delete(id); });
+}
+
+/** Solo cambia la planificación del viaje; no genera aportaciones ni movimientos. */
+export async function guardarDesglose(metaId: string, partidas: PartidaViaje[], d: NetoDB = db) {
+  await d.transaction('rw', d.metas, async () => {
+    const meta = await d.metas.get(metaId);
+    if (!meta) throw new Error('La meta ya no existe.');
+    const error = validarDesglose(partidas, meta.objetivo);
+    if (error) throw new Error(error);
+    await d.metas.update(metaId, { desglose: partidas.map(p => ({ id:p.id, nombre:p.nombre.trim(), importe:p.importe })) });
+  });
 }
