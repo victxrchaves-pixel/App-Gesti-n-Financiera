@@ -57,7 +57,7 @@ export function Movimientos() {
   const totales = useMemo(() => {
     let ingresos = 0;
     let gastos = 0;
-    for (const m of filtrados) {
+    for (const m of filtrados.filter(m=>m.fecha<=hoy)) {
       const ambito = ambitoDe(m.cuentaId) ?? 'personal';
       const c = clasificar(m, ambitoDe, ambito);
       ingresos += c.ingreso;
@@ -81,6 +81,7 @@ export function Movimientos() {
         acciones={<button className="btn btn-primary" onClick={() => setForm({})}><Icon name="mas" size={16} stroke={2.2} />Nuevo movimiento</button>}
       />
 
+      {movimientos.some(m=>m.fecha>hoy)&&<div className="finance-notice">Hay registros antiguos con fecha futura. No cuentan en saldos ni resúmenes; abre cada uno para corregir su fecha.</div>}
       <div className="toolbar">
         {!buscando && (
           <div className="month-nav">
@@ -92,7 +93,7 @@ export function Movimientos() {
         <Segmented opciones={TIPOS} valor={tipo} onChange={setTipo} etiqueta="Tipo" />
         <select className="select" value={cuentaId} onChange={(e) => setCuentaId(e.target.value)} aria-label="Cuenta">
           <option value="">Todas las cuentas</option>
-          {cuentas.map((c) => <option key={c.id} value={c.id}>{c.nombre}{ajustes?.autonomo && c.ambito === 'negocio' ? ' (negocio)' : ''}</option>)}
+          {cuentas.filter(c=>!c.eliminada).map((c) => <option key={c.id} value={c.id}>{c.nombre}{ajustes?.autonomo && c.ambito === 'negocio' ? ' (negocio)' : ''}</option>)}
         </select>
         <select className="select" value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} aria-label="Categoría">
           <option value="">Todas las categorías</option>

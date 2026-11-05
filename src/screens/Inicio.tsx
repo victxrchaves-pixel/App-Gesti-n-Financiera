@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { colorCategoria, config } from '../config/neto.config';
 import { useAjustes, useCuentas, useMapaCategorias, useMovimientos } from '../db/hooks';
-import { patrimonio } from '../lib/balances';
+import { patrimonio, dineroDisponible } from '../lib/balances';
 import { greeting, longDate, monthKey, monthLabel, monthShortLabel, todayISO } from '../lib/dates';
 import { formatMoney } from '../lib/money';
 import { gastoPorCategoria, ordenarMovimientos, resumenMes, ultimosMeses } from '../lib/stats';
@@ -28,12 +28,13 @@ export function Inicio() {
   const ahora = new Date();
 
   const resumen = useMemo(() => resumenMes(movimientos, cuentas, mes), [movimientos, cuentas, mes]);
+  const disponible = dineroDisponible(cuentas,movimientos);
   const total = useMemo(() => patrimonio(cuentas, movimientos, 'personal'), [cuentas, movimientos]);
   const serie = useMemo(() => ultimosMeses(movimientos, cuentas, mes, meses), [movimientos, cuentas, mes, meses]);
   const mapaCuentas = useMemo(() => new Map(cuentas.map((c) => [c.id, c])), [cuentas]);
   const recientes = useMemo(
-    () => ordenarMovimientos(movimientos.filter((m) => mapaCuentas.get(m.cuentaId)?.ambito === 'personal')).slice(0, config.inicio.ultimosMovimientos),
-    [movimientos, mapaCuentas],
+    () => ordenarMovimientos(movimientos.filter((m) => m.fecha <= hoy && mapaCuentas.get(m.cuentaId)?.ambito === 'personal')).slice(0, config.inicio.ultimosMovimientos),
+    [movimientos, mapaCuentas, hoy],
   );
 
   const porciones = useMemo<Porcion[]>(() => {
@@ -49,7 +50,7 @@ export function Inicio() {
     return out;
   }, [movimientos, cuentas, mes, categorias]);
 
-  const cuentasPersonales = cuentas.filter((c) => c.ambito === 'personal' && !c.archivada);
+  const cuentasPersonales = cuentas.filter((c) => c.ambito === 'personal' && !c.eliminada && !c.archivada);
   const nombre = ajustes?.nombre ? `, ${ajustes.nombre}` : '';
   const fechaTexto = longDate(hoy);
 
@@ -71,6 +72,7 @@ export function Inicio() {
         </div>
       ) : (
         <div className="stack">
+          <section className="available-money"><div><span>Disponible para gastar</span><strong>{formatMoney(disponible.disponible)}</strong><small>Dinero actual en tus cuentas de uso.</small></div><div><span>Ahorro separado</span><b>{formatMoney(disponible.ahorro)}</b><small>Saldos de tus cuentas de ahorro, incluidas las metas.</small></div><p>No se descuentan cuotas sin pagar ni se suman ingresos sin cobrar.</p></section>
           <div className="grid grid-hero">
             <section className="card card-highlight">
               <div className="hero-heading"><span className="eyebrow">Balance del mes</span><span className="hero-month">{monthLabel(mes, false)}</span></div>

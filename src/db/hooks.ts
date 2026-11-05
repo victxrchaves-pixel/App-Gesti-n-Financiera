@@ -41,3 +41,6 @@ export function usePresupuestos(mes: string) { return useLiveQuery(() => db.pres
 
 export function useMetas() { return useLiveQuery(() => db.metas.toArray(), [], []); }
 export function useAportesMetas() { return useLiveQuery(() => db.aportesMetas.orderBy('mes').toArray(), [], []); }
+
+export function usePagosFijos() { return useLiveQuery(() => db.pagosFijos.toArray(), [], []); }
+export function usePagosRegistrados() { return useLiveQuery(() => db.pagosRegistrados.orderBy('fecha').reverse().toArray(), [], []); }

@@ -4,6 +4,7 @@ export type Ambito = 'personal' | 'negocio';
 export type TipoCuenta = 'banco' | 'efectivo' | 'ahorro' | 'otra';
 
 export interface Cuenta {
+  eliminada?: boolean;
   id: string;
   nombre: string;
   tipo: TipoCuenta;
@@ -18,6 +19,9 @@ export interface Cuenta {
 export type TipoMovimiento = 'ingreso' | 'gasto' | 'transferencia';
 
 export interface Movimiento {
+  operacionId?: string;
+  metaId?: string;
+  partidaViajeId?: string;
   id: string;
   tipo: TipoMovimiento;
   /** "AAAA-MM-DD" */
@@ -129,10 +133,35 @@ export interface Meta {
   color?: string | null;
 }
 export interface AporteMeta {
+  grupoId?: string;
+  fecha?: string;
   id: string;
   metaId: string;
   mes: string;
   importe: number;
   origen: 'plan' | 'confirmado' | 'transferencia';
   movimientoId?: string;
+}
+
+export interface PagoFijo {
+  id: string;
+  nombre: string;
+  tipo: 'gasto' | 'ingreso';
+  importe: number;
+  periodo: Suscripcion['periodo'];
+  proximaFecha: string;
+  diaCobro: number;
+  cuentaId: string;
+  categoriaId: string;
+  activo: boolean;
+  nota: string;
+}
+export interface PagoRegistrado {
+  id: string;
+  origen: 'fijo' | 'suscripcion';
+  recurrenteId: string;
+  periodoFecha: string;
+  fecha: string;
+  importe: number;
+  movimientoId: string;
 }

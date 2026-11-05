@@ -13,7 +13,7 @@ const nombreTipo = (t: string) => config.tiposCuenta.find((x) => x.id === t)?.no
 function Tarjeta({ c, saldo, onClick }: { c: Cuenta; saldo: number; onClick: () => void }) {
   return (
     <button className="card account-card wallet-card" onClick={onClick}>
-      <span className="account-type"><Icon name={c.tipo} size={18} />{nombreTipo(c.tipo)}{c.archivada && <span className="tag tag-neutral">Archivada</span>}</span>
+      <span className="account-type"><Icon name={c.tipo} size={18} />{nombreTipo(c.tipo)}</span>
       <span className="account-name">{c.nombre}</span>
       <span className="wallet-caption">Saldo disponible</span>
       <span className={`account-balance${saldo < 0 ? ' danger-text' : ''}`}>{formatMoney(saldo)}</span>
@@ -24,15 +24,15 @@ function Tarjeta({ c, saldo, onClick }: { c: Cuenta; saldo: number; onClick: () 
 
 export function Cuentas() {
   const ajustes = useAjustes();
-  const cuentas = useCuentas();
+  const cuentas = useCuentas().filter(c=>!c.eliminada);
   const movimientos = useMovimientos();
   const saldos = useSaldos();
   const [form, setForm] = useState<{ cuenta?: Cuenta; ambito?: Ambito } | null>(null);
-  const [verArchivadas, setVerArchivadas] = useState(false);
+
   const autonomo = ajustes?.autonomo ?? false;
 
   const ambitos: Ambito[] = autonomo ? ['personal', 'negocio'] : ['personal'];
-  const archivadas = cuentas.filter((c) => c.archivada && (autonomo || c.ambito === 'personal'));
+
   const totalPersonal = useMemo(() => patrimonio(cuentas, movimientos, 'personal'), [cuentas, movimientos]);
   const totalNegocio = useMemo(() => patrimonio(cuentas, movimientos, 'negocio'), [cuentas, movimientos]);
 
@@ -76,18 +76,7 @@ export function Cuentas() {
           );
         })}
 
-        {archivadas.length > 0 && (
-          <section>
-            <button className="btn btn-ghost btn-sm" onClick={() => setVerArchivadas(!verArchivadas)}>
-              {verArchivadas ? 'Ocultar' : 'Ver'} archivadas ({archivadas.length})
-            </button>
-            {verArchivadas && (
-              <div className="grid grid-3" style={{ marginTop: 14 }}>
-                {archivadas.map((c) => <Tarjeta key={c.id} c={c} saldo={saldos.get(c.id) ?? 0} onClick={() => setForm({ cuenta: c })} />)}
-              </div>
-            )}
-          </section>
-        )}
+
       </div>
 
       {form && <CuentaForm cuenta={form.cuenta} ambitoInicial={form.ambito} onClose={() => setForm(null)} />}

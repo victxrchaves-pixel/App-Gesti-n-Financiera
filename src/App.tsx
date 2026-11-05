@@ -1,3 +1,4 @@
+import { Recurrentes } from './screens/Recurrentes';
 import { SavingsSync } from './ui/SavingsSync';
 import { Metas } from './screens/Metas';
 import { Theme } from './ui/Theme';
@@ -37,7 +38,8 @@ function Pantalla() {
       {efectiva === 'inicio' && <Inicio />}
       {efectiva === 'movimientos' && <Movimientos />}
       {efectiva === 'cuentas' && <Cuentas />}
-      {efectiva === 'suscripciones' && <Suscripciones />}
+      {efectiva === 'recurrentes' && <Recurrentes />}
+      {efectiva === 'suscripciones' && <Recurrentes soloSuscripciones />}
       {efectiva === 'suscripciones-negocio' && <Suscripciones ambito="negocio" />}
       {efectiva === 'inversion' && <Inversiones />}
       {efectiva === 'metas' && <Metas />}

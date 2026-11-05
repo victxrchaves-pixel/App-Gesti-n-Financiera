@@ -1,3 +1,4 @@
+import { todayISO } from '../lib/dates';
 import { colorCategoria } from '../config/neto.config';
 import type { Categoria, Cuenta, Movimiento } from '../db/types';
 import { formatMoney } from '../lib/money';
@@ -28,7 +29,7 @@ export function MovimientoRow({
       </span>
       <span className="row-main">
         <div className="row-title">{titulo}</div>
-        <div className="row-sub">{sub}</div>
+        <div className="row-sub">{sub}{cuenta?.eliminada?' · Cuenta eliminada':''}{m.fecha>todayISO()?' · Corregir fecha futura':''}</div>
       </span>
       <span className={`row-amount${m.tipo === 'ingreso' ? ' positive' : m.tipo === 'gasto' ? ' expense-text' : ''}${esTransfer ? ' faint' : ''}`}>
         {formatMoney(m.tipo === 'gasto' ? -m.importe : m.importe, { signo: m.tipo === 'ingreso' ? 'siempre' : 'auto' })}

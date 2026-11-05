@@ -45,7 +45,7 @@ export function MovimientoForm({ movimiento, onClose }: { movimiento?: Movimient
   const autonomo = ajustes?.autonomo ?? false;
   const todasCuentas = useCuentas();
   const cuentas = useMemo(
-    () => todasCuentas.filter((c) => !c.archivada || c.id === movimiento?.cuentaId || c.id === movimiento?.cuentaDestinoId),
+    () => todasCuentas.filter((c) => (!c.eliminada && !c.archivada) || c.id === movimiento?.cuentaId || c.id === movimiento?.cuentaDestinoId),
     [todasCuentas, movimiento],
   );
   const categorias = useCategorias();
@@ -134,7 +134,7 @@ export function MovimientoForm({ movimiento, onClose }: { movimiento?: Movimient
         <div className="field-row">
           <div className="field">
             <label className="field-label" htmlFor="mf-fecha">Fecha</label>
-            <input id="mf-fecha" className="input" type="date" value={fecha} onChange={(e) => e.target.value && setFecha(e.target.value)} required />
+            <input id="mf-fecha" className="input" type="date" max={todayISO()} value={fecha} onChange={(e) => e.target.value && setFecha(e.target.value)} required />
           </div>
           <div className="field">
             <label className="field-label" htmlFor="mf-cuenta">{tipo === 'transferencia' ? 'Desde' : 'Cuenta'}</label>

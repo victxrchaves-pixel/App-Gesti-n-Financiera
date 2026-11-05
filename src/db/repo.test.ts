@@ -45,10 +45,10 @@ describe('movimientos', () => {
 });
 
 describe('cuentas y categorías', () => {
-  it('no deja borrar una cuenta con movimientos', async () => {
+  it('elimina la cuenta de los totales y conserva su historial', async () => {
     const id = await crearCuenta({ nombre: 'Banco', tipo: 'banco', ambito: 'personal', saldoInicial: 0 }, d);
     await crearMovimiento({ tipo: 'ingreso', fecha: '2026-11-04', importe: 100, cuentaId: id, categoriaId: 'c', nota: '' }, d);
-    await expect(borrarCuenta(id, d)).rejects.toThrow('Archívala');
+    await borrarCuenta(id,d);expect((await d.cuentas.get(id))?.eliminada).toBe(true);expect(await d.movimientos.count()).toBe(1);
   });
 
   it('al borrar una categoría sus movimientos pasan a "Otros"', async () => {

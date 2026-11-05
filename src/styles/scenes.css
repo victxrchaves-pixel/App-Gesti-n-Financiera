@@ -2,7 +2,7 @@
 .scene-identity { display:inline-flex; align-items:center; justify-content:center; width:58px; height:58px; margin-bottom:16px; background:var(--card-sunken); color:var(--text); border:1px solid var(--line); border-radius:18px; }
 .scene-inicio .scene-identity { border-radius:50%; background:var(--text); color:white; }
 .scene-presupuestos .scene-identity { border-radius:6px 18px 6px 18px; border-style:dashed; }
-.scene-suscripciones .scene-identity,.scene-suscripciones-negocio .scene-identity { border-radius:12px; border-top:8px solid var(--text); }
+.scene-recurrentes .scene-identity,.scene-suscripciones .scene-identity,.scene-suscripciones-negocio .scene-identity { border-radius:12px; border-top:8px solid var(--text); }
 .scene-inversion .scene-identity { background:transparent; border:0; width:72px; justify-content:flex-start; }
 .fill-track { height:12px; background:rgba(0,0,0,.07); border-radius:5px; overflow:hidden; width:100%; }
 .fill-track>span { height:100%; display:block; background:var(--fill-color); border-radius:inherit; transition:width .25s ease; }
@@ -216,3 +216,30 @@
 .goal-mark { display:inline-flex; flex-shrink:0; }
 
 .budget-status-number, .scene-presupuestos .row-amount { color:var(--text); }
+.available-money { display:grid; grid-template-columns:1.2fr 1fr; gap:20px; padding:26px 0; border-bottom:1px solid var(--line-strong); }
+.available-money>div { display:flex; flex-direction:column; gap:10px; }
+.available-money strong { font-size:44px; font-weight:550; letter-spacing:-.05em; }
+.available-money b { font-size:28px; font-weight:550; letter-spacing:-.04em; }
+.available-money span { font-size:13px; }
+.available-money small,.available-money>p { font-size:11px; color:var(--text-3); margin:0; }
+.available-money>p { grid-column:1/-1; }
+.recurring-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; border:1px solid var(--line); background:white; border-radius:22px; padding:26px; }
+.recurring-summary>div { display:flex; flex-direction:column; gap:10px; }
+.recurring-summary strong { font-size:30px; font-weight:550; letter-spacing:-.04em; }
+.recurring-summary span,.recurring-summary small { font-size:12px; color:var(--text-2); }
+.recurring-tabs { display:flex; gap:12px; flex-wrap:wrap; }
+.recurring-tabs button[aria-pressed=true] { background:var(--text); color:white; }
+.recurring-paid { font-size:11px; padding:10px; background:#F0F8F2; border-radius:8px; margin:0; color:var(--text); }
+.recurring-history { display:flex; align-items:center; justify-content:space-between; gap:18px; width:100%; padding:14px 0; border:0; border-top:1px solid var(--line); background:none; text-align:left; }
+.recurring-history small { display:block; margin-top:6px; color:var(--text-3); }
+.contribution-split { list-style:none; margin:0; padding:0; }
+.contribution-split li { display:flex; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); font-size:13px; }
+.contribution-split small { display:block; color:var(--text-3); font-size:11px; margin-top:5px; }
+.goal-extra-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+.goal-money-details { display:flex; flex-direction:column; gap:8px; margin-top:14px; font-size:11px; }
+.goal-money-details>span { display:flex; justify-content:space-between; gap:8px; color:var(--text-2); }
+.goal-money-details b { color:var(--text); font-weight:500; }
+.trip-parts .trip-part-real { align-items:start; }
+.trip-part-real>span:last-child { text-align:right; }
+.trip-part-real small { display:block; color:var(--text-3); font-size:10px; margin-top:5px; }
+@media(max-width:640px) { .available-money { grid-template-columns:1fr; padding:10px 0 24px; } .available-money strong { font-size:38px; } .recurring-summary { grid-template-columns:1fr; padding:22px; gap:20px; } .recurring-summary>div+div { border-top:1px solid var(--line); padding-top:18px; } .recurring-tabs>.btn { flex:1; height:auto; min-height:42px; white-space:normal; } }

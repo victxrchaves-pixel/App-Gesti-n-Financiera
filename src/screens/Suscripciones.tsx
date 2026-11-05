@@ -14,7 +14,7 @@ import { Icon } from '../ui/Icon';
 import { Modal, useConfirm, useToast } from '../ui/Modal';
 import { AmountInput, useAmountField } from '../ui/AmountInput';
 
-function Formulario({ actual, servicioInicial, ambito, categorias, cerrar }: { actual?: Suscripcion; servicioInicial?: string; ambito: Ambito; categorias: string[]; cerrar: () => void }) {
+export function FormularioSuscripcion({ actual, servicioInicial, ambito, categorias, cerrar }: { actual?: Suscripcion; servicioInicial?: string; ambito: Ambito; categorias: string[]; cerrar: () => void }) {
   const inicial = SERVICIOS.find(s=>s.id===servicioInicial);
   const [servicio, setServicio] = useState(actual?.servicioId ?? identificarServicio(actual?.nombre ?? '')?.id ?? inicial?.id ?? '');
   const [nombre, setNombre] = useState(actual?.nombre ?? inicial?.nombre ?? '');
@@ -76,6 +76,6 @@ export function Suscripciones({ ambito = 'personal' }: { ambito?: Ambito }) {
       </section>
       <section className="service-catalog"><div className="card-header"><div><h2 className="card-title">Añade un servicio</h2><p className="card-sub">Elige la app; después, indica tu plan y tu próxima cuota.</p></div><select className="select finance-select" aria-label="Tipo de servicio" value={grupoServicios} onChange={e=>setGrupoServicios(e.target.value)}>{[...new Set(SERVICIOS.map(s=>s.grupo))].map(g=><option key={g}>{g}</option>)}</select></div><div className="service-shelf">{SERVICIOS.filter(s=>s.grupo===grupoServicios).map(s=><button key={s.id} className="service-tile" onClick={()=>setForm({servicioInicial:s.id})}><ServiceIcon id={s.id} nombre={s.nombre}/><span>{s.nombre}</span><Icon name="mas" size={16}/></button>)}<button className="service-tile other-service" onClick={()=>setForm({})}><span className="service-icon"><Icon name="mas"/></span><span>Otros</span></button></div></section>
     </div>
-    {form && <Formulario actual={form.actual} servicioInicial={form.servicioInicial} ambito={ambito} categorias={categorias} cerrar={() => setForm(null)} />}
+    {form && <FormularioSuscripcion actual={form.actual} servicioInicial={form.servicioInicial} ambito={ambito} categorias={categorias} cerrar={() => setForm(null)} />}
   </>;
 }

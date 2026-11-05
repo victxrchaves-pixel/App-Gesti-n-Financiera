@@ -8,7 +8,7 @@ export function mesesPeriodo(periodo: Suscripcion['periodo']): number {
 }
 export function costeMensual(s: Suscripcion): number { return Math.round(s.importe / mesesPeriodo(s.periodo)); }
 export function costeAnual(s: Suscripcion): number { return s.importe * (12 / mesesPeriodo(s.periodo)); }
-export function siguienteRenovacion(s: Suscripcion): string {
+export function siguienteRenovacion(s: Pick<Suscripcion,'proximaFecha'|'periodo'|'diaCobro'>): string {
   const [y, m] = s.proximaFecha.split('-').map(Number);
   const fecha = new Date(y, m - 1 + mesesPeriodo(s.periodo), 1);
   const ultimo = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0).getDate();

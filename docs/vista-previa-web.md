@@ -43,9 +43,19 @@ La base de datos v2 conserva cuentas y movimientos v1 y añade suscripciones,
 posiciones de inversión e histórico diario de cartera. Las copias v2 incluyen
 las tres tablas nuevas; se siguen admitiendo las copias v1.
 
-Las suscripciones personales y de negocio se muestran por separado. Avanzar una
-renovación solo cambia su fecha; no realiza pagos ni genera movimientos contables.
-Los importes mensual/anual son equivalencias de las cuotas activas.
+Las suscripciones personales se integran en `#/recurrentes`, junto con pagos fijos
+e ingresos recurrentes. El antiguo enlace `#/suscripciones` sigue abriendo la
+misma sección con el filtro de suscripciones. El negocio conserva su pantalla.
+Las fichas son plantillas y sus fechas solo organizan periodos: no crean gastos
+ni ingresos anticipados. «Pagado» o «Cobrado» pide importe real, fecha hasta hoy,
+cuenta y categoría; crea el movimiento y avanza un periodo en una transacción.
+La clave única de ficha/periodo evita duplicados por doble confirmación.
+Las tarjetas mantienen tres columnas en escritorio, dos en tamaños intermedios
+y una en móvil. Hay filtros por tipo y categoría, búsqueda, estado e historial.
+Las suscripciones existentes se conservan y sus pagos usan por defecto la
+categoría contable Suscripciones, que puede cambiarse al confirmar.
+Los totales del mes usan los movimientos reales, también tras corregirlos.
+Eliminar la ficha conserva su historial de pagos y los movimientos asociados.
 
 Las posiciones y cantidades se quedan en IndexedDB. La web descarga únicamente
 un catálogo público común (`data/quotes.json`), sin enviar posiciones a proveedores.
@@ -76,8 +86,7 @@ que no se abrió la app.
 
 La base v3 añade límites por categoría y mes, con índice único y copias v3. Las
 copias v1/v2 siguen siendo válidas; al restaurarlas, Presupuestos queda vacío.
-La pantalla `#/presupuestos` cuenta gastos de cuentas personales (también
-archivadas) fechados dentro del mes seleccionado y hasta el día local actual.
+La pantalla `#/presupuestos` cuenta gastos de cuentas personales (también el historial de cuentas eliminadas) fechados dentro del mes seleccionado y hasta el día local actual.
 Excluye ingresos, transferencias, negocio y movimientos futuros. Las cuotas de
 suscripción cuentan cuando su pago está registrado como gasto en Movimientos.
 
@@ -95,7 +104,7 @@ Esta operación y las copias entre meses son transaccionales.
 
 ## Apariencia personalizable
 
-La interfaz, categorías iniciales y gráficos son neutros por defecto. Ajustes →
+La estructura de la interfaz es neutra y las categorías y gráficos usan colores funcionales. Ajustes →
 Apariencia y colores permite elegir cualquier hexadecimal RGB para el destaque,
 ingresos, gastos e inversiones. Las categorías tienen selector libre y los
 presupuestos pueden heredar su color o guardar uno propio, que se copia al mes
@@ -116,23 +125,49 @@ combina catálogo y agenda; Inversión compara coste, valor actual y variación,
 con reparto por tipo y selector explícito de valor propio o precio por unidad.
 Las categorías sugeridas no crean límites hasta que el usuario los guarda.
 
-La base v5 añade metas y aportaciones únicas por meta/mes. Cada meta puede
-reservar un importe mensual o un porcentaje de un ingreso de referencia que
-introduce el usuario. Con origen, se crea una cuenta personal de ahorro y se
-registra una transferencia interna a ella. Sin origen, el registro es solamente
-planificado y se etiqueta como tal. No hay conexión bancaria ni órdenes externas.
-Las reservas requieren saldo disponible hasta hoy; si falta, quedan pendientes.
-Al abrir Neto, al cambiar movimientos/cuentas o transcurrir un minuto, se revisan
-los meses transcurridos. Se recuperan meses no registrados desde el inicio elegido;
-las transferencias se fechan en el día en que se registran. El objetivo limita
-las reservas automáticas; no se reescriben cuotas de meses ya registrados.
-Las pausas se respetan al reanudar. Las aportaciones confirmadas sustituyen el
-registro del mes. Editar o borrar su transferencia recalcula el progreso sin
-volver a crear la reserva anulada. El ahorro previo es seguimiento y no añade
-saldo bancario. Borrar una meta conserva sus cuentas y transferencias.
+Las metas permiten reservar un importe mensual o un porcentaje de un ingreso
+de referencia elegido por el usuario. Con origen, se crea una cuenta de ahorro
+y se registra un traspaso interno; no hay conexión bancaria ni órdenes externas.
+El modo automático reserva únicamente la cuota del mes actual, al abrir Neto
+o al actualizar saldos, siempre que haya dinero suficiente. No recupera meses
+anteriores automáticamente. Cambiar una cuota conserva lo ya registrado.
+Sin cuenta de origen, las aportaciones son seguimiento manual de ahorro ya
+realizado y no alteran saldos ni el disponible para gastar. El ahorro previo
+se mantiene como seguimiento y no añade dinero a cuentas.
 
-Las copias v5 incluyen metas, aportaciones, cuentas de ahorro y reservas. Admiten
-v1–v4 sin metas. Se validan unicidad, cantidades y referencias de transferencias.
+«Aportar / recuperar meses» permite aportar ahora 300 € y atribuir 100 € a cada
+uno de tres meses seleccionados. Se genera una única transferencia por 300 €,
+con su fecha real hasta hoy y un desglose en aportaciones. Los meses son etiquetas
+de reparto, no fechas de movimientos futuros. Se puede añadir otra aportación
+al mismo mes; no sobrescribe las anteriores. Un identificador por operación evita
+repetir el traspaso. Los céntimos se distribuyen sin pérdidas por redondeo.
+Corregir la transferencia ajusta proporcionalmente el reparto; borrarla anula
+sus aportaciones sin recrearla. Borrar la meta conserva cuentas y movimientos.
+
+La base v7 añade fichas y registros de recurrentes, índices de idempotencia y
+reparto de aportaciones. Las copias v8 incluyen estas tablas y admiten v1–v7.
+Se validan importes, periodos y que cada reparto sume exactamente su transferencia.
+Al eliminar una categoría se trasladan tanto movimientos y límites como fichas
+fijas a la categoría elegida.
+
+## Dinero real y cuentas
+
+Los formularios de movimientos solo aceptan fechas válidas hasta el día actual.
+Los registros antiguos con fecha futura permanecen visibles para corregirlos en
+Movimientos, con aviso, pero se excluyen de saldos, gráficos y resúmenes actuales.
+
+Todas las cuentas vigentes de un ámbito suman en su patrimonio. No hay acción de
+archivar: se pueden eliminar incluso con historial y su saldo desaparece de las
+vistas y los totales; las metas vinculadas se pausan. Internamente se conservan
+referencias de cuenta y movimientos para respetar el historial y las transferencias
+de las otras cuentas. Las antiguas cuentas archivadas se migran a eliminadas,
+sin incorporar de nuevo su dinero al total.
+
+Inicio muestra «Disponible para gastar»: suma actual de cuentas personales de
+uso. El «Ahorro separado» suma las cuentas de tipo ahorro, incluidas las metas.
+Ambos suman el total de cuentas personales. No se restan cuotas sin confirmar
+ni se suman ingresos pendientes. El disponible no incluye la valoración de
+inversiones. Un traspaso entre cuentas personales no es gasto ni ingreso.
 
 Los servicios populares rellenan nombre, categoría e icono; Otros permite texto
 libre. Los iconos disponibles de Simple Icons se guardan localmente bajo CC0,
@@ -152,9 +187,19 @@ sus conceptos. El guardado valida contra el objetivo actual dentro de una
 transacción y modifica únicamente ese campo de la meta: no genera transferencias,
 aportaciones ni gastos. Editar otros datos de la meta conserva el desglose.
 
-Se ve dentro de la tarjeta del viaje en Presupuestos y Metas. Las copias v6 lo
-incluyen y validan; las anteriores siguen admitidas sin desglose. No hay tablas
-ni índices nuevos para este campo opcional.
+Se ve dentro de la tarjeta del viaje en Presupuestos y Metas. Además del reparto
+del objetivo, cada concepto muestra lo pagado y la parte del importe asignado
+aún sin usar. «Registrar gasto» apunta el pago real desde la cuenta de ahorro,
+asociándolo al viaje y, opcionalmente, a uno de sus conceptos. El gasto se cuenta
+una sola vez en Movimientos, los resúmenes y los presupuestos de su categoría.
+La meta distingue ahorro acumulado, dinero gastado y saldo disponible. En viajes,
+el progreso incluye la parte ya pagada para que comprar un vuelo no borre ese
+avance. El dinero retirado hacia otros destinos se resta del progreso financiado.
+
+«Repartir restante» transfiere a una cuenta elegida o a otra meta sin generar otro
+gasto. Reservar 200 €, gastar 150 € y devolver los 50 € restantes deja 150 € de
+gasto real y cero disponibles en esa reserva. Se comprueba saldo suficiente, fecha
+real y operación única. Los datos del viaje y sus pagos se incluyen en copias v8.
 
 ## Colores funcionales y tarjetas de suscripciones
 

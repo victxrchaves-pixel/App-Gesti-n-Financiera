@@ -34,7 +34,7 @@ describe('presupuestos mensuales', () => {
     await crearMovimiento(gasto(personal, comida, 800), d); await crearMovimiento(gasto(personal, ocio, 300), d);
     await crearMovimiento(gasto(negocio, comida, 900), d);
     await crearMovimiento(gasto(personal, comida, 600, '2026-10-31'), d);
-    await crearMovimiento(gasto(personal, comida, 500, '2026-11-05'), d);
+    await d.movimientos.add({...gasto(personal, comida, 500, '2026-11-06'),id:'futuro-antiguo',origen:'manual',creadoEn:'',actualizadoEn:''});
     await crearMovimiento({ ...gasto(personal, comida, 400), tipo:'ingreso' }, d);
     await crearMovimiento({ ...gasto(personal, comida, 200), tipo:'transferencia', cuentaDestinoId:negocio }, d);
     await d.cuentas.update(personal, { archivada:true });
@@ -91,7 +91,7 @@ describe('presupuestos mensuales', () => {
   });
   it('incluye presupuestos en copias y rechaza duplicados o referencias rotas antes de restaurar', async () => {
     await guardarPresupuesto({ mes, categoriaId:comida, limite:30000 }, undefined, d);
-    const copia = await crearCopia(d); expect(copia.version).toBe(7); expect(validarCopia(copia).ok).toBe(true);
+    const copia = await crearCopia(d); expect(copia.version).toBe(8); expect(validarCopia(copia).ok).toBe(true);
     await borrarTodo(d); await restaurarCopia(copia, d); expect(await crearCopia(d, new Date(copia.exportadaEn))).toEqual(copia);
     const roto = structuredClone(copia); (roto.datos.presupuestos[0] as { categoriaId:string }).categoriaId='no-existe'; expect(validarCopia(roto).ok).toBe(false);
     const duplicado = structuredClone(copia); duplicado.datos.presupuestos.push({ ...(duplicado.datos.presupuestos[0] as object), id:'otro' }); expect(validarCopia(duplicado).ok).toBe(false);

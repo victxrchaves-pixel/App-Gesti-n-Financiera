@@ -1,3 +1,4 @@
+import { isISODate, todayISO } from '../lib/dates';
 import { CAMPOS_COLOR, esColor } from '../lib/colors';
 import { config } from '../config/neto.config';
 import { newId } from '../lib/id';
@@ -56,6 +57,7 @@ export async function crearCuenta(datos: DatosCuenta, d: NetoDB = db): Promise<s
 }
 
 export async function actualizarCuenta(id: string, cambios: Partial<Omit<Cuenta, 'id'>>, d: NetoDB = db): Promise<void> {
+  if (cambios.archivada) throw new Error('Las cuentas no se archivan. Puedes eliminarlas.');
   await d.cuentas.update(id, cambios);
 }
 
@@ -65,13 +67,12 @@ export async function movimientosDeCuenta(id: string, d: NetoDB = db): Promise<n
   return a + b;
 }
 
-/** Solo se puede borrar una cuenta sin movimientos; si tiene, hay que archivarla. */
+/** Elimina la cuenta de todas las vistas; conserva referencias para el historial. */
 export async function borrarCuenta(id: string, d: NetoDB = db): Promise<void> {
-  if ((await movimientosDeCuenta(id, d)) > 0) {
-    throw new Error('La cuenta tiene movimientos. Archívala en lugar de borrarla.');
-  }
-  if ((await d.metas.toArray()).some(m => m.cuentaOrigenId === id || m.cuentaAhorroId === id)) throw new Error('Esta cuenta está vinculada a una meta. Cambia su cuenta de origen o elimina la meta antes de borrar la cuenta.');
-  await d.cuentas.delete(id);
+  await d.transaction('rw', d.cuentas, d.metas, async () => {
+    await d.cuentas.update(id, { eliminada:true, archivada:false });
+    await d.metas.filter(m=>m.cuentaOrigenId===id||m.cuentaAhorroId===id).modify({activa:false});
+  });
 }
 
 // ── Movimientos ────────────────────────────────────────────────────────────
@@ -81,6 +82,8 @@ export type DatosMovimiento = Pick<Movimiento, 'tipo' | 'fecha' | 'importe' | 'c
 };
 
 export function validarMovimiento(m: DatosMovimiento): string | null {
+  if (!['ingreso','gasto','transferencia'].includes(m.tipo)) return 'El tipo de movimiento no es válido.';
+  if (typeof m.fecha !== 'string' || !isISODate(m.fecha) || m.fecha > todayISO()) return 'Registra únicamente movimientos ya realizados, con fecha hasta hoy.';
   if (!Number.isSafeInteger(m.importe) || m.importe <= 0) return 'El importe tiene que ser mayor que 0.';
   if (!m.cuentaId) return 'Elige una cuenta.';
   if (m.tipo === 'transferencia') {
@@ -139,7 +142,7 @@ export async function actualizarCategoria(id: string, cambios: Partial<Pick<Cate
  * No deja borrar la última categoría de un tipo.
  */
 export async function borrarCategoria(id: string, destinoId?: string, d: NetoDB = db): Promise<void> {
-  await d.transaction('rw', d.categorias, d.movimientos, d.presupuestos, async () => {
+  await d.transaction('rw', d.categorias, d.movimientos, d.presupuestos, d.pagosFijos, async () => {
     const cat = await d.categorias.get(id);
     if (!cat) return;
     const hermanas = (await d.categorias.where('tipo').equals(cat.tipo).toArray()).filter((c) => c.id !== id);
@@ -157,6 +160,7 @@ export async function borrarCategoria(id: string, destinoId?: string, d: NetoDB 
       } else await d.presupuestos.update(p.id, { categoriaId: destino });
     }
     await d.movimientos.where('categoriaId').equals(id).modify({ categoriaId: destino });
+    await d.pagosFijos.filter(p=>p.categoriaId===id).modify({ categoriaId: destino });
     await d.categorias.delete(id);
   });
 }

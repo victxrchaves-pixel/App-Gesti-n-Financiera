@@ -1,3 +1,5 @@
+import { validarPagoFijo } from '../db/recurring';
+import type { PagoFijo, PagoRegistrado } from '../db/types';
 import { validarMeta, validarAporte } from '../db/goals';
 import type { Meta, AporteMeta } from '../db/types';
 import { CAMPOS_COLOR, esColor, neutralizarInicial, colorSemanticoInicial } from './colors';
@@ -61,7 +63,12 @@ export function validarCopia(entrada: unknown): ResultadoValidacion {
   for (const c of datos.cuentas as Record<string, unknown>[]) {
     if (!esEntero(c.saldoInicial)) return { ok: false, error: `La cuenta «${String(c.nombre)}» tiene un saldo no válido.` };
   }
+  const operaciones = new Set<string>();
   for (const m of datos.movimientos as Record<string, unknown>[]) {
+    if(m.operacionId != null) {
+      if(typeof m.operacionId !== 'string' || !m.operacionId || operaciones.has(m.operacionId))return {ok:false,error:'Hay operaciones de movimientos inválidas o duplicadas.'};
+      operaciones.add(m.operacionId);
+    }
     if (!esEntero(m.importe) || (m.importe as number) <= 0 || typeof m.fecha !== 'string' || !isISODate(m.fecha)) {
       return { ok: false, error: 'Hay movimientos con importe o fecha no válidos.' };
     }
@@ -86,20 +93,24 @@ export function validarCopia(entrada: unknown): ResultadoValidacion {
       if (!cuentas.some(c=>c.id===m.cuentaOrigenId&&c.ambito==='personal') || !cuentas.some(c=>c.id===m.cuentaAhorroId&&c.ambito==='personal') || m.cuentaOrigenId===m.cuentaAhorroId) return {ok:false,error:'Una meta tiene cuentas de origen o destino no válidas.'};
     }
   }
+  for (const f of datos.pagosFijos as PagoFijo[]) { const error=validarPagoFijo(f); if(error)return {ok:false,error:`Recurrente no válido: ${error}`}; }
+  const pagosUnicos=new Set<string>();
+  for(const p of datos.pagosRegistrados as PagoRegistrado[]){const key=JSON.stringify([p.origen,p.recurrenteId,p.periodoFecha]);if(!['fijo','suscripcion'].includes(p.origen)||typeof p.recurrenteId!=='string'||!p.recurrenteId||!isISODate(p.periodoFecha)||!isISODate(p.fecha)||!esEntero(p.importe)||p.importe<=0||typeof p.movimientoId!=='string'||!p.movimientoId||pagosUnicos.has(key))return {ok:false,error:'Hay registros de recurrentes inválidos o duplicados.'};pagosUnicos.add(key);}
   const aportesUnicos = new Set<string>();
   const totalesMetas = new Map((datos.metas as Meta[]).map(m => [m.id, m.inicial]));
   for (const a of datos.aportesMetas as AporteMeta[]) {
-    const key = JSON.stringify([a.metaId, a.mes]);
+    const key = JSON.stringify([a.metaId, a.mes, a.grupoId ?? a.id]);
     if (!validarAporte(a) || !totalesMetas.has(a.metaId) || aportesUnicos.has(key)) return { ok: false, error: 'Hay aportaciones de metas inválidas o duplicadas.' };
-    if (a.origen==='transferencia' && a.importe>0) {
-      const movimiento = (datos.movimientos as {id:string;tipo:string;importe:number;cuentaDestinoId?:string}[]).find(m=>m.id===a.movimientoId);
-      const meta = (datos.metas as Meta[]).find(m=>m.id===a.metaId);
-      if (!movimiento || movimiento.tipo!=='transferencia' || movimiento.cuentaDestinoId!==meta?.cuentaAhorroId || movimiento.importe!==a.importe) return {ok:false,error:'Una reserva de ahorro no coincide con su transferencia.'};
-    }
     aportesUnicos.add(key);
     const total = totalesMetas.get(a.metaId)! + a.importe;
     if (!Number.isSafeInteger(total)) return { ok: false, error: 'El total de una meta supera el importe permitido.' };
     totalesMetas.set(a.metaId, total);
+  }
+  const gruposReserva=new Map<string,AporteMeta[]>();
+  for(const a of datos.aportesMetas as AporteMeta[])if(a.origen==='transferencia'&&a.movimientoId)gruposReserva.set(a.movimientoId,[...(gruposReserva.get(a.movimientoId)??[]),a]);
+  for(const [id,filas] of gruposReserva){
+    const total=filas.reduce((s,a)=>s+a.importe,0);const mov=(datos.movimientos as {id:string;tipo:string;cuentaDestinoId?:string;importe:number}[]).find(m=>m.id===id);
+    if(total>0&&(!mov||mov.tipo!=='transferencia'||mov.importe!==total||filas.some(a=>(datos.metas as Meta[]).find(m=>m.id===a.metaId)?.cuentaAhorroId!==mov.cuentaDestinoId)))return {ok:false,error:'El reparto de una aportación no coincide con su transferencia real.'};
   }
   const claves = new Set<string>();
   const totales = new Map<string, number>();
@@ -123,12 +134,14 @@ export async function restaurarCopia(copia: CopiaNeto, d: NetoDB = db): Promise<
     for (const t of TABLAS) {
       await d.table(t).clear();
       const filas = copia.datos[t] ?? [];
-      await d.table(t).bulkAdd(t === 'categorias' && copia.version < 7 ? (filas as { nombre: string; color: string }[]).map(c => ({ ...c, color: colorSemanticoInicial({ ...c, color: copia.version < 4 ? neutralizarInicial(c) : c.color }) })) : filas);
+      await d.table(t).bulkAdd(t === 'cuentas' ? (filas as {archivada?:boolean}[]).map(c=>({...c,...(c.archivada?{eliminada:true}:{}),archivada:false})) : t === 'categorias' && copia.version < 7 ? (filas as { nombre: string; color: string }[]).map(c => ({ ...c, color: colorSemanticoInicial({ ...c, color: copia.version < 4 ? neutralizarInicial(c) : c.color }) })) : filas);
     }
+    const eliminadas = new Set((await d.cuentas.toArray()).filter(c=>c.eliminada).map(c=>c.id));
+    await d.metas.toCollection().modify(m=>{ if(eliminadas.has(m.cuentaOrigenId??'')||eliminadas.has(m.cuentaAhorroId??''))m.activa=false; });
   });
 }
 
 export function resumenCopia(copia: CopiaNeto): string {
   const n = (t: NombreTabla) => copia.datos[t]?.length ?? 0;
-  return `${n('cuentas')} cuentas, ${n('movimientos')} movimientos, ${n('categorias')} categorías, ${n('suscripciones')} suscripciones, ${n('inversiones')} inversiones y ${n('presupuestos')} presupuestos y ${n('metas')} metas`;
+  return `${n('cuentas')} cuentas, ${n('movimientos')} movimientos, ${n('categorias')} categorías, ${n('suscripciones')} suscripciones, ${n('inversiones')} inversiones, ${n('presupuestos')} presupuestos, ${n('metas')} metas, ${n('pagosFijos')} recurrentes y ${n('pagosRegistrados')} pagos/cobros registrados`;
 }
