@@ -224,3 +224,35 @@ en negro (o en blanco sobre el resumen oscuro). El porcentaje de consumo y el
 detalle de gastos de un presupuesto también son neutros. El color de categoría,
 marca, barras y avisos se conserva; Inicio, Movimientos e Inversión mantienen
 el significado de ingreso/subida en verde y gasto/bajada en rojo.
+
+## Legibilidad, composición y referencias visuales
+
+La revisión visual usa `polish.css` como capa común de composición y controles.
+Integra icono y título en la misma cabecera, amplía etiquetas, cifras y botones,
+y define separaciones coherentes entre tarjetas. Conserva los colores de tema,
+categoría y marca; los importes de presupuestos, metas y suscripciones siguen
+neutros. Inicio prioriza disponible/ahorro y presenta el balance mensual en una
+franja independiente. Metas usa dos columnas amplias y una composición especial
+si hay un único viaje; el detalle de las metas en Presupuestos es desplegable.
+Recurrentes ordena por fecha de referencia y alinea cuota, estado y confirmación.
+
+Las referencias aportadas se aplican a las tarjetas de cuentas por capas, anillos
+segmentados más gruesos, indicadores de consumo alrededor de categorías y curvas
+con puntos seleccionados y etiquetas de valor. Las curvas pasan por los datos
+reales sin sobrepasar los valores de los extremos de cada tramo. Las áreas bajo
+las líneas son decorativas y no añaden datos ni previsiones. Los anillos muestran
+importe, nombre y porcentaje en su leyenda; los segmentos pequeños conservan
+extremos planos para evitar exagerar su peso. El teclado permite recorrer meses,
+seleccionar categorías y elegir fechas; la evolución de inversiones admite además
+selección directa con puntero o toque sobre la curva.
+
+Los formularios tienen cierre visible y pie de acciones accesible al desplazarse.
+El editor del desglose de viajes separa concepto e importe en móvil para poder
+leer ambos. La navegación móvil acorta Movimientos a Actividad para mantener las
+etiquetas legibles. Se respetan las preferencias de movimiento y transparencia
+reducidos. No hay cambios en el modelo ni en las operaciones financieras.
+
+Validación: 112 pruebas de datos, compilación para Pages, revisión de las ocho
+secciones personales a 1440, 1024, 768, 390 y 320 px, comprobaciones de gráficos
+con teclado/puntero, contraste de la tarjeta oscura, diez formularios móviles,
+detalle desplegable de ahorro y recorrido de pagos, gastos, aportaciones y cuentas.

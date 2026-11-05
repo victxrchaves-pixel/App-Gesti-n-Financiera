@@ -1,5 +1,6 @@
 /** Iconos de trazo fino dibujados a mano (sin emojis ni librerías). */
 const paths: Record<string, string> = {
+  editar: 'm14 5 5 5M4 20l5-1L21 7l-4-4L5 15z',
   recurrentes: 'M4 8a8 8 0 0 1 13-3l3 3M20 3v5h-5M20 16a8 8 0 0 1-13 3l-3-3M4 21v-5h5',
   check: 'm5 12 4 4 10-10',
   viaje: 'm3 10 7 2 4 8 2-1-1-7 6-7-2-2-7 6-7-1z',

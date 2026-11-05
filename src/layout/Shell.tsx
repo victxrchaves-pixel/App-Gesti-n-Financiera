@@ -1,7 +1,7 @@
 import { useRef, type ReactNode } from 'react';
 import { useAjustes } from '../db/hooks';
 import { esEscritorio, esMac } from '../lib/platform';
-import { type Ruta } from '../router';
+import { useRuta, type Ruta } from '../router';
 import { BrandMark, Icon } from '../ui/Icon';
 
 const PERSONAL: { ruta: Ruta; texto: string }[] = [
@@ -35,7 +35,7 @@ export function Shell({ ruta, children }: { ruta: Ruta; children: ReactNode }) {
   const menu = useRef<HTMLDialogElement>(null);
   const masActiva = !['inicio', 'movimientos', 'cuentas', 'ajustes'].includes(ruta);
   return (
-    <div className="shell">
+    <div className="shell"><a className="skip-link" href="#contenido" onClick={e=>{e.preventDefault();document.getElementById('contenido')?.focus()}}>Saltar al contenido</a>
       {esEscritorio() && esMac() && <div className="drag-strip" data-tauri-drag-region />}
       <nav className="sidebar" aria-label="Secciones">
         <div className="brand">
@@ -54,13 +54,13 @@ export function Shell({ ruta, children }: { ruta: Ruta; children: ReactNode }) {
         <div className="sidebar-spacer" />
         <Enlace ruta="ajustes" texto="Ajustes" activa={ruta === 'ajustes'} />
       </nav>
-      <main className={`main scene-${ruta}`} key={ruta}>
+      <main id="contenido" className={`main scene-${ruta}`} key={ruta} tabIndex={-1}>
         <div className="mobile-brand"><span className="brand-mark"><BrandMark /></span><span>Neto</span><span className="mobile-context">Tu dinero, en orden.</span></div>
-        <div className="page"><div className="scene-identity" aria-hidden="true"><Icon name={ruta} size={36}/></div>{children}</div>
+        <div className="page">{children}</div>
       </main>
       <nav className="mobile-dock" aria-label="Navegación principal">
         <Enlace ruta="inicio" texto="Inicio" activa={ruta === 'inicio'} />
-        <Enlace ruta="movimientos" texto="Movimientos" activa={ruta === 'movimientos'} />
+        <Enlace ruta="movimientos" texto="Actividad" activa={ruta === 'movimientos'} />
         <Enlace ruta="cuentas" texto="Cuentas" activa={ruta === 'cuentas'} />
         <Enlace ruta="ajustes" texto="Ajustes" activa={ruta === 'ajustes'} />
         <button type="button" className={`nav-link${masActiva ? ' active' : ''}`} aria-haspopup="dialog" onClick={() => menu.current?.showModal()}><Icon name="otra" /><span>Más</span></button>
@@ -80,11 +80,15 @@ export function Shell({ ruta, children }: { ruta: Ruta; children: ReactNode }) {
 }
 
 export function PageHeader({ titulo, subtitulo, acciones }: { titulo: string; subtitulo?: ReactNode; acciones?: ReactNode }) {
+  const ruta = useRuta();
   return (
     <header className="page-header">
-      <div>
+      <div className="page-heading">
+        <span className="scene-identity" aria-hidden="true"><Icon name={ruta} size={25}/></span>
+        <div className="page-heading-copy">
         <h1 className="page-title">{titulo}</h1>
         {subtitulo && <div className="page-subtitle">{subtitulo}</div>}
+        </div>
       </div>
       {acciones && <div className="page-actions">{acciones}</div>}
     </header>

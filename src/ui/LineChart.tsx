@@ -1,4 +1,5 @@
 import { useId, useRef, useState } from 'react';
+import { curva } from '../lib/chartPath';
 import { formatMoney } from '../lib/money';
 import { useWidth } from './useWidth';
 
@@ -9,16 +10,6 @@ export interface PuntoMensual {
   ingresos: number;
   gastos: number;
   enCurso?: boolean;
-}
-
-/** Curvas entre meses sin sobrepasar los valores de sus extremos. */
-function trazado(puntos: { x: number; y: number }[]): string {
-  return puntos.map((p, i) => {
-    if (i === 0) return `M${p.x},${p.y}`;
-    const anterior = puntos[i - 1];
-    const medio = (anterior.x + p.x) / 2;
-    return `C${medio},${anterior.y} ${medio},${p.y} ${p.x},${p.y}`;
-  }).join(' ');
 }
 
 /** Comparación mensual con selección táctil, por ratón y por teclado. */
@@ -32,8 +23,8 @@ export function LineChart({ datos, titulo }: { datos: PuntoMensual[]; titulo: st
 
   const indice = Math.min(Math.max(0, hover ?? seleccion), datos.length - 1);
   const dato = datos[indice];
-  const alto = 210;
-  const margen = { arriba: 18, abajo: 16, izquierda: 45, derecha: 12 };
+  const alto = 258;
+  const margen = { arriba: 72, abajo: 16, izquierda: 50, derecha: 12 };
   const w = Math.max(1, ancho - margen.izquierda - margen.derecha);
   const h = alto - margen.arriba - margen.abajo;
   const maximo = Math.max(100, ...datos.flatMap(d => [d.ingresos, d.gastos]));
@@ -44,7 +35,9 @@ export function LineChart({ datos, titulo }: { datos: PuntoMensual[]; titulo: st
   const y = (cents: number) => margen.arriba + h * (1 - cents / tope);
   const ingresos = datos.map((d, i) => ({ x: x(i), y: y(d.ingresos) }));
   const gastos = datos.map((d, i) => ({ x: x(i), y: y(d.gastos) }));
-  const lineaIngresos = trazado(ingresos);
+  const lineaIngresos = curva(ingresos);
+  const anchoEtiqueta=Math.min(170,Math.max(120,ancho-16));
+  const izquierdaEtiqueta=Math.max(8,Math.min(ancho-anchoEtiqueta-8,x(indice)-anchoEtiqueta/2));
   const colores = { ingresos: 'var(--chart-income)', gastos: 'var(--chart-expense)' };
   const compacto = new Intl.NumberFormat('es-ES', { notation: 'compact', maximumFractionDigits: 1 });
 
@@ -63,14 +56,16 @@ export function LineChart({ datos, titulo }: { datos: PuntoMensual[]; titulo: st
           {[0, 0.5, 1].map(fraccion => (
             <g key={fraccion}>
               <line x1={margen.izquierda} x2={ancho - margen.derecha} y1={y(tope * fraccion)} y2={y(tope * fraccion)} stroke="var(--line)" strokeDasharray={fraccion ? '3 6' : undefined} />
-              <text x={margen.izquierda - 10} y={y(tope * fraccion)} dy=".32em" textAnchor="end" fill="var(--text-3)" fontSize="10">{compacto.format(tope * fraccion / 100)}</text>
+              <text x={margen.izquierda - 10} y={y(tope * fraccion)} dy=".32em" textAnchor="end" fill="var(--text-3)" fontSize="12">{compacto.format(tope * fraccion / 100)}</text>
             </g>
           ))}
-          <text x={margen.izquierda - 10} y="7" textAnchor="end" fill="var(--text-3)" fontSize="9">EUR</text>
+          <text x={margen.izquierda - 10} y="7" textAnchor="end" fill="var(--text-3)" fontSize="11">EUR</text>
+          <rect x={x(indice)-banda*.28} y={margen.arriba} width={banda*.56} height={h} rx="10" fill="var(--primary-soft)" opacity=".6"/>
           {datos.length > 1 && <path d={`${lineaIngresos} L${x(datos.length - 1)},${y(0)} L${x(0)},${y(0)} Z`} fill={`url(#${gradiente})`} />}
           <path className="trend-line" d={lineaIngresos} stroke={colores.ingresos} />
-          <path className="trend-line trend-expense" d={trazado(gastos)} stroke={colores.gastos} strokeDasharray="4 5" />
+          <path className="trend-line trend-expense" d={curva(gastos)} stroke={colores.gastos} strokeDasharray="4 5" />
           <line x1={x(indice)} x2={x(indice)} y1={margen.arriba} y2={y(0)} stroke="var(--line-strong)" strokeDasharray="3 5" />
+          <circle cx={x(indice)} cy={y(dato.ingresos)} r="12" fill={colores.ingresos} opacity=".12"/>
           {datos.map((d, i) => (
             <g key={d.clave}>
               <circle cx={x(i)} cy={y(d.ingresos)} r={i === indice ? 5 : 2.8} fill="var(--card)" stroke={colores.ingresos} strokeWidth={2} />
@@ -78,7 +73,9 @@ export function LineChart({ datos, titulo }: { datos: PuntoMensual[]; titulo: st
             </g>
           ))}
         </svg>
+        <div className="chart-floating-value" style={{left:izquierdaEtiqueta,width:anchoEtiqueta}}><span>Ingresos · {dato.etiqueta}</span><strong>{formatMoney(dato.ingresos)}</strong></div>
         <div className="chart-targets" style={{ left: margen.izquierda, right: margen.derecha }}>
+          <circle cx={x(indice)} cy={y(dato.ingresos)} r="12" fill={colores.ingresos} opacity=".12"/>
           {datos.map((d, i) => (
             <button
               type="button" key={d.clave} ref={el => { botones.current[i] = el; }}

@@ -12,13 +12,13 @@ const nombreTipo = (t: string) => config.tiposCuenta.find((x) => x.id === t)?.no
 
 function Tarjeta({ c, saldo, onClick }: { c: Cuenta; saldo: number; onClick: () => void }) {
   return (
-    <button className="card account-card wallet-card" onClick={onClick}>
+    <div className="wallet-stack"><button className="card account-card wallet-card" onClick={onClick}>
       <span className="account-type"><Icon name={c.tipo} size={18} />{nombreTipo(c.tipo)}</span>
       <span className="account-name">{c.nombre}</span>
       <span className="wallet-caption">Saldo disponible</span>
       <span className={`account-balance${saldo < 0 ? ' danger-text' : ''}`}>{formatMoney(saldo)}</span>
       <span className="wallet-footer">{c.ambito === 'negocio' ? 'Negocio' : 'Personal'}<Icon name="flecha" size={18} /></span>
-    </button>
+    </button></div>
   );
 }
 

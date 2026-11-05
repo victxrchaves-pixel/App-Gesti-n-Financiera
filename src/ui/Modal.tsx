@@ -1,3 +1,4 @@
+import { Icon } from './Icon';
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 
 export function Modal({ titulo, onClose, children, pequeno = false }: { titulo: string; onClose: () => void; children: ReactNode; pequeno?: boolean }) {
@@ -5,7 +6,7 @@ export function Modal({ titulo, onClose, children, pequeno = false }: { titulo: 
   useEffect(() => {
     const dialog = ref.current;
     dialog?.showModal();
-    const primero = dialog?.querySelector<HTMLElement>('[data-autofocus]') ?? dialog?.querySelector<HTMLElement>('input, select, button');
+    const primero = dialog?.querySelector<HTMLElement>('[data-autofocus]') ?? dialog?.querySelector<HTMLElement>('.modal-body input, .modal-body select, .modal-body button, .modal-footer button');
     primero?.focus();
     return () => dialog?.close();
   }, []);
@@ -18,7 +19,7 @@ export function Modal({ titulo, onClose, children, pequeno = false }: { titulo: 
         const r = e.currentTarget.getBoundingClientRect();
         if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) onClose();
       }}>
-      <h2 className="modal-title">{titulo}</h2>
+      <div className="modal-heading"><h2 className="modal-title">{titulo}</h2><button type="button" className="btn btn-ghost btn-icon modal-close" aria-label="Cerrar ventana" onClick={onClose}><Icon name="cerrar" size={20}/></button></div>
       {children}
     </dialog>
   );

@@ -72,26 +72,23 @@ export function Inicio() {
         </div>
       ) : (
         <div className="stack">
-          <section className="available-money"><div><span>Disponible para gastar</span><strong>{formatMoney(disponible.disponible)}</strong><small>Dinero actual en tus cuentas de uso.</small></div><div><span>Ahorro separado</span><b>{formatMoney(disponible.ahorro)}</b><small>Saldos de tus cuentas de ahorro, incluidas las metas.</small></div><p>No se descuentan cuotas sin pagar ni se suman ingresos sin cobrar.</p></section>
-          <div className="grid grid-hero">
-            <section className="card card-highlight">
-              <div className="hero-heading"><span className="eyebrow">Balance del mes</span><span className="hero-month">{monthLabel(mes, false)}</span></div>
-              <div className={`big-number${resumen.neto < 0 ? ' danger-text' : ''}`}>{formatMoney(resumen.neto)}</div>
-              <p className="hero-caption">Lo que has ingresado menos lo que has gastado.</p>
-              <div className="kpis">
-                <div><div className="kpi-label">Ingresos de {monthLabel(mes, false)}</div><div className="kpi-value income-text">{formatMoney(resumen.ingresos)}</div></div>
-                <div><div className="kpi-label">Gastos de {monthLabel(mes, false)}</div><div className="kpi-value expense-text">{formatMoney(resumen.gastos)}</div></div>
-              </div>
+          <div className="overview-grid">
+            <section className="available-money">
+              <div className="available-main"><span className="eyebrow">Disponible para gastar</span><strong>{formatMoney(disponible.disponible)}</strong><small>Dinero actual en tus cuentas de uso.</small></div>
+              <div className="available-savings"><span className="savings-symbol"><Icon name="ahorro" size={22}/></span><span>Ahorro separado</span><b>{formatMoney(disponible.ahorro)}</b><small>Incluye tus cuentas de ahorro y metas.</small></div>
+              <p><Icon name="check" size={15}/>Solo dinero registrado. Sin anticipar pagos ni ingresos.</p>
             </section>
-            <a className="card account-card card-inverse" href="#/cuentas" style={{ textDecoration: 'none' }}>
-              <div className="hero-heading"><span className="eyebrow">Tu patrimonio</span><span className="glass-icon"><Icon name="cuentas" size={20} /></span></div>
+            <div className="wallet-stack patrimony-stack"><a className="card account-card card-inverse" href="#/cuentas" style={{ textDecoration:'none' }}>
+              <div className="hero-heading"><span className="eyebrow">Tu patrimonio en cuentas</span><span className="glass-icon"><Icon name="cuentas" size={21}/></span></div>
               <div className="mid-number">{formatMoney(total)}</div>
-              <div className="muted card-link" style={{ marginTop: 'auto', fontSize: 14 }}>
-                <span>{cuentasPersonales.length} cuenta{cuentasPersonales.length === 1 ? '' : 's'} · Ver cuentas</span>
-                <span className="glass-icon"><Icon name="flecha" size={18} /></span>
-              </div>
-            </a>
+              <div className="muted card-link"><span>{cuentasPersonales.length} cuenta{cuentasPersonales.length === 1 ? '' : 's'} · Ver cuentas</span><span className="glass-icon"><Icon name="flecha" size={18}/></span></div>
+            </a></div>
           </div>
+          <section className="month-summary" aria-label="Resumen del mes">
+            <div><span className="eyebrow">Balance de {monthLabel(mes, false)}</span><strong>{formatMoney(resumen.neto)}</strong><small>Ingresos menos gastos</small></div>
+            <div><span className="summary-icon income-text"><Icon name="ingreso" size={20}/></span><span className="kpi-label">Ingresos del mes</span><strong className="income-text">{formatMoney(resumen.ingresos)}</strong></div>
+            <div><span className="summary-icon expense-text"><Icon name="gasto" size={20}/></span><span className="kpi-label">Gastos del mes</span><strong className="expense-text">{formatMoney(resumen.gastos)}</strong></div>
+          </section>
 
           <div className="grid grid-insights">
             <section className="card evolution-card">
