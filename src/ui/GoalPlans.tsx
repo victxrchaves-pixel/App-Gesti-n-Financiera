@@ -5,7 +5,7 @@ import { COLORES_UX } from '../lib/colors';
 import { TripBreakdown } from './TripBreakdown';
 import { saldosPorCuenta } from '../lib/balances';
 import { parseDecimal } from '../lib/investments';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useAportesMetas, useMetas, useCuentas, useMovimientos } from '../db/hooks';
 import { borrarMeta, aportarMeta, guardarMeta, sincronizarMetas } from '../db/goals';
 import type { Meta, Cuenta, Movimiento, AporteMeta } from '../db/types';
@@ -61,20 +61,52 @@ function FormAporte({ meta, mes, importe, cerrar }: { meta:Meta; mes:string; imp
  {error&&<div role="alert" className="form-error">{error}</div>}<div className="modal-footer"><button type="button" className="btn btn-ghost" onClick={cerrar}>Cancelar</button><button className="btn btn-primary" disabled={busy}>Confirmar aportación</button></div></form></Modal>;
 }
 export function GoalPlans({ mes = monthKey(todayISO()), completo = false }: { mes?: string; completo?: boolean }) {
-  const metas = useMetas(); const cuentas=useCuentas(); const movimientos=useMovimientos(); const saldos=saldosPorCuenta(cuentas,movimientos); const aportes = useAportesMetas(); const [form, setForm] = useState<{actual?:Meta; sugerida?:typeof PROPUESTAS[number]} | null>(null); const [aporte,setAporte]=useState<Meta|null>(null); const [elegirDestino,setElegirDestino]=useState(false); const avisar=useToast();
+  const metas = useMetas(); const cuentas=useCuentas(); const movimientos=useMovimientos(); const saldos=saldosPorCuenta(cuentas,movimientos); const aportes = useAportesMetas(); const [form, setForm] = useState<{actual?:Meta; sugerida?:typeof PROPUESTAS[number]} | null>(null); const [aporte,setAporte]=useState<Meta|null>(null); const [elegirDestino,setElegirDestino]=useState(false); const [detalleId,setDetalleId]=useState<string|null>(null); const [principalId,setPrincipalId]=useState<string|null>(null); const avisar=useToast();
   useEffect(() => { void sincronizarMetas().catch(() => avisar('No se pudieron actualizar las asignaciones de ahorro.')); },[avisar]);
   const totalMes=metas.filter(m=>m.activa&&m.mesInicio<=mes).reduce((s,m)=>s+m.mensual,0);
-  return <section className={`savings-panel${completo?' savings-full':''}`}><div className="savings-heading"><span className="section-symbol"><Icon name="metas" size={28}/></span><div><h2>Tu dinero para después</h2><p>Reservas para lo que quieres conseguir.</p></div></div><div className="savings-overview"><div className="savings-monthly"><span>Cuota de ahorro mensual</span><strong>{formatMoney(totalMes)}</strong></div>{completo&&<><div className="savings-monthly"><span>Disponible en tus metas</span><strong>{formatMoney(metas.reduce((s,m)=>s+dineroMeta(m,aportes,cuentas,movimientos).disponible,0))}</strong></div><div className="savings-monthly"><span>Metas activas</span><strong>{metas.filter(m=>m.activa).length}</strong></div></>}</div>
-    <div className="goal-list">{metas.map(m=><GoalTile key={m.id} meta={m} cuentas={cuentas} movimientos={movimientos} aportes={aportes} saldos={saldos} completo={completo} editar={()=>setForm({actual:m})} aportar={()=>setAporte(m)}/>)}</div>
-    {metas.length>0&&<button className="btn btn-primary" onClick={()=>setElegirDestino(true)}>Asignar ahorro a una meta existente</button>}
+  const panel=useRef<HTMLElement>(null);
+  const detalle=metas.find(m=>m.id===detalleId);
+  const principal=metas.find(m=>m.id===principalId)??metas[0];
+  const pila=principal?[...metas.filter(m=>m.id!==principal.id),principal]:[];
+  const abrir=(m:Meta)=>{setPrincipalId(m.id);setDetalleId(m.id)};
+  const cerrarDetalle=()=>{
+    const id=detalleId;setDetalleId(null);
+    requestAnimationFrame(()=>{
+      const tarjeta=[...(panel.current?.querySelectorAll<HTMLButtonElement>('[data-meta-id]')??[])].find(el=>el.dataset.metaId===id);
+      tarjeta?.focus({preventScroll:true});tarjeta?.scrollIntoView({block:'nearest'});
+    });
+  };
+  return <section ref={panel} className={`savings-panel${completo?' savings-full':' savings-deck-panel'}`}>
+    <div className="savings-heading"><span className="section-symbol"><Icon name="metas" size={28}/></span><div><h2>Tu dinero para después</h2><p>Escoge una meta para ver su detalle.</p></div></div>
+    {completo&&<div className="savings-overview"><div className="savings-monthly"><span>Cuota de ahorro mensual</span><strong>{formatMoney(totalMes)}</strong></div><div className="savings-monthly"><span>Disponible en tus metas</span><strong>{formatMoney(metas.reduce((s,m)=>s+dineroMeta(m,aportes,cuentas,movimientos).disponible,0))}</strong></div><div className="savings-monthly"><span>Metas activas</span><strong>{metas.filter(m=>m.activa).length}</strong></div></div>}
+    {completo?<div className="goal-list goal-preview-grid">{metas.map(m=><article className="goal-preview-card" key={m.id}><GoalPreview meta={m} dinero={dineroMeta(m,aportes,cuentas,movimientos)} abrir={()=>abrir(m)}/></article>)}</div>:metas.length>0?<>
+      <div className="goal-deck" role="group" aria-label="Metas de ahorro superpuestas" style={{height:210+(pila.length-1)*76}}>
+        {pila.map((m,i)=><GoalPreview key={m.id} meta={m} dinero={dineroMeta(m,aportes,cuentas,movimientos)} abrir={()=>abrir(m)} pila principal={m.id===principal.id} style={{top:i*76,zIndex:i+1}}/>)}
+      </div><p className="goal-deck-hint">Pulsa una tarjeta para abrirla. La última seleccionada queda completa delante.</p>
+    </>:<div className="goal-deck-empty"><Icon name="metas" size={32}/><p>Crea una meta y empieza a separar tu ahorro.</p></div>}
+    {completo&&<>
+      {metas.length>0&&<button className="btn btn-primary" onClick={()=>setElegirDestino(true)}>Asignar ahorro a una meta existente</button>}
+      <div className="goal-suggestions">{PROPUESTAS.filter(p=>!metas.some(m=>m.nombre===p.nombre)).map(p=><button className="goal-suggestion" key={p.nombre} onClick={()=>setForm({sugerida:p})}><Icon name={p.icono} size={20}/><span>{p.nombre}<small>Propuesta: {formatMoney(p.mensual)}/mes</small></span><Icon name="mas" size={16}/></button>)}</div>
+    </>}
+    <div className="goal-collection-actions"><button className="btn btn-secondary" onClick={()=>setForm({})}><Icon name="mas" size={16}/>{completo?'Otra meta':'Nueva meta'}</button>{!completo&&<a className="text-link" href="#/metas">Ver todas mis metas <Icon name="flecha" size={16}/></a>}</div>
+    {completo&&<p className="field-hint">Estas propuestas son editables. Las transferencias de ahorro no cuentan como gasto en tus presupuestos.</p>}
+    {detalle&&<Modal amplio titulo={`Meta · ${detalle.nombre}`} onClose={cerrarDetalle}><div className="modal-body goal-detail"><GoalTile meta={detalle} cuentas={cuentas} movimientos={movimientos} aportes={aportes} saldos={saldos} editar={()=>setForm({actual:detalle})} aportar={()=>setAporte(detalle)}/><div className="modal-footer"><button className="btn btn-secondary" onClick={cerrarDetalle}>Cerrar detalle</button></div></div></Modal>}
     {elegirDestino&&<Modal titulo="Escoge el destino del ahorro" onClose={()=>setElegirDestino(false)}><div className="modal-body"><p>Elige la meta que recibirá tu asignación mensual; después indica la cuenta de origen y el reparto.</p>{metas.map(m=><button className="goal-suggestion" key={m.id} onClick={()=>{setElegirDestino(false);setForm({actual:m})}}><Icon name="metas"/><span>{m.nombre}</span><Icon name="flecha"/></button>)}<div className="modal-footer"><button className="btn btn-ghost" onClick={()=>setElegirDestino(false)}>Cerrar</button></div></div></Modal>}
-    <div className="goal-suggestions">{PROPUESTAS.filter(p=>!metas.some(m=>m.nombre===p.nombre)).map(p=><button className="goal-suggestion" key={p.nombre} onClick={()=>setForm({sugerida:p})}><Icon name={p.icono} size={20}/><span>{p.nombre}<small>Propuesta: {formatMoney(p.mensual)}/mes</small></span><Icon name="mas" size={16}/></button>)}</div>
-    <button className="btn btn-secondary" onClick={()=>setForm({})}><Icon name="mas" size={16}/>Otra meta</button><p className="field-hint">Estas propuestas son editables. El ahorro se sigue en Metas y sus transferencias no cuentan como gasto en tus presupuestos.</p>{!completo&&<a className="text-link" href="#/metas">Ver todas mis metas <Icon name="flecha" size={16}/></a>}
     {form&&<FormMeta actual={form.actual} sugerida={form.sugerida} mes={mes} cerrar={()=>setForm(null)}/>} {aporte&&<FormAporte meta={aporte} mes={mes} importe={aporte.mensual} cerrar={()=>setAporte(null)}/>}
   </section>;
 }
 
-function GoalTile({meta:m,cuentas,movimientos,aportes,saldos,completo,editar,aportar}:{meta:Meta;cuentas:Cuenta[];movimientos:Movimiento[];aportes:AporteMeta[];saldos:Map<string,number>;completo:boolean;editar:()=>void;aportar:()=>void}) {
+function GoalPreview({meta,dinero,abrir,pila=false,principal=false,style}:{meta:Meta;dinero:ReturnType<typeof dineroMeta>;abrir:()=>void;pila?:boolean;principal?:boolean;style?:CSSProperties}) {
+  const viaje=meta.categoriaAhorro==='viajes'||meta.nombre.toLowerCase().includes('viaj')||!!meta.desglose?.length;
+  const color=meta.color??(viaje?COLORES_UX.inversion:COLORES_UX.ingreso);
+  return <button type="button" className={pila?'goal-deck-card':'goal-preview'} style={{...style,'--goal-color':color} as CSSProperties} data-meta-id={meta.id} data-principal={pila?principal:undefined} aria-haspopup="dialog" title={meta.nombre} aria-label={`Ver meta ${meta.nombre}`} onClick={abrir}>
+    <span className="goal-preview-heading"><span className="goal-mark" style={{color}}><Icon name={viaje?'viaje':'ahorro'} size={22}/></span><span className="goal-preview-name">{meta.nombre}</span><Icon name="derecha" size={18}/></span>
+    <span className="goal-preview-amount"><span>Disponible</span><strong>{formatMoney(dinero.disponible)}</strong></span>
+    {!pila&&<span className="goal-preview-progress"><span>Objetivo {formatMoney(meta.objetivo)}</span><span className="goal-preview-track" aria-hidden="true"><span style={{width:`${Math.max(0,Math.min(100,dinero.progreso/meta.objetivo*100))}%`}}/></span><span className="goal-preview-link">Ver detalle <Icon name="flecha" size={15}/></span></span>}
+  </button>;
+}
+
+function GoalTile({meta:m,cuentas,movimientos,aportes,saldos,editar,aportar}:{meta:Meta;cuentas:Cuenta[];movimientos:Movimiento[];aportes:AporteMeta[];saldos:Map<string,number>;editar:()=>void;aportar:()=>void}) {
   const dinero=dineroMeta(m,aportes,cuentas,movimientos);
   const viaje=m.categoriaAhorro==='viajes'||m.nombre.toLowerCase().includes('viaj')||!!m.desglose?.length;
   const color=m.color??(viaje?COLORES_UX.inversion:COLORES_UX.ingreso);
@@ -87,9 +119,9 @@ function GoalTile({meta:m,cuentas,movimientos,aportes,saldos,completo,editar,apo
       <div className="goal-progress-caption"><span>{Math.round(dinero.progreso/m.objetivo*100)} % {viaje?'financiado':'conseguido'}</span><span>Objetivo {formatMoney(m.objetivo)}</span></div>
       <Progress valor={dinero.progreso} total={m.objetivo} etiqueta={`Progreso de ${m.nombre}`} color={color}/>
       <div className="goal-money-details"><span>Acumulado <b>{formatMoney(dinero.aportado)}</b></span><span>Gastado <b>{formatMoney(dinero.gastado)}</b></span>{dinero.retirado>0&&<span>Repartido a otro destino <b>{formatMoney(dinero.retirado)}</b></span>}</div>
-      {completo&&acciones}
+      {acciones}
       {m.cuentaOrigenId&&m.activa&&m.automatica&&m.mesInicio<=monthKey(todayISO())&&!aportes.some(a=>a.metaId===m.id&&a.mes===monthKey(todayISO())&&a.origen!=='plan')&&dinero.disponible<m.objetivo&&<p className="field-hint">Reserva pendiente. Disponible en origen: {formatMoney(saldos.get(m.cuentaOrigenId)??0)}. Se intentará de nuevo cuando haya saldo.</p>}
     </div>
-    {completo?(viaje&&<TripBreakdown meta={m}/>):<details className="goal-details"><summary>Ver detalle y acciones <Icon name="derecha" size={16}/></summary><div>{acciones}{viaje&&<TripBreakdown meta={m}/>}</div></details>}
+    {viaje&&<TripBreakdown meta={m}/>}
   </article>;
 }

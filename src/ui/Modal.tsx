@@ -1,7 +1,7 @@
 import { Icon } from './Icon';
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 
-export function Modal({ titulo, onClose, children, pequeno = false }: { titulo: string; onClose: () => void; children: ReactNode; pequeno?: boolean }) {
+export function Modal({ titulo, onClose, children, pequeno = false, amplio = false }: { titulo: string; onClose: () => void; children: ReactNode; pequeno?: boolean; amplio?: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const dialog = ref.current;
@@ -12,8 +12,8 @@ export function Modal({ titulo, onClose, children, pequeno = false }: { titulo: 
   }, []);
 
   return (
-    <dialog className={`modal${pequeno ? ' modal-sm' : ''}`} aria-label={titulo} ref={ref}
-      onCancel={e => { e.preventDefault(); onClose(); }}
+    <dialog className={`modal${pequeno ? ' modal-sm' : ''}${amplio ? ' modal-wide' : ''}`} aria-label={titulo} ref={ref}
+      onCancel={e => { e.preventDefault(); e.stopPropagation(); onClose(); }}
       onClick={e => {
         if (e.target !== e.currentTarget) return;
         const r = e.currentTarget.getBoundingClientRect();

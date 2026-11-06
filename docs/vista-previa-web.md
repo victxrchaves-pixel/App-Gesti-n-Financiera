@@ -232,8 +232,11 @@ Integra icono y título en la misma cabecera, amplía etiquetas, cifras y botone
 y define separaciones coherentes entre tarjetas. Conserva los colores de tema,
 categoría y marca; los importes de presupuestos, metas y suscripciones siguen
 neutros. Inicio prioriza disponible/ahorro y presenta el balance mensual en una
-franja independiente. Metas usa dos columnas amplias y una composición especial
-si hay un único viaje; el detalle de las metas en Presupuestos es desplegable.
+franja independiente. Metas usa tres columnas iguales con tarjetas de vista previa que abren un
+panel central ampliado con los datos y acciones. Presupuestos muestra sus límites
+en tres columnas del mismo ancho; debajo, el ahorro aparece como tarjetas
+superpuestas con nombre y disponible. La tarjeta seleccionada queda completa
+delante y abre el mismo panel de detalle. Las demás conservan cabeceras pulsables.
 Recurrentes ordena por fecha de referencia y alinea cuota, estado y confirmación.
 
 Las referencias aportadas se aplican a las tarjetas de cuentas por capas, anillos
@@ -256,3 +259,24 @@ Validación: 112 pruebas de datos, compilación para Pages, revisión de las och
 secciones personales a 1440, 1024, 768, 390 y 320 px, comprobaciones de gráficos
 con teclado/puntero, contraste de la tarjeta oscura, diez formularios móviles,
 detalle desplegable de ahorro y recorrido de pagos, gastos, aportaciones y cuentas.
+
+## Cuadrículas y pila de metas
+
+Las cuadrículas de metas y límites de presupuesto mantienen tres columnas
+iguales desde 1024 px, incluso si hay una sola tarjeta. En tamaños intermedios
+pasan a dos columnas y en móvil a una. Las previews de metas muestran nombre,
+disponible y progreso; los botones de aportar, gastar, repartir y editar se
+encuentran dentro del panel ampliado. Su contenido se actualiza al guardar una
+operación sin cerrar el detalle. Los formularios secundarios mantienen el
+panel de la meta detrás y Escape solo cierra la ventana superior.
+
+En Presupuestos, «Tu dinero para después» usa una pila vertical de tarjetas
+reales: cada cabecera queda expuesta y pulsable y la tarjeta principal se ve
+completa. Solo muestra nombre y disponible, con fondos derivados del color de
+la meta. Al pulsar otra tarjeta, pasa al frente y se abre su detalle. No se
+simulan metas si la lista está vacía. Se ofrecen Nueva meta y acceso al listado.
+
+Verificado en navegador: tres columnas de igual ancho, detalle centrado,
+aportar/gastar/repartir con actualización de importes, selección de principal,
+cabeceras sin obstrucción, cierre de diálogos anidados, versiones de móvil,
+y los casos de una meta y ninguna. Se mantienen las 112 pruebas de datos.
