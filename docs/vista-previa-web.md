@@ -233,9 +233,9 @@ y define separaciones coherentes entre tarjetas. Conserva los colores de tema,
 categoría y marca; los importes de presupuestos, metas y suscripciones siguen
 neutros. Inicio prioriza disponible/ahorro y presenta el balance mensual en una
 franja independiente. Metas usa tres columnas iguales con tarjetas de vista previa que abren un
-panel central ampliado con los datos y acciones. Presupuestos muestra sus límites
-en tres columnas del mismo ancho; debajo, el ahorro aparece como tarjetas
-superpuestas con nombre y disponible. La tarjeta seleccionada queda completa
+panel central ampliado con los datos y acciones. Presupuestos reserva la tercera columna de la derecha para el ahorro y
+rellena las dos columnas izquierdas con límites. El ahorro aparece desde el
+inicio de ese bloque como tarjetas superpuestas con nombre y disponible. La tarjeta seleccionada queda completa
 delante y abre el mismo panel de detalle. Las demás conservan cabeceras pulsables.
 Recurrentes ordena por fecha de referencia y alinea cuota, estado y confirmación.
 
@@ -262,9 +262,14 @@ detalle desplegable de ahorro y recorrido de pagos, gastos, aportaciones y cuent
 
 ## Cuadrículas y pila de metas
 
-Las cuadrículas de metas y límites de presupuesto mantienen tres columnas
-iguales desde 1024 px, incluso si hay una sola tarjeta. En tamaños intermedios
-pasan a dos columnas y en móvil a una. Las previews de metas muestran nombre,
+La cuadrícula de Metas mantiene tres columnas iguales desde 1024 px, incluso
+si hay una sola tarjeta. En tamaños intermedios pasa a dos y en móvil a una.
+Presupuestos usa una estructura de tres franjas iguales: las dos primeras se
+reservan a límites y la tercera siempre pertenece a las metas. Los límites,
+gastos sin presupuesto y propuestas permanecen en la zona izquierda. La
+columna derecha está anclada al hacer scroll, con desplazamiento interno si
+no cabe en la altura disponible. En tablet y móvil el ahorro pasa debajo y
+deja de estar anclado para conservar la legibilidad. Las previews de metas muestran nombre,
 disponible y progreso; los botones de aportar, gastar, repartir y editar se
 encuentran dentro del panel ampliado. Su contenido se actualiza al guardar una
 operación sin cerrar el detalle. Los formularios secundarios mantienen el
@@ -276,7 +281,8 @@ completa. Solo muestra nombre y disponible, con fondos derivados del color de
 la meta. Al pulsar otra tarjeta, pasa al frente y se abre su detalle. No se
 simulan metas si la lista está vacía. Se ofrecen Nueva meta y acceso al listado.
 
-Verificado en navegador: tres columnas de igual ancho, detalle centrado,
+Verificado en navegador: tres columnas de Metas; dos de presupuestos y una
+reservada para ahorro sin desplazarse al añadir límites ni al hacer scroll; detalle centrado,
 aportar/gastar/repartir con actualización de importes, selección de principal,
 cabeceras sin obstrucción, cierre de diálogos anidados, versiones de móvil,
 y los casos de una meta y ninguna. Se mantienen las 112 pruebas de datos.
