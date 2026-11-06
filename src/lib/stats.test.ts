@@ -79,3 +79,12 @@ describe('orden de movimientos', () => {
     expect(ordenarMovimientos([a, b, c]).map((m) => m.fecha)).toEqual(['2026-11-03', '2026-11-02', '2026-11-01']);
   });
 });
+
+describe('orden estable', () => {
+  it('dos movimientos del mismo día y la misma hora salen siempre en el mismo orden', () => {
+    const a = mov('gasto', 1399, '2026-11-06', 'banco', { id: 'b', creadoEn: '2026-11-06T09:00:00.000Z' });
+    const b = mov('gasto', 1099, '2026-11-06', 'banco', { id: 'a', creadoEn: '2026-11-06T09:00:00.000Z' });
+    expect(ordenarMovimientos([a, b]).map((m) => m.id)).toEqual(['a', 'b']);
+    expect(ordenarMovimientos([b, a]).map((m) => m.id)).toEqual(['a', 'b']);
+  });
+});

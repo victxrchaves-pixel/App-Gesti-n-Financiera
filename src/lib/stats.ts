@@ -105,9 +105,13 @@ export function gastoPorCategoria(
     .sort((a, b) => b.importe - a.importe);
 }
 
-/** Ordena por fecha descendente y, a igual fecha, por hora de creación descendente. */
+/** Ordena por fecha descendente; a igual fecha, por hora de creación y, si coincide, por identificador. */
 export function ordenarMovimientos(movimientos: Movimiento[]): Movimiento[] {
   return [...movimientos].sort((a, b) =>
-    a.fecha === b.fecha ? b.creadoEn.localeCompare(a.creadoEn) : b.fecha.localeCompare(a.fecha),
+    a.fecha !== b.fecha
+      ? b.fecha.localeCompare(a.fecha)
+      : a.creadoEn !== b.creadoEn
+        ? b.creadoEn.localeCompare(a.creadoEn)
+        : a.id.localeCompare(b.id),
   );
 }

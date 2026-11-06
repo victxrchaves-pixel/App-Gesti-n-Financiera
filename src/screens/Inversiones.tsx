@@ -364,7 +364,9 @@ export function Inversiones() {
           <div className="portfolio-value">
             <span className="eyebrow">Lo que vale tu cartera hoy</span>
             <strong>{formatMoney(total)}</strong>
-            <span>{inversiones.length} inversiones · todo convertido a euros</span>
+            <span>
+              {inversiones.length} {inversiones.length === 1 ? 'inversión' : 'inversiones'} · todo convertido a euros
+            </span>
           </div>
           <div className="portfolio-equation">
             <div>

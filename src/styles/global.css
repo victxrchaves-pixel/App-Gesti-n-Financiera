@@ -3791,7 +3791,8 @@ input[type='checkbox'] {
 
 .legend-row .pct {
   font-size: 12px;
-  width: 36px;
+  min-width: 42px;
+  white-space: nowrap;
 }
 
 .legend-row .amt {
@@ -6721,4 +6722,28 @@ input[type='checkbox'] {
   align-self: flex-end;
   font-size: 13px;
   cursor: pointer;
+}
+
+/* Presupuestos: el mes se muestra en castellano; el campo nativo solo abre el calendario. */
+.month-label {
+  gap: 8px;
+  min-width: 170px;
+  font-weight: 600;
+  color: var(--text);
+}
+.month-input-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.month-nav {
+  position: relative;
+}
+
+/* Catálogo de suscripciones plegado: una línea que explica para qué sirve. */
+.catalogo-resumen {
+  margin: 0;
+  font-size: 14px;
 }

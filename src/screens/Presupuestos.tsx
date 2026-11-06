@@ -3,7 +3,7 @@ import { BudgetReview } from '../ui/BudgetReview';
 import { type CSSProperties } from 'react';
 import { ColorPicker } from '../ui/ColorPicker';
 import { esColor, tinta, mezclar } from '../lib/colors';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useCategorias, useCuentas, useMovimientos, usePresupuestos } from '../db/hooks';
 import type { Categoria, Movimiento, Presupuesto } from '../db/types';
 import { asegurarPlanMes, borrarPresupuesto, copiarPresupuestos, guardarPresupuesto } from '../db/budgets';
@@ -518,6 +518,8 @@ function PlanMes({ mes }: { mes: string }) {
 
 export function Presupuestos() {
   const [mes, setMes] = useState(monthKey(todayISO()));
+  const selectorMes = useRef<HTMLInputElement>(null);
+  const etiquetaMes = monthLabel(mes).replace(/^./, (c) => c.toUpperCase());
   return (
     <>
       <PageHeader titulo="Presupuestos" subtitulo="Haz espacio para lo que importa." />
@@ -534,10 +536,30 @@ export function Presupuestos() {
           <label className="sr-only" htmlFor="budget-month">
             Mes del presupuesto
           </label>
+          {/* El campo de mes del navegador escribe el mes en el idioma del sistema («November»),
+              así que se muestra el nombre en castellano y el campo solo abre el calendario. */}
+          <button
+            type="button"
+            className="btn btn-ghost month-label"
+            onClick={() => {
+              const campo = selectorMes.current;
+              try {
+                campo?.showPicker();
+              } catch {
+                campo?.focus();
+              }
+            }}
+            title="Elegir otro mes"
+          >
+            {etiquetaMes}
+            <Icon name="calendario" size={16} />
+          </button>
           <input
+            ref={selectorMes}
             id="budget-month"
-            className="input"
+            className="month-input-oculto"
             type="month"
+            tabIndex={-1}
             value={mes}
             min="1900-01"
             max="9999-12"

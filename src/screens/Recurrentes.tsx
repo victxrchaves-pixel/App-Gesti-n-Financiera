@@ -692,6 +692,12 @@ export function Recurrentes({ soloSuscripciones = false }: { soloSuscripciones?:
               {catalogo ? 'Ocultar catálogo' : 'Elegir servicio'}
             </button>
           </div>
+          {!catalogo && (
+            <p className="muted catalogo-resumen">
+              Netflix, Spotify, Adobe, iCloud… Elige un servicio y Neto pone su icono y su categoría; tú solo escribes
+              lo que pagas.
+            </p>
+          )}
           {catalogo && (
             <>
               <div className="toolbar">
