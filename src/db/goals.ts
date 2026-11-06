@@ -1,7 +1,8 @@
 import { dineroMeta } from '../lib/goalMoney';
 import { validarDesglose } from '../lib/tripBreakdown';
-import { saldosPorCuenta } from '../lib/balances';
-import { crearCuenta, crearMovimiento } from './repo';
+import { saldosDirectos, saldoParaReservar } from '../lib/balances';
+import { crearBolsilloMeta } from './savings';
+import { crearMovimiento } from './repo';
 import { db, type NetoDB } from './db';
 import type { AporteMeta, Meta, PartidaViaje } from './types';
 import { newId } from '../lib/id';
@@ -46,7 +47,7 @@ export async function sincronizarMetas(hasta = monthKey(todayISO()), d: NetoDB =
       const cuentas=await d.cuentas.toArray();const movs=await d.movimientos.toArray();
       const origen=cuentas.find(c=>c.id===m.cuentaOrigenId&&!c.eliminada&&!c.archivada&&c.ambito==='personal');const destino=cuentas.find(c=>c.id===m.cuentaAhorroId&&!c.eliminada&&!c.archivada);
       const estado=dineroMeta(m,aportes,cuentas,movs);const importe=Math.max(0,Math.min(m.mensual,m.objetivo-estado.progreso));
-      if(!origen||!destino||!importe||(saldosPorCuenta(cuentas,movs).get(origen.id)??0)<importe)continue;
+      if(!origen||!destino||!importe||saldoParaReservar(origen.id,cuentas,movs)<importe)continue;
       await aportarMeta(m.id,importe,[actual],todayISO(),`cuota:${m.id}:${actual}`,d);
     }
   });
@@ -73,7 +74,7 @@ export async function guardarMeta(datos: Omit<Meta, 'id'>, id?: string, d: NetoD
     if (datos.cuentaOrigenId) {
       const origen = await d.cuentas.get(datos.cuentaOrigenId);
       if (!origen || origen.eliminada || origen.archivada || origen.ambito !== 'personal' || datos.cuentaOrigenId === cuentaAhorroId) throw new Error('Elige una cuenta personal de origen disponible, distinta del ahorro de la meta.');
-      if (!cuentaAhorroId) cuentaAhorroId = await crearCuenta({ nombre:`Ahorro · ${datos.nombre.trim()}`, tipo:'ahorro', ambito:'personal', saldoInicial:0 }, d);
+      if (!cuentaAhorroId) cuentaAhorroId = await crearBolsilloMeta(clave,datos.nombre,d);
     }
     await d.metas.put({ ...datos, ...(desglose ? { desglose } : {}), cuentaAhorroId, pausadaDesde, nombre: datos.nombre.trim(), id: clave });
     await sincronizarMetas(undefined, d);
@@ -81,7 +82,18 @@ export async function guardarMeta(datos: Omit<Meta, 'id'>, id?: string, d: NetoD
   return clave;
 }
 export async function borrarMeta(id: string, d: NetoDB = db) {
-  await d.transaction('rw', d.metas, d.aportesMetas, d.cuentas, d.movimientos, async () => { await d.aportesMetas.where('metaId').equals(id).delete(); await d.metas.delete(id); });
+  await d.transaction('rw', d.metas, d.aportesMetas, d.cuentas, d.movimientos, async () => {
+    const meta=await d.metas.get(id);const bolsillo=meta?.cuentaAhorroId?await d.cuentas.get(meta.cuentaAhorroId):undefined;
+    if(bolsillo?.cuentaPadreId&&!bolsillo.eliminada&&!bolsillo.archivada){
+      const padre=await d.cuentas.get(bolsillo.cuentaPadreId);
+      if(padre&&!padre.eliminada&&!padre.archivada){
+        const saldo=saldosDirectos(await d.cuentas.toArray(),await d.movimientos.toArray()).get(bolsillo.id)??0;
+        if(saldo)await crearMovimiento({tipo:'transferencia',fecha:todayISO(),importe:Math.abs(saldo),cuentaId:saldo>0?bolsillo.id:padre.id,cuentaDestinoId:saldo>0?padre.id:bolsillo.id,nota:`Ahorro liberado al eliminar ${meta!.nombre}`},d);
+        await d.cuentas.update(bolsillo.id,{eliminada:true});
+      }
+    }
+    await d.aportesMetas.where('metaId').equals(id).delete();await d.metas.delete(id);
+  });
 }
 
 /** Solo cambia la planificación del viaje; no genera aportaciones ni movimientos. */
@@ -105,7 +117,7 @@ export async function aportarMeta(metaId:string,importe:number,meses:string[],fe
   let movimientoId:string|undefined;
   if(meta.cuentaOrigenId){
    const cuentas=await d.cuentas.toArray();const origen=cuentas.find(c=>c.id===meta.cuentaOrigenId&&!c.eliminada&&!c.archivada);const destino=cuentas.find(c=>c.id===meta.cuentaAhorroId&&!c.eliminada&&!c.archivada);
-   if(!origen||!destino||(saldosPorCuenta(cuentas,await d.movimientos.toArray()).get(origen.id)??0)<importe)throw new Error('No hay saldo disponible suficiente en la cuenta de origen.');
+   if(!origen||!destino||saldoParaReservar(origen.id,cuentas,await d.movimientos.toArray())<importe)throw new Error('No hay saldo disponible suficiente en la cuenta de origen.');
    movimientoId=await crearMovimiento({tipo:'transferencia',cuentaId:origen.id,cuentaDestinoId:destino.id,fecha,importe,nota:`Aportación a ${meta.nombre} · ${meses.join(', ')}`,origen:'manual'},d);
   }
   const base=Math.floor(importe/meses.length),resto=importe%meses.length;
@@ -122,7 +134,7 @@ export async function gastarMeta(datos:{metaId:string;partidaId?:string;importe:
   if(!Number.isSafeInteger(datos.importe)||datos.importe<=0||!isISODate(datos.fecha)||datos.fecha>todayISO()||!datos.operacionId)throw new Error('Registra un gasto real con fecha hasta hoy.');
   if(datos.partidaId&&!meta.desglose?.some(p=>p.id===datos.partidaId))throw new Error('El concepto del viaje ya no existe.');
   const cuenta=meta.cuentaAhorroId?await d.cuentas.get(meta.cuentaAhorroId):undefined;
-  if(!cuenta||cuenta.eliminada||cuenta.archivada||(saldosPorCuenta(await d.cuentas.toArray(),await d.movimientos.toArray()).get(cuenta.id)??0)<datos.importe)throw new Error('La cuenta de ahorro no tiene saldo disponible suficiente.');
+  if(!cuenta||cuenta.eliminada||cuenta.archivada||(saldosDirectos(await d.cuentas.toArray(),await d.movimientos.toArray()).get(cuenta.id)??0)<datos.importe)throw new Error('La cuenta de ahorro no tiene saldo disponible suficiente.');
   if((await d.categorias.get(datos.categoriaId))?.tipo!=='gasto')throw new Error('Elige una categoría de gasto.');
   const id=await crearMovimiento({tipo:'gasto',cuentaId:cuenta.id,importe:datos.importe,fecha:datos.fecha,categoriaId:datos.categoriaId,nota:datos.nota.trim()||`Gasto de ${meta.nombre}`},d);
   await d.movimientos.update(id,{metaId:meta.id,partidaViajeId:datos.partidaId,operacionId:datos.operacionId});
@@ -134,12 +146,12 @@ export async function reasignarAhorro(datos:{metaId:string;destinoMetaId?:string
   const meta=await d.metas.get(datos.metaId);if(!meta)throw new Error('La meta ya no existe.');
   if(!Number.isSafeInteger(datos.importe)||datos.importe<=0||!isISODate(datos.fecha)||datos.fecha>todayISO()||!datos.operacionId)throw new Error('Revisa el importe y la fecha del traspaso.');
   const origen=meta.cuentaAhorroId?await d.cuentas.get(meta.cuentaAhorroId):undefined;
-  if(!origen||origen.eliminada||origen.archivada||(saldosPorCuenta(await d.cuentas.toArray(),await d.movimientos.toArray()).get(origen.id)??0)<datos.importe)throw new Error('No hay suficiente dinero restante en la meta.');
+  if(!origen||origen.eliminada||origen.archivada||(saldosDirectos(await d.cuentas.toArray(),await d.movimientos.toArray()).get(origen.id)??0)<datos.importe)throw new Error('No hay suficiente dinero restante en la meta.');
   let destinoMeta=datos.destinoMetaId?await d.metas.get(datos.destinoMetaId):undefined;
   if(datos.destinoMetaId&&(!destinoMeta||destinoMeta.id===meta.id))throw new Error('Elige otra meta de destino.');
   let cuentaDestinoId=datos.cuentaDestinoId;
   if(destinoMeta){
-   if(!destinoMeta.cuentaAhorroId){const id=await crearCuenta({nombre:`Ahorro · ${destinoMeta.nombre}`,tipo:'ahorro',ambito:'personal',saldoInicial:0},d);await d.metas.update(destinoMeta.id,{cuentaAhorroId:id});destinoMeta={...destinoMeta,cuentaAhorroId:id};}
+   if(!destinoMeta.cuentaAhorroId){const id=await crearBolsilloMeta(destinoMeta.id,destinoMeta.nombre,d);await d.metas.update(destinoMeta.id,{cuentaAhorroId:id});destinoMeta={...destinoMeta,cuentaAhorroId:id};}
    cuentaDestinoId=destinoMeta.cuentaAhorroId!;
   }
   const destino=cuentaDestinoId?await d.cuentas.get(cuentaDestinoId):undefined;

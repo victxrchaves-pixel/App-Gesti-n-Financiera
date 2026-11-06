@@ -41,7 +41,7 @@ it('rechaza importes inválidos, nombres vacíos, duplicados, sumas excesivas y 
  await expect(guardarDesglose('borrada',partidas,d)).rejects.toThrow('existe');
 });
 it('las copias conservan el desglose y rechazan datos corruptos antes de restaurar',async()=>{
- const id=await guardarMeta(meta,undefined,d);await guardarDesglose(id,partidas,d);const copia=await crearCopia(d);expect(copia.version).toBe(8);expect(validarCopia(copia).ok).toBe(true);
+ const id=await guardarMeta(meta,undefined,d);await guardarDesglose(id,partidas,d);const copia=await crearCopia(d);expect(copia.version).toBe(9);expect(validarCopia(copia).ok).toBe(true);
  await guardarDesglose(id,[],d);await restaurarCopia(copia,d);expect(await crearCopia(d,new Date(copia.exportadaEn))).toEqual(copia);
  const rota=structuredClone(copia);(rota.datos.metas[0] as Meta).desglose![0].importe=-1;expect(validarCopia(rota).ok).toBe(false);
  expect(validarCopia({app:'neto',version:5,datos:{}}).ok).toBe(true);

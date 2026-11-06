@@ -15,11 +15,12 @@ export function MovimientoRow({
   const cat = m.categoriaId ? categorias.get(m.categoriaId) : undefined;
   const cuenta = cuentas.get(m.cuentaId);
   const destino = m.cuentaDestinoId ? cuentas.get(m.cuentaDestinoId) : undefined;
+  const nombreCuenta=(c:Cuenta|undefined)=>c?.cuentaPadreId?`${cuentas.get(c.cuentaPadreId)?.nombre??'Ahorro'} · ${c.nombre.replace(/^(Ahorro|Meta) · /,'')}`:c?.nombre;
   const esTransfer = m.tipo === 'transferencia';
   const titulo = m.nota || (esTransfer ? 'Transferencia' : cat?.nombre ?? 'Sin categoría');
   const sub = esTransfer
-    ? `${cuenta?.nombre ?? '—'} → ${destino?.nombre ?? '—'}`
-    : [m.nota ? cat?.nombre : null, cuenta?.nombre].filter(Boolean).join(' · ');
+    ? `${nombreCuenta(cuenta)??'—'} → ${nombreCuenta(destino)??'—'}`
+    : [m.nota ? cat?.nombre : null, nombreCuenta(cuenta)].filter(Boolean).join(' · ');
   const color = esTransfer ? 'var(--text-3)' : colorCategoria(cat?.color);
 
   return (

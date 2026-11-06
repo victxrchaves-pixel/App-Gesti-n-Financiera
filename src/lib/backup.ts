@@ -1,3 +1,5 @@
+import { agruparAhorro } from '../db/savings';
+import type { Cuenta } from '../db/types';
 import { validarPagoFijo } from '../db/recurring';
 import type { PagoFijo, PagoRegistrado } from '../db/types';
 import { validarMeta, validarAporte } from '../db/goals';
@@ -63,6 +65,17 @@ export function validarCopia(entrada: unknown): ResultadoValidacion {
   for (const c of datos.cuentas as Record<string, unknown>[]) {
     if (!esEntero(c.saldoInicial)) return { ok: false, error: `La cuenta «${String(c.nombre)}» tiene un saldo no válido.` };
   }
+  const cuentas=datos.cuentas as Cuenta[];
+  for(const c of cuentas){
+    if(c.ahorroGeneral!=null&&typeof c.ahorroGeneral!=='boolean')return {ok:false,error:'La cuenta general de ahorro no es válida.'};
+    if(c.cuentaPadreId!=null&&(typeof c.cuentaPadreId!=='string'||!c.cuentaPadreId))return {ok:false,error:'La división de ahorro no es válida.'};
+    if(c.ahorroGeneral&&(c.tipo!=='ahorro'||c.ambito!=='personal'||c.cuentaPadreId))return {ok:false,error:'La cuenta general de ahorro no es válida.'};
+    if(c.cuentaPadreId){
+      const padre=cuentas.find(p=>p.id===c.cuentaPadreId);
+      if(!padre||padre.id===c.id||padre.cuentaPadreId||!padre.ahorroGeneral||padre.tipo!=='ahorro'||padre.ambito!=='personal'||c.tipo!=='ahorro'||c.ambito!=='personal')return {ok:false,error:'Una división del ahorro tiene una cuenta general no válida.'};
+    }
+  }
+  if(cuentas.filter(c=>c.ahorroGeneral&&!c.eliminada&&!c.archivada).length>1)return {ok:false,error:'Hay más de una cuenta general de ahorro.'};
   const operaciones = new Set<string>();
   for (const m of datos.movimientos as Record<string, unknown>[]) {
     if(m.operacionId != null) {
@@ -136,12 +149,13 @@ export async function restaurarCopia(copia: CopiaNeto, d: NetoDB = db): Promise<
       const filas = copia.datos[t] ?? [];
       await d.table(t).bulkAdd(t === 'cuentas' ? (filas as {archivada?:boolean}[]).map(c=>({...c,...(c.archivada?{eliminada:true}:{}),archivada:false})) : t === 'categorias' && copia.version < 7 ? (filas as { nombre: string; color: string }[]).map(c => ({ ...c, color: colorSemanticoInicial({ ...c, color: copia.version < 4 ? neutralizarInicial(c) : c.color }) })) : filas);
     }
+    await agruparAhorro(d);
     const eliminadas = new Set((await d.cuentas.toArray()).filter(c=>c.eliminada).map(c=>c.id));
     await d.metas.toCollection().modify(m=>{ if(eliminadas.has(m.cuentaOrigenId??'')||eliminadas.has(m.cuentaAhorroId??''))m.activa=false; });
   });
 }
 
 export function resumenCopia(copia: CopiaNeto): string {
-  const n = (t: NombreTabla) => copia.datos[t]?.length ?? 0;
+  const n = (t: NombreTabla) => t==='cuentas'?(copia.datos.cuentas as Cuenta[]).filter(c=>!c.cuentaPadreId&&!c.eliminada).length:copia.datos[t]?.length ?? 0;
   return `${n('cuentas')} cuentas, ${n('movimientos')} movimientos, ${n('categorias')} categorías, ${n('suscripciones')} suscripciones, ${n('inversiones')} inversiones, ${n('presupuestos')} presupuestos, ${n('metas')} metas, ${n('pagosFijos')} recurrentes y ${n('pagosRegistrados')} pagos/cobros registrados`;
 }

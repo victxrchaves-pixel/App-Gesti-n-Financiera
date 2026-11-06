@@ -50,7 +50,7 @@ export function Inicio() {
     return out;
   }, [movimientos, cuentas, mes, categorias]);
 
-  const cuentasPersonales = cuentas.filter((c) => c.ambito === 'personal' && !c.eliminada && !c.archivada);
+  const cuentasPersonales = cuentas.filter((c) => c.ambito === 'personal' && !c.eliminada && !c.archivada && !c.cuentaPadreId);
   const nombre = ajustes?.nombre ? `, ${ajustes.nombre}` : '';
   const fechaTexto = longDate(hoy);
 

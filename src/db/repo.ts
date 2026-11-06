@@ -50,15 +50,26 @@ export async function completarInicio(datos: { nombre: string; autonomo: boolean
 export type DatosCuenta = Pick<Cuenta, 'nombre' | 'tipo' | 'ambito' | 'saldoInicial'>;
 
 export async function crearCuenta(datos: DatosCuenta, d: NetoDB = db): Promise<string> {
-  const id = newId();
-  const orden = await d.cuentas.count();
-  await d.cuentas.add({ ...datos, id, archivada: false, orden, creadaEn: ahora() });
-  return id;
+  return d.transaction('rw',d.cuentas,async()=>{
+    if(datos.tipo==='ahorro'&&datos.ambito==='personal'&&await d.cuentas.filter(c=>!!c.ahorroGeneral&&!c.eliminada&&!c.archivada).count())throw new Error('Ya tienes una cuenta general de ahorro. Edítala desde Cuentas o crea una meta dentro de ella.');
+    const id=newId();const orden=await d.cuentas.count();
+    await d.cuentas.add({...datos,id,archivada:false,orden,creadaEn:ahora(),...(datos.tipo==='ahorro'&&datos.ambito==='personal'?{ahorroGeneral:true}:{})});
+    return id;
+  });
 }
 
 export async function actualizarCuenta(id: string, cambios: Partial<Omit<Cuenta, 'id'>>, d: NetoDB = db): Promise<void> {
   if (cambios.archivada) throw new Error('Las cuentas no se archivan. Puedes eliminarlas.');
-  await d.cuentas.update(id, cambios);
+  await d.transaction('rw',d.cuentas,async()=>{
+    const actual=await d.cuentas.get(id);
+    if(actual?.ahorroGeneral&&((cambios.tipo&&cambios.tipo!=='ahorro')||(cambios.ambito&&cambios.ambito!=='personal')))throw new Error('La cuenta general mantiene el ahorro personal y sus metas.');
+    const siguiente=actual?{...actual,...cambios}:undefined;
+    if(siguiente?.tipo==='ahorro'&&siguiente.ambito==='personal'&&!siguiente.cuentaPadreId&&!siguiente.eliminada){
+      if(await d.cuentas.filter(c=>c.id!==id&&!!c.ahorroGeneral&&!c.eliminada&&!c.archivada).count())throw new Error('Ya tienes una cuenta general de ahorro. Edítala desde Cuentas o crea una meta dentro de ella.');
+      cambios={...cambios,ahorroGeneral:true};
+    }
+    await d.cuentas.update(id, cambios);
+  });
 }
 
 export async function movimientosDeCuenta(id: string, d: NetoDB = db): Promise<number> {
@@ -70,8 +81,9 @@ export async function movimientosDeCuenta(id: string, d: NetoDB = db): Promise<n
 /** Elimina la cuenta de todas las vistas; conserva referencias para el historial. */
 export async function borrarCuenta(id: string, d: NetoDB = db): Promise<void> {
   await d.transaction('rw', d.cuentas, d.metas, async () => {
-    await d.cuentas.update(id, { eliminada:true, archivada:false });
-    await d.metas.filter(m=>m.cuentaOrigenId===id||m.cuentaAhorroId===id).modify({activa:false});
+    const ids=new Set([id,...(await d.cuentas.filter(c=>c.cuentaPadreId===id).toArray()).map(c=>c.id)]);
+    await d.cuentas.where('id').anyOf([...ids]).modify({eliminada:true,archivada:false});
+    await d.metas.filter(m=>ids.has(m.cuentaOrigenId??'')||ids.has(m.cuentaAhorroId??'')).modify({activa:false});
   });
 }
 

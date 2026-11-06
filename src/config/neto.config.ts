@@ -108,7 +108,7 @@ export const config = {
 
   copiaSeguridad: {
     /** Versión del formato del archivo de copia. Súbela si cambia la estructura de los datos. */
-    version: 8,
+    version: 9,
     prefijoArchivo: 'neto-copia',
   },
 } as const;

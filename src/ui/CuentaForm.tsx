@@ -26,11 +26,12 @@ export function CuentaForm({ cuenta, onClose, ambitoInicial = 'personal' }: { cu
   const guardar = async () => {
     if (!nombre.trim()) return setError('Ponle un nombre a la cuenta.');
     if (saldo.texto !== '' && saldo.cents === null) return setError('Escribe el saldo como 1.234,56.');
-    const datos = { nombre: nombre.trim(), tipo, ambito, saldoInicial: saldo.cents ?? 0 };
-    if (cuenta) await actualizarCuenta(cuenta.id, datos);
-    else await crearCuenta(datos);
-    avisar(cuenta ? 'Cuenta actualizada' : 'Cuenta creada');
-    onClose();
+    try {
+      const datos = { nombre: nombre.trim(), tipo, ambito, saldoInicial: saldo.cents ?? 0 };
+      if (cuenta) await actualizarCuenta(cuenta.id, datos);
+      else await crearCuenta(datos);
+      avisar(cuenta ? 'Cuenta actualizada' : 'Cuenta creada');onClose();
+    } catch(e) {setError(e instanceof Error?e.message:'No se pudo guardar la cuenta.');}
   };
 
   const eliminar = async () => {
@@ -48,9 +49,9 @@ export function CuentaForm({ cuenta, onClose, ambitoInicial = 'personal' }: { cu
         </div>
         <div className="field">
           <span className="field-label">Tipo</span>
-          <Segmented opciones={TIPOS} valor={tipo} onChange={setTipo} block etiqueta="Tipo de cuenta" />
+          {cuenta?.ahorroGeneral?<p className="field-hint">Ahorro general · reúne todas tus metas. <a className="text-link" href="#/metas">Ver metas</a></p>:<Segmented opciones={TIPOS} valor={tipo} onChange={setTipo} block etiqueta="Tipo de cuenta" />}
         </div>
-        {ajustes?.autonomo && (
+        {ajustes?.autonomo && !cuenta?.ahorroGeneral && (
           <div className="field">
             <span className="field-label">¿De quién es el dinero?</span>
             <Segmented opciones={AMBITOS} valor={ambito} onChange={setAmbito} block etiqueta="Ámbito" />
@@ -58,10 +59,10 @@ export function CuentaForm({ cuenta, onClose, ambitoInicial = 'personal' }: { cu
           </div>
         )}
         <div className="field">
-          <label className="field-label" htmlFor="cf-saldo">{cuenta ? 'Saldo inicial' : 'Saldo actual'}</label>
+          <label className="field-label" htmlFor="cf-saldo">{cuenta?.ahorroGeneral?'Saldo inicial fuera de metas':cuenta?'Saldo inicial':'Saldo actual'}</label>
           <AmountInput id="cf-saldo" texto={saldo.texto} onChange={(t) => { saldo.setTexto(t); setError(null); }} permitirNegativo />
           <span className="field-hint">
-            {cuenta
+            {cuenta?.ahorroGeneral?'El ahorro de las metas se suma automáticamente. Este campo solo cambia el saldo inicial del ahorro sin asignar.':cuenta
               ? 'El saldo con el que diste de alta la cuenta. El saldo actual se calcula sumando los movimientos.'
               : 'Lo que tienes hoy. A partir de aquí, el saldo se actualiza con tus movimientos.'}
           </span>

@@ -1,3 +1,4 @@
+import { agruparAhorro } from './savings';
 import { neutralizarInicial, colorSemanticoInicial } from '../lib/colors';
 import Dexie, { type EntityTable } from 'dexie';
 import type { Ajustes, Categoria, Cuenta, Movimiento, Suscripcion, Inversion, HistorialCartera, Presupuesto, Meta, AporteMeta, PagoFijo, PagoRegistrado } from './types';
@@ -50,6 +51,7 @@ export class NetoDB extends Dexie {
         if (eliminadas.has(m.cuentaOrigenId) || eliminadas.has(m.cuentaAhorroId)) m.activa = false;
       });
     });
+    this.version(8).stores({}).upgrade(tx=>agruparAhorro({cuentas:tx.table('cuentas'),metas:tx.table('metas')}).then(()=>undefined));
   }
 }
 

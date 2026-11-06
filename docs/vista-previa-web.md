@@ -126,8 +126,8 @@ con reparto por tipo y selector explícito de valor propio o precio por unidad.
 Las categorías sugeridas no crean límites hasta que el usuario los guarda.
 
 Las metas permiten reservar un importe mensual o un porcentaje de un ingreso
-de referencia elegido por el usuario. Con origen, se crea una cuenta de ahorro
-y se registra un traspaso interno; no hay conexión bancaria ni órdenes externas.
+de referencia elegido por el usuario. Con origen, se reserva el dinero dentro
+de la cuenta general de ahorro y se registra un traspaso interno; no hay conexión bancaria ni órdenes externas.
 El modo automático reserva únicamente la cuota del mes actual, al abrir Neto
 o al actualizar saldos, siempre que haya dinero suficiente. No recupera meses
 anteriores automáticamente. Cambiar una cuota conserva lo ya registrado.
@@ -142,7 +142,8 @@ de reparto, no fechas de movimientos futuros. Se puede añadir otra aportación
 al mismo mes; no sobrescribe las anteriores. Un identificador por operación evita
 repetir el traspaso. Los céntimos se distribuyen sin pérdidas por redondeo.
 Corregir la transferencia ajusta proporcionalmente el reparto; borrarla anula
-sus aportaciones sin recrearla. Borrar la meta conserva cuentas y movimientos.
+sus aportaciones sin recrearla. Borrar una meta libera su saldo en el ahorro
+general y conserva el historial de movimientos.
 
 La base v7 añade fichas y registros de recurrentes, índices de idempotencia y
 reparto de aportaciones. Las copias v8 incluyen estas tablas y admiten v1–v7.
@@ -187,7 +188,7 @@ sus conceptos. El guardado valida contra el objetivo actual dentro de una
 transacción y modifica únicamente ese campo de la meta: no genera transferencias,
 aportaciones ni gastos. Editar otros datos de la meta conserva el desglose.
 
-Se ve dentro de la tarjeta del viaje en Presupuestos y Metas. Además del reparto
+Se ve dentro del detalle ampliado del viaje en Presupuestos y Metas. Además del reparto
 del objetivo, cada concepto muestra lo pagado y la parte del importe asignado
 aún sin usar. «Registrar gasto» apunta el pago real desde la cuenta de ahorro,
 asociándolo al viaje y, opcionalmente, a uno de sus conceptos. El gasto se cuenta
@@ -277,12 +278,50 @@ panel de la meta detrás y Escape solo cierra la ventana superior.
 
 En Presupuestos, «Tu dinero para después» usa una pila vertical de tarjetas
 reales: cada cabecera queda expuesta y pulsable y la tarjeta principal se ve
-completa. Solo muestra nombre y disponible, con fondos derivados del color de
-la meta. Al pulsar otra tarjeta, pasa al frente y se abre su detalle. No se
+completa. Al pulsar una tarjeta pequeña, pasa al frente sin abrir el diálogo:
+muestra nombre, disponible, porcentaje, barra de progreso y objetivo monetario,
+con fondos derivados del color de la meta. Una segunda pulsación sobre la
+principal abre el detalle ampliado. No se
 simulan metas si la lista está vacía. Se ofrecen Nueva meta y acceso al listado.
 
 Verificado en navegador: tres columnas de Metas; dos de presupuestos y una
 reservada para ahorro sin desplazarse al añadir límites ni al hacer scroll; detalle centrado,
 aportar/gastar/repartir con actualización de importes, selección de principal,
 cabeceras sin obstrucción, cierre de diálogos anidados, versiones de móvil,
-y los casos de una meta y ninguna. Se mantienen las 112 pruebas de datos.
+y los casos de una meta y ninguna. La selección en dos pasos funciona también
+con teclado y devuelve el foco a la tarjeta al cerrar el detalle.
+
+
+## Una cuenta general de ahorro
+
+Cuentas muestra una sola cuenta personal de ahorro, con la suma del ahorro libre
+y el dinero disponible en todas las metas. «Ver metas» abre el desglose por
+objetivos. Crear más metas no añade tarjetas a Cuentas ni opciones a los
+selectores de cuentas. Las cuentas bancarias, el efectivo y el negocio se
+conservan por separado. Inicio cuenta las cuentas visibles y suma cada importe
+una sola vez en patrimonio, ahorro y disponible.
+
+La base v8 agrupa los registros personales de ahorro vigentes bajo una cuenta
+general. Las divisiones internas de cada meta conservan sus identificadores,
+saldos, movimientos y aportaciones; no se reescriben transferencias antiguas.
+Si ya existe una cuenta de ahorro sin meta, se reutiliza como general; si no,
+se crea una de saldo inicial cero. Las cuentas eliminadas no se recuperan.
+Las copias v9 guardan esta relación y las antiguas se agrupan al restaurarse.
+El historial filtrado por Ahorro incluye los movimientos de sus metas.
+
+Aportar desde una cuenta de uso aumenta el ahorro general y reserva el importe
+para la meta elegida. Aportar desde el propio ahorro general solo utiliza
+dinero sin asignar: no toma las reservas de otros objetivos. Gastar o repartir
+desde una meta comprueba únicamente el saldo de esa meta. Borrar la meta libera
+su saldo en el ahorro general sin cambiar el patrimonio ni generar ingresos o
+gastos. Borrar la cuenta general elimina su saldo del total y pausa sus metas.
+El editor de la cuenta distingue el saldo inicial sin asignar de la suma
+automática de las metas, e impide crear una segunda cuenta general por alta o
+cambio de tipo.
+
+Validación de esta revisión: 122 pruebas de datos, compilación para Pages y
+recorrido en navegador con restauración de una copia antigua, agrupación de
+cuentas, aportaciones, gastos, reparto, creación de metas, protección contra
+duplicados y navegación en dos pasos. Revisadas anchuras de 1440, 1024, 768,
+390 y 320 px; pruebas de actualización real de una base v7 y conservación de
+historial, saldos y copias.

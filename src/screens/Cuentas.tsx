@@ -11,6 +11,7 @@ import { Icon } from '../ui/Icon';
 const nombreTipo = (t: string) => config.tiposCuenta.find((x) => x.id === t)?.nombre ?? t;
 
 function Tarjeta({ c, saldo, onClick }: { c: Cuenta; saldo: number; onClick: () => void }) {
+  if(c.ahorroGeneral)return <div className="wallet-stack"><section className="card account-card wallet-card savings-account-card"><button className="wallet-main" onClick={onClick} aria-label={`Editar cuenta ${c.nombre}`}><span className="account-type"><Icon name="ahorro" size={18}/>Ahorro general</span><span className="account-name">{c.nombre}</span><span className="wallet-caption">Todo tu ahorro, incluidas las metas</span><span className={`account-balance${saldo<0?' danger-text':''}`}>{formatMoney(saldo)}</span></button><div className="wallet-footer"><span>Personal</span><a href="#/metas">Ver metas <Icon name="flecha" size={18}/></a></div></section></div>;
   return (
     <div className="wallet-stack"><button className="card account-card wallet-card" onClick={onClick}>
       <span className="account-type"><Icon name={c.tipo} size={18} />{nombreTipo(c.tipo)}</span>
@@ -55,7 +56,7 @@ export function Cuentas() {
         </section>
 
         {ambitos.map((ambito) => {
-          const lista = cuentas.filter((c) => c.ambito === ambito && !c.archivada);
+          const lista = cuentas.filter((c) => c.ambito === ambito && !c.archivada && !c.cuentaPadreId);
           return (
             <section key={ambito}>
               {autonomo && <h2 className="card-title" style={{ margin: '8px 4px 14px' }}>{ambito === 'personal' ? 'Personales' : 'Del negocio'}</h2>}

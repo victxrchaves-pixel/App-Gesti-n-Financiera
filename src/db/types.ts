@@ -4,6 +4,10 @@ export type Ambito = 'personal' | 'negocio';
 export type TipoCuenta = 'banco' | 'efectivo' | 'ahorro' | 'otra';
 
 export interface Cuenta {
+  /** Internal pockets belong to the one visible savings account. */
+  cuentaPadreId?: string;
+  bolsilloMetaId?: string;
+  ahorroGeneral?: boolean;
   eliminada?: boolean;
   id: string;
   nombre: string;

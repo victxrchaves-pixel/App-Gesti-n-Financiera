@@ -45,7 +45,7 @@ export function MovimientoForm({ movimiento, onClose }: { movimiento?: Movimient
   const autonomo = ajustes?.autonomo ?? false;
   const todasCuentas = useCuentas();
   const cuentas = useMemo(
-    () => todasCuentas.filter((c) => (!c.eliminada && !c.archivada) || c.id === movimiento?.cuentaId || c.id === movimiento?.cuentaDestinoId),
+    () => todasCuentas.filter((c) => (!c.eliminada && !c.archivada && !c.cuentaPadreId) || c.id === movimiento?.cuentaId || c.id === movimiento?.cuentaDestinoId),
     [todasCuentas, movimiento],
   );
   const categorias = useCategorias();

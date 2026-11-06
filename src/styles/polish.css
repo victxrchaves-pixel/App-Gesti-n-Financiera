@@ -621,3 +621,15 @@ input[type=checkbox] { width:17px; height:17px; flex-shrink:0; accent-color:var(
   .budget-with-goals .envelope-grid { grid-template-columns:1fr; }
   .budget-main-column>.budget-picks { padding:22px; }
 }
+
+/* First select a stacked goal, then open its full detail. */
+.goal-deck-card { height:290px; gap:20px; }
+.goal-deck-progress { display:flex; flex-direction:column; gap:12px; width:100%; margin-top:auto; }
+.goal-deck-progress .goal-progress-caption { margin:0; gap:6px 10px; font-size:13px; }
+.goal-deck-progress .goal-preview-track { background:#ffffffa6; height:8px; }
+.goal-deck-progress .goal-preview-link { font-size:13px; padding-top:2px; }
+
+.goal-deck-card[data-principal=true] { position:relative; top:0; height:auto; min-height:290px; }
+.wallet-main { display:flex; flex-direction:column; gap:4px; padding:0; border:0; background:none; text-align:left; width:100%; min-width:0; flex:1; border-radius:12px; }
+.savings-account-card .wallet-footer a { display:inline-flex; align-items:center; gap:10px; color:var(--text); text-decoration:none; min-height:36px; }
+.savings-account-card .wallet-footer a:hover { text-decoration:underline; }

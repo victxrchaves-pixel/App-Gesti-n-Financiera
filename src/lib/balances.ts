@@ -18,7 +18,7 @@ export function efectoEnCuenta(m: Movimiento, cuentaId: string): number {
 }
 
 /** Saldo de cada cuenta: saldo inicial + efecto de todos sus movimientos. */
-export function saldosPorCuenta(cuentas: Cuenta[], movimientos: Movimiento[]): Map<string, number> {
+export function saldosDirectos(cuentas: Cuenta[], movimientos: Movimiento[]): Map<string, number> {
   const saldos = new Map<string, number>();
   for (const c of cuentas) saldos.set(c.id, c.saldoInicial);
   const sumar = (id: string | undefined, v: number) => {
@@ -35,6 +35,25 @@ export function saldosPorCuenta(cuentas: Cuenta[], movimientos: Movimiento[]): M
   return saldos;
 }
 
+/** Grouped balances are for visible accounts; each pocket keeps its own balance. */
+export function saldosPorCuenta(cuentas:Cuenta[],movimientos:Movimiento[]) {
+  const directos=saldosDirectos(cuentas,movimientos);const saldos=new Map(directos);
+  for(const c of cuentas)if(c.cuentaPadreId&&!c.eliminada&&!c.archivada){
+    const padre=cuentas.find(p=>p.id===c.cuentaPadreId&&!p.eliminada&&!p.archivada);
+    if(padre)saldos.set(padre.id,(saldos.get(padre.id)??0)+(directos.get(c.id)??0));
+  }
+  return saldos;
+}
+
+/** Savings outside goal pockets can fund a new reservation; other goals stay protected. */
+export function saldoParaReservar(id:string,cuentas:Cuenta[],movimientos:Movimiento[]) {
+  const directos=saldosDirectos(cuentas,movimientos);let saldo=directos.get(id)??0;
+  if(cuentas.find(c=>c.id===id)?.ahorroGeneral)for(const c of cuentas){
+    if(c.cuentaPadreId===id&&!c.bolsilloMetaId&&!c.eliminada&&!c.archivada)saldo+=directos.get(c.id)??0;
+  }
+  return saldo;
+}
+
 /**
  * Patrimonio: suma de los saldos de todas las cuentas vigentes.
  * Si se indica un ámbito, solo cuenta las cuentas de ese ámbito.
@@ -43,7 +62,7 @@ export function patrimonio(cuentas: Cuenta[], movimientos: Movimiento[], ambito?
   const saldos = saldosPorCuenta(cuentas, movimientos);
   let total = 0;
   for (const c of cuentas) {
-    if (c.eliminada || c.archivada) continue;
+    if (c.eliminada || c.archivada || c.cuentaPadreId) continue;
     if (ambito && c.ambito !== ambito) continue;
     total += saldos.get(c.id) ?? 0;
   }
@@ -55,7 +74,7 @@ export function dineroDisponible(cuentas: Cuenta[], movimientos: Movimiento[]) {
   const saldos=saldosPorCuenta(cuentas,movimientos);
   let total=0, ahorro=0;
   for(const c of cuentas) {
-    if(c.ambito!=='personal'||c.eliminada||c.archivada)continue;
+    if(c.ambito!=='personal'||c.eliminada||c.archivada||c.cuentaPadreId)continue;
     const saldo=saldos.get(c.id)??0;total+=saldo;
     if(c.tipo==='ahorro')ahorro+=saldo;
   }

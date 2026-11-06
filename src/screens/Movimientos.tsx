@@ -47,12 +47,12 @@ export function Movimientos() {
           if (!texto.includes(q)) return false;
         } else if (monthKey(m.fecha) !== mes) return false;
         if (tipo !== 'todos' && m.tipo !== tipo) return false;
-        if (cuentaId && m.cuentaId !== cuentaId && m.cuentaDestinoId !== cuentaId) return false;
+        if(cuentaId&&![m.cuentaId,m.cuentaDestinoId].some(id=>id===cuentaId||(id&&mapaCuentas.get(id)?.cuentaPadreId===cuentaId)))return false;
         if (categoriaId && m.categoriaId !== categoriaId) return false;
         return true;
       }),
     );
-  }, [movimientos, busqueda, mes, tipo, cuentaId, categoriaId, categorias]);
+  }, [movimientos, busqueda, mes, tipo, cuentaId, categoriaId, categorias, mapaCuentas]);
 
   const totales = useMemo(() => {
     let ingresos = 0;
@@ -93,7 +93,7 @@ export function Movimientos() {
         <Segmented opciones={TIPOS} valor={tipo} onChange={setTipo} etiqueta="Tipo" />
         <select className="select" value={cuentaId} onChange={(e) => setCuentaId(e.target.value)} aria-label="Cuenta">
           <option value="">Todas las cuentas</option>
-          {cuentas.filter(c=>!c.eliminada).map((c) => <option key={c.id} value={c.id}>{c.nombre}{ajustes?.autonomo && c.ambito === 'negocio' ? ' (negocio)' : ''}</option>)}
+          {cuentas.filter(c=>!c.eliminada&&!c.cuentaPadreId).map((c) => <option key={c.id} value={c.id}>{c.nombre}{ajustes?.autonomo && c.ambito === 'negocio' ? ' (negocio)' : ''}</option>)}
         </select>
         <select className="select" value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} aria-label="Categoría">
           <option value="">Todas las categorías</option>
