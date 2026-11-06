@@ -3,7 +3,7 @@ import { newId } from '../lib/id';
 import { saldosDirectos } from '../lib/balances';
 import { todayISO, monthKey } from '../lib/dates';
 
-/** One visible savings account; goals keep their own internal ledger pockets. */
+/** Una sola cuenta de ahorro visible; cada meta lleva su propio bolsillo interno. */
 export async function agruparAhorro(d: Pick<NetoDB, 'cuentas' | 'metas'>, crearSiVacio = false) {
   const cuentas = await d.cuentas.toArray();
   const ahorro = cuentas.filter((c) => c.ambito === 'personal' && c.tipo === 'ahorro' && !c.eliminada && !c.archivada);
@@ -61,7 +61,7 @@ export async function crearBolsilloMeta(metaId: string, nombre: string, d: NetoD
   return id;
 }
 
-/** Old general savings and direct deposits always belong to the general savings goal. */
+/** El ahorro general antiguo y los ingresos directos pertenecen siempre a la meta Ahorro general. */
 export async function asignarAhorroGeneral(d: NetoDB) {
   return d.transaction('rw', d.cuentas, d.metas, d.movimientos, d.aportesMetas, async () => {
     const cuentas = await d.cuentas.toArray();

@@ -9,7 +9,7 @@ export interface Porcion {
 }
 const TAU = Math.PI * 2;
 
-/** Segmented rings preserve each share; small segments use flat ends to avoid exaggerating them. */
+/** Los anillos segmentados respetan cada proporción; los segmentos pequeños tienen extremos planos para no exagerarlos. */
 export function Donut({ porciones, titulo }: { porciones: Porcion[]; titulo: string }) {
   const [activa, setActiva] = useState<string | null>(null);
   const valores = porciones.filter((p) => Number.isFinite(p.importe) && p.importe > 0);

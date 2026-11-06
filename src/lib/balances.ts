@@ -35,7 +35,7 @@ export function saldosDirectos(cuentas: Cuenta[], movimientos: Movimiento[]): Ma
   return saldos;
 }
 
-/** Grouped balances are for visible accounts; each pocket keeps its own balance. */
+/** Los saldos agrupados son de las cuentas visibles; cada bolsillo conserva su propio saldo. */
 export function saldosPorCuenta(cuentas: Cuenta[], movimientos: Movimiento[]) {
   const directos = saldosDirectos(cuentas, movimientos);
   const saldos = new Map(directos);
@@ -47,7 +47,7 @@ export function saldosPorCuenta(cuentas: Cuenta[], movimientos: Movimiento[]) {
   return saldos;
 }
 
-/** Savings outside goal pockets can fund a new reservation; other goals stay protected. */
+/** El ahorro que no está en bolsillos de metas puede financiar una nueva reserva; las demás metas quedan protegidas. */
 export function saldoParaReservar(id: string, cuentas: Cuenta[], movimientos: Movimiento[]) {
   const directos = saldosDirectos(cuentas, movimientos);
   let saldo = directos.get(id) ?? 0;

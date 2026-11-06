@@ -4,7 +4,7 @@ export type Ambito = 'personal' | 'negocio';
 export type TipoCuenta = 'banco' | 'efectivo' | 'ahorro' | 'otra';
 
 export interface Cuenta {
-  /** Internal pockets belong to the one visible savings account. */
+  /** Los bolsillos internos pertenecen a la única cuenta de ahorro visible. */
   cuentaPadreId?: string;
   bolsilloMetaId?: string;
   ahorroGeneral?: boolean;
@@ -23,7 +23,7 @@ export interface Cuenta {
 export type TipoMovimiento = 'ingreso' | 'gasto' | 'transferencia';
 
 export interface Movimiento {
-  /** One bank movement, several accounting categories. */
+  /** Un único movimiento bancario repartido entre varias categorías. */
   reparto?: { categoriaId: string; importe: number }[];
   devolucionDe?: string;
   operacionId?: string;

@@ -1,4 +1,4 @@
-/** Curves through real points, constrained between neighboring values. */
+/** Curvas que pasan por los puntos reales sin salirse de los valores vecinos. */
 export function curva(puntos: { x: number; y: number }[]) {
   return puntos
     .map((p, i) => {

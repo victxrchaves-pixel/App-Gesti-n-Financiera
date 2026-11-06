@@ -4,7 +4,7 @@ export function partesMovimiento(m: Pick<Movimiento, 'reparto' | 'categoriaId' |
   return m.reparto?.length ? m.reparto : [{ categoriaId: m.categoriaId, importe: m.importe }];
 }
 
-/** Refunds reduce spending on the actual refund date, without becoming income. */
+/** Las devoluciones reducen el gasto en la fecha real de la devolución, sin contar como ingreso. */
 export function desglosarGastos(movimientos: Movimiento[]) {
   return movimientos
     .filter((m) => m.tipo === 'gasto' || m.devolucionDe)

@@ -3,7 +3,7 @@ import type { Presupuesto } from './types';
 import { mesValido, validarPresupuesto } from '../lib/budgets';
 import { newId } from '../lib/id';
 
-/** Materialise a month once. Empty plans are intentional and never resurrect deleted limits. */
+/** Prepara cada mes una sola vez. Un plan vacío es intencionado y nunca recupera límites borrados. */
 export async function asegurarPlanMes(mes: string, d: NetoDB = db) {
   if (!mesValido(mes)) throw new Error('Elige un mes válido.');
   return d.transaction('rw', d.planesMes, d.presupuestos, d.categorias, async () => {

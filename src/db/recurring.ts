@@ -108,7 +108,7 @@ export async function registrarPago(
         movimientoId,
       });
       let proximaFecha = siguienteRenovacion(item);
-      // Undoing an older payment must not ask again for later periods already confirmed.
+      // Deshacer un pago antiguo no debe volver a pedir los periodos posteriores ya confirmados.
       while (true) {
         const pago = await d.pagosRegistrados
           .where('[origen+recurrenteId+periodoFecha]')
