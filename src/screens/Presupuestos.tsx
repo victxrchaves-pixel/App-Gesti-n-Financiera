@@ -14,6 +14,7 @@ import { colorCategoria, config } from '../config/neto.config';
 import { PageHeader } from '../layout/Shell';
 import { AmountInput, useAmountField } from '../ui/AmountInput';
 import { Icon } from '../ui/Icon';
+import { PlanPorcentajes } from '../ui/PlanPorcentajes';
 import { iconoCategoria } from '../lib/iconos';
 import { CategoryIcon } from '../ui/CategoryIcon';
 import { Modal, useConfirm, useToast } from '../ui/Modal';
@@ -188,6 +189,7 @@ function PlanMes({ mes }: { mes: string }) {
   const anterior = addMonths(mes, -1);
   const previos = usePresupuestos(anterior).filter((p) => p.mes === anterior);
   const [form, setForm] = useState<{ actual?: Presupuesto; categoriaId?: string } | null>(null);
+  const [porPorcentajes, setPorPorcentajes] = useState(false);
   const [detalle, setDetalle] = useState<string | null>(null);
   const [movimiento, setMovimiento] = useState<{ actual?: Movimiento } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -259,6 +261,10 @@ function PlanMes({ mes }: { mes: string }) {
           >
             Copiar mes anterior
           </button>
+          <button className="btn btn-secondary" onClick={() => setPorPorcentajes(true)}>
+            <Icon name="intereses" size={16} />
+            Según mis ingresos
+          </button>
           <button className="btn btn-primary" onClick={() => setForm({})}>
             <Icon name="mas" size={16} />
             Nuevo presupuesto
@@ -302,10 +308,29 @@ function PlanMes({ mes }: { mes: string }) {
             </div>
           )}
           {!presupuestos.length ? (
-            <div className="plan-get-started">
-              <h2 className="card-title">Escoge tus primeros sobres</h2>
-              <p className="field-hint">Ya tienes propuestas debajo: elige las que quieras usar y ajusta su límite.</p>
-            </div>
+            <>
+              <section className="card plan-auto-cta">
+                <span className="plan-auto-icon">
+                  <Icon name="intereses" size={22} />
+                </span>
+                <div>
+                  <h2 className="card-title">¿No sabes por dónde empezar?</h2>
+                  <p className="field-hint">
+                    Dinos cuánto ingresas al mes y Neto reparte un límite para cada categoría por porcentajes. Luego
+                    puedes ajustarlo todo.
+                  </p>
+                </div>
+                <button className="btn btn-primary" onClick={() => setPorPorcentajes(true)}>
+                  Crear según mis ingresos
+                </button>
+              </section>
+              <div className="plan-get-started">
+                <h2 className="card-title">O escoge tus sobres uno a uno</h2>
+                <p className="field-hint">
+                  Ya tienes propuestas debajo: elige las que quieras usar y ajusta su límite.
+                </p>
+              </div>
+            </>
           ) : (
             <>
               <section>
@@ -453,6 +478,7 @@ function PlanMes({ mes }: { mes: string }) {
         hoy dentro del mes seleccionado. Las transferencias y los gastos del negocio quedan fuera. Una suscripción
         cuenta cuando confirmas su pago en Recurrentes. Los avisos se muestran dentro de la app.
       </p>
+      {porPorcentajes && <PlanPorcentajes mes={mes} onClose={() => setPorPorcentajes(false)} />}
       {form && (
         <Formulario
           mes={mes}

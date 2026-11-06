@@ -72,6 +72,9 @@ export interface Ajustes {
 }
 
 export interface Suscripcion {
+  /** Se apunta sola el día de renovación, con su importe, desde «cuentaId». */
+  automatico?: boolean;
+  cuentaId?: string | null;
   periodosOmitidos?: string[];
   servicioId?: string | null;
   id: string;
@@ -161,6 +164,8 @@ export interface AporteMeta {
 }
 
 export interface PagoFijo {
+  /** Se apunta solo el día que toca, con su importe; se puede corregir luego en Movimientos. */
+  automatico?: boolean;
   periodosOmitidos?: string[];
   id: string;
   nombre: string;

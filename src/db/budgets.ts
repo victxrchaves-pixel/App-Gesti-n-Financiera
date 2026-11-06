@@ -60,3 +60,39 @@ export async function copiarPresupuestos(origen: string, destino: string, d: Net
     return nuevos.length;
   });
 }
+
+/**
+ * Crea el presupuesto de un mes a partir del reparto por porcentajes. Sustituye los límites
+ * que hubiera ese mes (conserva el color propio de cada uno) y no toca ningún movimiento.
+ */
+export async function aplicarPlanPorcentajes(
+  mes: string,
+  limites: { categoriaId: string; limite: number }[],
+  d: NetoDB = db,
+) {
+  if (!mesValido(mes)) throw new Error('Elige un mes válido.');
+  if (!limites.length) throw new Error('Pon un porcentaje al menos a una categoría.');
+  for (const l of limites)
+    if (!Number.isSafeInteger(l.limite) || l.limite <= 0) throw new Error('Hay un límite no válido.');
+  await asegurarPlanMes(mes, d);
+  return d.transaction('rw', d.presupuestos, d.categorias, d.planesMes, async () => {
+    const deGasto = new Set((await d.categorias.where('tipo').equals('gasto').toArray()).map((c) => c.id));
+    if (limites.some((l) => !deGasto.has(l.categoriaId))) throw new Error('Alguna categoría de gasto ya no existe.');
+    const existentes = await d.presupuestos.where('mes').equals(mes).toArray();
+    const anterior = new Map(existentes.map((p) => [p.categoriaId, p]));
+    const nuevas = new Set(limites.map((l) => l.categoriaId));
+    await d.presupuestos.bulkDelete(existentes.filter((p) => !nuevas.has(p.categoriaId)).map((p) => p.id));
+    for (const l of limites) {
+      const previo = anterior.get(l.categoriaId);
+      await d.presupuestos.put({
+        id: previo?.id ?? newId(),
+        mes,
+        categoriaId: l.categoriaId,
+        limite: l.limite,
+        color: previo?.color ?? null,
+      });
+    }
+    await d.planesMes.update(mes, { revisado: true });
+    return limites.length;
+  });
+}

@@ -103,6 +103,36 @@ export const config = {
   presupuestos: {
     /** Porcentaje a partir del cual se avisa. */
     avisoPorcentaje: 80,
+    /** Meses completos que se usan para sugerir el ingreso mensual del reparto por porcentajes. */
+    mesesIngresoSugerido: 3,
+    /**
+     * Repartos por porcentajes para crear un presupuesto a partir del ingreso mensual.
+     * Las claves son los iconos de las categorías (src/lib/iconos.ts), así funcionan aunque
+     * la categoría se haya renombrado. Lo que no se reparte queda para ahorrar.
+     */
+    plantillas: [
+      {
+        id: 'equilibrado',
+        nombre: 'Equilibrado',
+        resumen: '50 / 30 / 20',
+        descripcion: 'La mitad para lo necesario, un 30 % para tus gustos y un 20 % para ahorrar.',
+        reparto: { casa: 30, comida: 12, transporte: 6, salud: 2, ocio: 10, ropa: 5, suscripciones: 5, otros: 10 },
+      },
+      {
+        id: 'ahorrador',
+        nombre: 'Ahorrador',
+        resumen: '50 / 20 / 30',
+        descripcion: 'Lo necesario igual, menos caprichos y un 30 % para ahorrar.',
+        reparto: { casa: 30, comida: 12, transporte: 6, salud: 2, ocio: 7, ropa: 3, suscripciones: 3, otros: 7 },
+      },
+      {
+        id: 'holgado',
+        nombre: 'Holgado',
+        resumen: '60 / 30 / 10',
+        descripcion: 'Más margen para el día a día y un 10 % para ahorrar.',
+        reparto: { casa: 35, comida: 14, transporte: 8, salud: 3, ocio: 12, ropa: 6, suscripciones: 5, otros: 7 },
+      },
+    ],
   },
 
   /** Valores del modo autónomo (se usan a partir de la Fase 4). */

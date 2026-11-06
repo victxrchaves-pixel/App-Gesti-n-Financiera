@@ -1,5 +1,6 @@
 import { AvailableDetails, HomeRecurring, BackupReminder } from '../ui/HomeFinance';
 import { BudgetReview } from '../ui/BudgetReview';
+import { HomeBudgets } from '../ui/HomeBudgets';
 import { useMemo, useState } from 'react';
 import { colorCategoria, config } from '../config/neto.config';
 import { useAjustes, useCuentas, useMapaCategorias, useMovimientos, useHoy } from '../db/hooks';
@@ -206,6 +207,7 @@ export function Inicio() {
           </div>
           <HomeRecurring />
           <BudgetReview mes={mes} />
+          <HomeBudgets mes={mes} />
           <section className="month-summary" aria-label="Resumen del mes">
             <div>
               <span className="eyebrow">Balance de {monthLabel(mes, false)}</span>

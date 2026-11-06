@@ -2,7 +2,7 @@ import { SERVICIOS, identificarServicio } from '../lib/services';
 import { ServiceIcon } from '../ui/ServiceIcon';
 import { useState } from 'react';
 import { config } from '../config/neto.config';
-import { useSuscripciones } from '../db/hooks';
+import { useSuscripciones, useCuentas } from '../db/hooks';
 import { db } from '../db/db';
 import { guardarSuscripcion, renovarSuscripcion } from '../db/finance';
 import type { Ambito, Suscripcion } from '../db/types';
@@ -38,6 +38,12 @@ export function FormularioSuscripcion({
   const [fecha, setFecha] = useState(actual?.proximaFecha ?? todayISO());
   const [estado, setEstado] = useState<Suscripcion['estado']>(actual?.estado ?? 'activa');
   const [nota, setNota] = useState(actual?.nota ?? '');
+  // Las suscripciones nuevas se apuntan solas (cuestan siempre lo mismo); las que ya existían, no.
+  const [automatico, setAutomatico] = useState(actual ? !!actual.automatico : true);
+  const cuentasUso = useCuentas().filter(
+    (c) => c.ambito === ambito && !c.eliminada && !c.archivada && !c.cuentaPadreId && c.tipo !== 'ahorro',
+  );
+  const [cuentaId, setCuentaId] = useState(actual?.cuentaId ?? '');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const avisar = useToast();
@@ -60,6 +66,8 @@ export function FormularioSuscripcion({
           diaCobro: actual && fecha === actual.proximaFecha ? actual.diaCobro : Number(fecha.slice(-2)),
           estado,
           nota,
+          automatico,
+          cuentaId: (cuentasUso.some((c) => c.id === cuentaId) ? cuentaId : cuentasUso[0]?.id) || null,
         },
         actual?.id,
       );
@@ -207,9 +215,34 @@ export function FormularioSuscripcion({
             placeholder="Plan, condiciones de renovación…"
           />
         </div>
+        <label className="goal-check">
+          <input type="checkbox" checked={automatico} onChange={(e) => setAutomatico(e.target.checked)} />
+          Apuntar automáticamente cada renovación
+        </label>
+        {automatico && (
+          <div className="field">
+            <label htmlFor="sub-account" className="field-label">
+              Se cobra de
+            </label>
+            <select
+              id="sub-account"
+              className="select"
+              value={(cuentasUso.some((c) => c.id === cuentaId) ? cuentaId : cuentasUso[0]?.id) || ''}
+              onChange={(e) => setCuentaId(e.target.value)}
+            >
+              {cuentasUso.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <p className="field-hint">
-          Esta suscripción pertenece a {ambito === 'personal' ? 'tus finanzas personales' : 'tu negocio'}. Los avisos se
-          muestran al abrir Neto; no se realizan cobros ni se añaden gastos automáticamente.
+          {automatico
+            ? 'El día de la renovación se apunta solo el gasto, con este importe, en la categoría Suscripciones. Puedes corregirlo en Movimientos.'
+            : 'Neto te avisará el día de la renovación y tú confirmas el pago.'}{' '}
+          Pertenece a {ambito === 'personal' ? 'tus finanzas personales' : 'tu negocio'}.
         </p>
         {error && (
           <div role="alert" className="form-error">

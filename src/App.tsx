@@ -1,5 +1,6 @@
 import { Recurrentes } from './screens/Recurrentes';
 import { SavingsSync } from './ui/SavingsSync';
+import { RecurringSync } from './ui/RecurringSync';
 import { Metas } from './screens/Metas';
 import { Theme } from './ui/Theme';
 import { useAjustes } from './db/hooks';
@@ -55,6 +56,7 @@ export function App() {
     <ToastProvider>
       <Theme />
       <SavingsSync />
+      <RecurringSync />
       <ConfirmProvider>
         <Pantalla />
       </ConfirmProvider>

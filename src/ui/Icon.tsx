@@ -1,5 +1,7 @@
 import {
   AppWindow,
+  CircleAlert,
+  TriangleAlert,
   ArrowDown,
   ArrowLeftRight,
   ArrowRight,
@@ -163,6 +165,8 @@ const LUCIDE: Record<string, LucideIcon> = {
   descargar: Download,
   subir: Upload,
   papelera: Trash2,
+  aviso: TriangleAlert,
+  alerta: CircleAlert,
   // Tipos de cuenta y metas
   banco: Landmark,
   efectivo: Banknote,

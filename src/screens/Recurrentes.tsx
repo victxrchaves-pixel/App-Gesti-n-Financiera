@@ -18,6 +18,7 @@ import { PageHeader } from '../layout/Shell';
 import { AmountInput, useAmountField } from '../ui/AmountInput';
 import { Modal, useConfirm, useToast } from '../ui/Modal';
 import { Icon } from '../ui/Icon';
+import { costeAnual, costeMensual } from '../lib/subscriptions';
 import { RecurrenteIcon } from '../ui/RecurrenteIcon';
 import { ServiceIcon } from '../ui/ServiceIcon';
 import { FormularioSuscripcion } from './Suscripciones';
@@ -37,6 +38,8 @@ function FormFijo({ actual, tipo, cerrar }: { actual?: PagoFijo; tipo: 'gasto' |
   const [periodo, setPeriodo] = useState<Suscripcion['periodo']>(actual?.periodo ?? 'mensual');
   const [fecha, setFecha] = useState(actual?.proximaFecha ?? todayISO());
   const [activo, setActivo] = useState(actual?.activo ?? true);
+  // Las fichas nuevas se apuntan solas; las que ya existían siguen como estaban.
+  const [automatico, setAutomatico] = useState(actual ? !!actual.automatico : true);
   const [nota, setNota] = useState(actual?.nota ?? '');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -63,6 +66,7 @@ function FormFijo({ actual, tipo, cerrar }: { actual?: PagoFijo; tipo: 'gasto' |
                 proximaFecha: fecha,
                 diaCobro: actual && fecha === actual.proximaFecha ? actual.diaCobro : Number(fecha.slice(-2)),
                 activo,
+                automatico,
                 nota,
               },
               actual?.id,
@@ -184,6 +188,15 @@ function FormFijo({ actual, tipo, cerrar }: { actual?: PagoFijo; tipo: 'gasto' |
           <input type="checkbox" checked={activo} onChange={(e) => setActivo(e.target.checked)} />
           Ficha activa
         </label>
+        <label className="goal-check">
+          <input type="checkbox" checked={automatico} onChange={(e) => setAutomatico(e.target.checked)} />
+          Apuntar automáticamente cada periodo
+        </label>
+        <p className="field-hint">
+          {automatico
+            ? 'Se apunta solo el día que toca, con este importe. Si un mes cambia (la luz, por ejemplo), corrígelo en Movimientos.'
+            : 'Neto te avisará el día que toca y tú confirmas el importe real con «Pagado» o «Cobrado».'}
+        </p>
         {error && (
           <div className="form-error" role="alert">
             {error}
@@ -388,6 +401,8 @@ export function FormPago({ item, cerrar }: { item: Ficha; cerrar: () => void }) 
 export function Recurrentes({ soloSuscripciones = false }: { soloSuscripciones?: boolean }) {
   const fijos = usePagosFijos();
   const subs = useSuscripciones().filter((s) => s.ambito === 'personal');
+  // Lo que cuestan tus suscripciones activas, pasado a mes y a año (las anuales cuentan 1/12 al mes).
+  const subsActivas = subs.filter((x) => x.estado === 'activa');
   const cats = useCategorias();
   const registros = usePagosRegistrados();
   const movimientos = useMovimientos();
@@ -468,11 +483,16 @@ export function Recurrentes({ soloSuscripciones = false }: { soloSuscripciones?:
           </div>
           <div>
             <span className="summary-icon">
-              <Icon name="recurrentes" size={20} />
+              <Icon name="suscripciones" size={20} />
             </span>
-            <span>Fichas activas</span>
-            <strong>{fichas.filter((f) => f.activo).length}</strong>
-            <small>Las fichas no alteran saldos hasta confirmar.</small>
+            <span>Tus suscripciones ({subsActivas.length})</span>
+            <strong>{formatMoney(subsActivas.reduce((t, x) => t + costeMensual(x), 0))} al mes</strong>
+            <small>
+              {formatMoney(subsActivas.reduce((t, x) => t + costeAnual(x), 0))} al año ·{' '}
+              {fichas.filter((f) => f.activo).length === 1
+                ? '1 ficha activa'
+                : `${fichas.filter((f) => f.activo).length} fichas activas`}
+            </small>
           </div>
         </section>
         <div className="recurring-tabs">
@@ -584,9 +604,15 @@ export function Recurrentes({ soloSuscripciones = false }: { soloSuscripciones?:
                   </div>
                   <div className="recurring-card-meta">
                     <div className="subscription-card-date">
-                      <span>Periodo por registrar</span>
+                      <span>{f.automatico ? 'Se apunta solo el' : 'Periodo por registrar'}</span>
                       <strong>{shortDate(f.proximaFecha)}</strong>
                     </div>
+                    {f.automatico && f.activo && (
+                      <span className="recurring-auto" title="Se apunta solo el día que toca">
+                        <Icon name="recurrentes" size={13} />
+                        Automático
+                      </span>
+                    )}
                     <span className={`subscription-state ${f.activo ? 'state-activa' : 'state-pausada'}`}>
                       <i />
                       {f.activo ? 'Activa' : 'Inactiva'}

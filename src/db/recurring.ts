@@ -1,5 +1,5 @@
 import { db, type NetoDB } from './db';
-import type { PagoFijo } from './types';
+import type { PagoFijo, Suscripcion } from './types';
 import { newId } from '../lib/id';
 import { isISODate, todayISO } from '../lib/dates';
 import { siguienteRenovacion } from '../lib/subscriptions';
@@ -160,4 +160,77 @@ export async function deshacerPago(id: string, d: NetoDB = db) {
     const item = await tabla.get(pago.recurrenteId);
     if (item && item.proximaFecha > pago.periodoFecha) await tabla.update(item.id, { proximaFecha: pago.periodoFecha });
   });
+}
+
+/** Como mucho, cuántos periodos atrasados de una ficha se apuntan de una vez (3 años de cuotas mensuales). */
+const MAX_PERIODOS_ATRASADOS = 36;
+
+/**
+ * Apunta solos los periodos ya vencidos (hasta hoy) de las fichas con «Apuntar automáticamente».
+ * Usa el mismo registro que el botón «Pagado», así que nunca duplica un periodo. Si falta la
+ * cuenta o la categoría, la ficha se queda pendiente para confirmarla a mano.
+ * Devuelve cuántos movimientos ha creado.
+ */
+export async function registrarAutomaticos(hoy: string = todayISO(), d: NetoDB = db): Promise<number> {
+  let creados = 0;
+  const cuentas = await d.cuentas.toArray();
+  const categorias = await d.categorias.toArray();
+  const deUso = (ambito: 'personal' | 'negocio') =>
+    cuentas.find((c) => c.ambito === ambito && !c.eliminada && !c.archivada && !c.cuentaPadreId && c.tipo !== 'ahorro');
+  const categoriaSuscripciones =
+    categorias.find((c) => c.tipo === 'gasto' && c.nombre.trim().toLowerCase() === 'suscripciones') ??
+    categorias.find((c) => c.tipo === 'gasto');
+
+  for (const inicial of await d.pagosFijos.toArray()) {
+    if (!inicial.automatico) continue;
+    let f: PagoFijo | undefined = inicial;
+    for (let i = 0; f && f.activo && f.proximaFecha <= hoy && i < MAX_PERIODOS_ATRASADOS; i++) {
+      try {
+        await registrarPago(
+          {
+            origen: 'fijo',
+            recurrenteId: f.id,
+            periodoFecha: f.proximaFecha,
+            fecha: f.proximaFecha,
+            importe: f.importe,
+            cuentaId: f.cuentaId,
+            categoriaId: f.categoriaId,
+          },
+          d,
+        );
+        creados++;
+      } catch {
+        break;
+      }
+      f = await d.pagosFijos.get(f.id);
+    }
+  }
+
+  for (const inicial of await d.suscripciones.toArray()) {
+    if (!inicial.automatico) continue;
+    const cuentaId = inicial.cuentaId ?? deUso(inicial.ambito)?.id;
+    if (!cuentaId || !categoriaSuscripciones) continue;
+    let s: Suscripcion | undefined = inicial;
+    for (let i = 0; s && s.estado === 'activa' && s.proximaFecha <= hoy && i < MAX_PERIODOS_ATRASADOS; i++) {
+      try {
+        await registrarPago(
+          {
+            origen: 'suscripcion',
+            recurrenteId: s.id,
+            periodoFecha: s.proximaFecha,
+            fecha: s.proximaFecha,
+            importe: s.importe,
+            cuentaId,
+            categoriaId: categoriaSuscripciones.id,
+          },
+          d,
+        );
+        creados++;
+      } catch {
+        break;
+      }
+      s = await d.suscripciones.get(s.id);
+    }
+  }
+  return creados;
 }

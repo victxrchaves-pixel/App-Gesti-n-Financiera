@@ -1,8 +1,28 @@
 import { useState } from 'react';
+import { colorCategoria, config } from '../config/neto.config';
+import { aplicarPlanPorcentajes } from '../db/budgets';
+import { db } from '../db/db';
 import { completarInicio, crearCuenta } from '../db/repo';
+import type { Categoria } from '../db/types';
+import { monthKey, todayISO } from '../lib/dates';
+import { iconoCategoria } from '../lib/iconos';
+import { formatMoney } from '../lib/money';
+import { limitesPlan, plantillaPorId, porcentajesIniciales, resumenPlan } from '../lib/planPorcentajes';
 import { ir } from '../router';
 import { AmountInput, useAmountField } from '../ui/AmountInput';
+import { CategoryIcon } from '../ui/CategoryIcon';
 import { BrandMark } from '../ui/Icon';
+import { Segmented } from '../ui/Segmented';
+
+// Categorías con las que empieza la app, para enseñar el reparto antes de crearlas.
+const CATEGORIAS_INICIALES: Categoria[] = config.categoriasIniciales.gasto.map((c, i) => ({
+  id: c.nombre,
+  nombre: c.nombre,
+  tipo: 'gasto',
+  color: c.color,
+  orden: i,
+}));
+const PLANTILLAS = config.presupuestos.plantillas.map((p) => ({ valor: p.id, texto: p.nombre }));
 
 export function Onboarding() {
   const [paso, setPaso] = useState(0);
@@ -10,14 +30,32 @@ export function Onboarding() {
   const [autonomo, setAutonomo] = useState<boolean | null>(null);
   const [cuenta, setCuenta] = useState('Cuenta principal');
   const saldo = useAmountField();
+  const [conCuenta, setConCuenta] = useState(true);
+  const ingreso = useAmountField();
+  const [plantilla, setPlantilla] = useState<string>(config.presupuestos.plantillas[0].id);
   const [error, setError] = useState<string | null>(null);
 
-  const terminar = async (conCuenta: boolean) => {
-    if (conCuenta && saldo.texto !== '' && saldo.cents === null) return setError('Escribe el saldo como 1.234,56.');
-    if (conCuenta && !cuenta.trim()) return setError('Ponle un nombre a la cuenta.');
+  const porcentajes = porcentajesIniciales(plantillaPorId(plantilla), CATEGORIAS_INICIALES);
+  const resumen = resumenPlan(ingreso.cents ?? 0, porcentajes);
+
+  const pasarAlPresupuesto = (crearla: boolean) => {
+    if (crearla && saldo.texto !== '' && saldo.cents === null) return setError('Escribe el saldo como 1.234,56.');
+    if (crearla && !cuenta.trim()) return setError('Ponle un nombre a la cuenta.');
+    setConCuenta(crearla);
+    setError(null);
+    setPaso(3);
+  };
+
+  const terminar = async (conPresupuesto: boolean) => {
+    if (conPresupuesto && (!ingreso.cents || ingreso.cents <= 0)) return setError('Escribe cuánto ingresas al mes.');
     await completarInicio({ nombre: nombre.trim(), autonomo: autonomo ?? false });
     if (conCuenta)
       await crearCuenta({ nombre: cuenta.trim(), tipo: 'banco', ambito: 'personal', saldoInicial: saldo.cents ?? 0 });
+    if (conPresupuesto) {
+      const categorias = await db.categorias.toArray();
+      const limites = limitesPlan(ingreso.cents!, porcentajesIniciales(plantillaPorId(plantilla), categorias));
+      await aplicarPlanPorcentajes(monthKey(todayISO()), limites);
+    }
     ir('inicio');
   };
 
@@ -25,7 +63,7 @@ export function Onboarding() {
     <div className="onboarding">
       <div className="card onboarding-card">
         <div className="steps" aria-hidden="true">
-          {[0, 1, 2].map((i) => (
+          {[0, 1, 2, 3].map((i) => (
             <span key={i} className={i <= paso ? 'on' : ''} />
           ))}
         </div>
@@ -108,7 +146,7 @@ export function Onboarding() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              void terminar(true);
+              pasarAlPresupuesto(true);
             }}
           >
             <h1 className="onboarding-title">Tu primera cuenta</h1>
@@ -153,14 +191,83 @@ export function Onboarding() {
               )}
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-ghost left" onClick={() => void terminar(false)}>
+              <button type="button" className="btn btn-ghost left" onClick={() => pasarAlPresupuesto(false)}>
                 Ahora no
               </button>
               <button type="button" className="btn btn-ghost" onClick={() => setPaso(1)}>
                 Atrás
               </button>
               <button className="btn btn-primary btn-lg" type="submit">
-                Empezar
+                Continuar
+              </button>
+            </div>
+          </form>
+        )}
+
+        {paso === 3 && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void terminar(true);
+            }}
+          >
+            <h1 className="onboarding-title">Tu presupuesto en un minuto</h1>
+            <p className="onboarding-text">
+              Dinos cuánto ingresas al mes y Neto repartirá un límite para cada categoría. Podrás cambiarlo cuando
+              quieras en Presupuestos.
+            </p>
+            <div className="modal-body">
+              <div className="field">
+                <label className="field-label" htmlFor="ob-ingreso">
+                  ¿Cuánto ingresas al mes?
+                </label>
+                <AmountInput
+                  id="ob-ingreso"
+                  texto={ingreso.texto}
+                  onChange={(t) => {
+                    ingreso.setTexto(t);
+                    setError(null);
+                  }}
+                  autoFocus
+                />
+                <span className="field-hint">Tu nómina u otros ingresos habituales, ya sin impuestos.</span>
+              </div>
+              <div className="field">
+                <span className="field-label">Reparto</span>
+                <Segmented opciones={PLANTILLAS} valor={plantilla} onChange={setPlantilla} block etiqueta="Reparto" />
+                <span className="field-hint">
+                  {plantillaPorId(plantilla).resumen} · {plantillaPorId(plantilla).descripcion}
+                </span>
+              </div>
+              {(ingreso.cents ?? 0) > 0 && (
+                <div className="onboarding-plan">
+                  {CATEGORIAS_INICIALES.filter((c) => (porcentajes.get(c.id) ?? 0) > 0).map((c) => (
+                    <span key={c.id} className="onboarding-plan-item">
+                      <CategoryIcon icono={iconoCategoria(c)} color={colorCategoria(c.color)} size={28} />
+                      <span>{c.nombre}</span>
+                      <b>{formatMoney(Math.round(((ingreso.cents ?? 0) * (porcentajes.get(c.id) ?? 0)) / 100))}</b>
+                    </span>
+                  ))}
+                  <span className="onboarding-plan-saving">
+                    Para ahorrar cada mes: <b>{formatMoney(resumen.ahorro)}</b>
+                  </span>
+                </div>
+              )}
+              {error && (
+                <div className="form-error" role="alert">
+                  {error}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-ghost left" onClick={() => void terminar(false)}>
+                Ahora no
+              </button>
+              <button type="button" className="btn btn-ghost" onClick={() => setPaso(2)}>
+                Atrás
+              </button>
+              <button className="btn btn-primary btn-lg" type="submit">
+                Crear y empezar
               </button>
             </div>
           </form>

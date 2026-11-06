@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { beforeEach, afterEach, it, expect } from 'vitest';
+import { beforeEach, afterEach, describe, it, expect } from 'vitest';
 import { NetoDB } from './db';
 import {
   completarInicio,
@@ -10,12 +10,12 @@ import {
   borrarCategoria,
   borrarCuenta,
 } from './repo';
-import { guardarPagoFijo, registrarPago } from './recurring';
+import { guardarPagoFijo, registrarAutomaticos, registrarPago } from './recurring';
 import { guardarSuscripcion } from './finance';
 import { crearCopia, validarCopia, restaurarCopia } from '../lib/backup';
 import { dineroDisponible, patrimonio } from '../lib/balances';
 import { gastosPresupuesto } from '../lib/budgets';
-import { todayISO, addDays } from '../lib/dates';
+import { todayISO, addDays, addMonths, monthKey } from '../lib/dates';
 import type { PagoFijo } from './types';
 let d: NetoDB,
   n = 0,
@@ -207,4 +207,56 @@ it('mantiene las suscripciones y reservas v6 al migrar, excluye cuentas archivad
   } finally {
     await nueva.delete();
   }
+});
+
+describe('apuntar automáticamente', () => {
+  // Gimnasio de 42,00 € el día 5 de cada mes, automático, con la primera cuota hace dos meses:
+  // al abrir Neto se apuntan las dos cuotas vencidas y la ficha pasa al mes siguiente.
+  it('apunta solos los periodos vencidos, con su fecha, y no los repite', async () => {
+    const hoy = todayISO();
+    const inicio = addMonths(monthKey(hoy), -2) + '-05';
+    await guardarPagoFijo(
+      { ...fijo, nombre: 'Gimnasio', importe: 4200, proximaFecha: inicio, diaCobro: 5, automatico: true },
+      undefined,
+      d,
+    );
+    const id = (await d.pagosFijos.toArray()).find((f) => f.nombre === 'Gimnasio')!.id;
+    const esperadas = [inicio, addMonths(monthKey(hoy), -1) + '-05', monthKey(hoy) + '-05'].filter((f) => f <= hoy);
+    expect(await registrarAutomaticos(hoy, d)).toBe(esperadas.length);
+    expect(await registrarAutomaticos(hoy, d)).toBe(0);
+    const movs = (await d.movimientos.toArray()).filter((m) => m.nota === 'Gimnasio');
+    expect(movs.map((m) => m.fecha).sort()).toEqual(esperadas);
+    expect(movs.every((m) => m.importe === 4200 && m.origen === 'recurrente')).toBe(true);
+    expect((await d.pagosFijos.get(id))!.proximaFecha > hoy).toBe(true);
+  });
+
+  it('las fichas sin la opción siguen esperando a que confirmes', async () => {
+    await guardarPagoFijo({ ...fijo, nombre: 'Luz', proximaFecha: addDays(todayISO(), -3) }, undefined, d);
+    expect(await registrarAutomaticos(todayISO(), d)).toBe(0);
+    expect((await d.movimientos.toArray()).some((m) => m.nota === 'Luz')).toBe(false);
+  });
+
+  it('una suscripción automática se cobra de su cuenta con la categoría Suscripciones', async () => {
+    await guardarSuscripcion(
+      {
+        nombre: 'Netflix',
+        categoria: 'Entretenimiento',
+        ambito: 'personal',
+        importe: 1399,
+        periodo: 'mensual',
+        proximaFecha: todayISO(),
+        diaCobro: Number(todayISO().slice(-2)),
+        estado: 'activa',
+        nota: '',
+        automatico: true,
+        cuentaId: cuenta,
+      },
+      undefined,
+      d,
+    );
+    expect(await registrarAutomaticos(todayISO(), d)).toBe(1);
+    const m = (await d.movimientos.toArray()).find((x) => x.nota === 'Netflix')!;
+    const cat = await d.categorias.get(m.categoriaId!);
+    expect([m.cuentaId, m.importe, cat?.nombre]).toEqual([cuenta, 1399, 'Suscripciones']);
+  });
 });

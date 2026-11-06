@@ -10,7 +10,8 @@ export type Ficha = {
   activo: boolean;
   categoria: string;
   categoriaId?: string;
-  cuentaId?: string;
+  cuentaId?: string | null;
+  automatico?: boolean;
   servicioId?: string | null;
 };
 export function fichasRecurrentes(fijos: PagoFijo[], subs: Suscripcion[], cats: Categoria[]): Ficha[] {
