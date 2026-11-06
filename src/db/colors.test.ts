@@ -22,7 +22,21 @@ it('mantiene el tema neutro y da significado a los colores de categorías y grá
   expect(variablesTema()['--chart-income']).toBe('#16803C');
   expect(variablesTema()['--chart-expense']).toBe('#C73535');
   expect(variablesTema()['--chart-income']).not.toBe(variablesTema()['--chart-expense']);
-  expect(variablesTema()['--primary-ink']).toBe('#444444');
+  // Sin color elegido: estructura negra y destaque blanco con texto oscuro encima.
+  expect(variablesTema()['--primary-ink']).toBe('#111111');
+  expect(variablesTema()['--accent']).toBe('#FFFFFF');
+  expect(variablesTema()['--on-accent']).toBe('#111111');
+});
+it('un acento oscuro elegido lleva texto blanco encima', () => {
+  const v = variablesTema({
+    id: 'ajustes',
+    nombre: '',
+    autonomo: false,
+    inicioCompletado: true,
+    colorAcento: '#1d4ed8',
+  });
+  expect(v['--accent']).toBe('#1d4ed8');
+  expect(v['--on-accent']).toBe('#FFFFFF');
 });
 it('conserva colores independientes en copias y al copiar presupuestos', async () => {
   const c = (await d.categorias.where('tipo').equals('gasto').first())!;
@@ -36,7 +50,7 @@ it('conserva colores independientes en copias y al copiar presupuestos', async (
   await restaurarCopia(copia, d);
   expect(await crearCopia(d, new Date(copia.exportadaEn))).toEqual(copia);
   await guardarAjustes({ colorAcento: null }, d);
-  expect(variablesTema(await d.ajustes.get('ajustes'))['--primary-ink']).toBe('#444444');
+  expect(variablesTema(await d.ajustes.get('ajustes'))['--primary-ink']).toBe('#111111');
   expect((await d.categorias.get(c.id))?.color).toBe('#f0a812');
 });
 it('rechaza colores inseguros y mantiene contraste sobre blanco', async () => {

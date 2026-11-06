@@ -70,13 +70,22 @@ export function tinta(color: string) {
   while (1.05 / (luminancia(resultado) + 0.05) < 4.5) resultado = mezclar(resultado, 0, 0.08);
   return resultado;
 }
+/** Destaque por defecto: blanco. Solo se usa sobre fondos negros (sección activa, acción principal). */
+export const ACENTO_POR_DEFECTO = '#FFFFFF';
+
 export function variablesTema(a?: Ajustes) {
-  const color = esColor(a?.colorAcento) ? a.colorAcento : '#444444';
+  // Sin color elegido, la estructura es negra y el destaque, blanco: todo en blanco, gris y negro.
+  // Con un color elegido en Ajustes, ese color hace de estructura y de destaque.
+  const elegido = esColor(a?.colorAcento) ? a.colorAcento : null;
+  const acento = elegido ?? ACENTO_POR_DEFECTO;
   return {
-    '--primary': mezclar(color, 255, 0.78),
-    '--primary-hover': mezclar(color, 255, 0.65),
-    '--primary-soft': mezclar(color, 255, 0.93),
-    '--primary-ink': tinta(color),
+    '--primary': elegido ? mezclar(elegido, 255, 0.78) : '#DADAD6',
+    '--primary-hover': elegido ? mezclar(elegido, 255, 0.65) : '#C8C8C3',
+    '--primary-soft': elegido ? mezclar(elegido, 255, 0.93) : '#EBEBE8',
+    '--primary-ink': elegido ? tinta(elegido) : '#111111',
+    '--accent': acento,
+    '--accent-soft': mezclar(acento, 255, 0.7),
+    '--on-accent': luminancia(acento) > 0.35 ? '#111111' : '#FFFFFF',
     '--positive': COLORES_UX.ingreso,
     '--chart-income': esColor(a?.colorIngresos) ? tinta(a.colorIngresos) : COLORES_UX.ingreso,
     '--chart-expense': esColor(a?.colorGastos) ? tinta(a.colorGastos) : COLORES_UX.gasto,

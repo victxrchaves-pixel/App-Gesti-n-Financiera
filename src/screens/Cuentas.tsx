@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { config } from '../config/neto.config';
-import { useAjustes, useCuentas, useMovimientos, useSaldos } from '../db/hooks';
+import { useAjustes, useCuentas, useMetas, useMovimientos, useSaldos } from '../db/hooks';
 import type { Ambito, Cuenta } from '../db/types';
 import { patrimonio } from '../lib/balances';
 import { formatMoney } from '../lib/money';
@@ -10,10 +10,28 @@ import { Icon } from '../ui/Icon';
 
 const nombreTipo = (t: string) => config.tiposCuenta.find((x) => x.id === t)?.nombre ?? t;
 
-function Tarjeta({ c, saldo, onClick }: { c: Cuenta; saldo: number; onClick: () => void }) {
+/**
+ * Las capas detrás de una tarjeta indican que dentro hay más cosas. Solo las tiene la cuenta
+ * de ahorro, y tantas como metas guarda (una o dos capas como máximo).
+ */
+function claseCapas(metasDentro: number) {
+  return `wallet-stack ${metasDentro >= 2 ? 'capas-2' : metasDentro === 1 ? 'capas-1' : 'sin-capas'}`;
+}
+
+function Tarjeta({
+  c,
+  saldo,
+  onClick,
+  metasDentro,
+}: {
+  c: Cuenta;
+  saldo: number;
+  onClick: () => void;
+  metasDentro: number;
+}) {
   if (c.ahorroGeneral)
     return (
-      <div className="wallet-stack">
+      <div className={claseCapas(metasDentro)}>
         <section className="card account-card wallet-card savings-account-card">
           <button className="wallet-main" onClick={onClick} aria-label={`Editar cuenta ${c.nombre}`}>
             <span className="account-type">
@@ -34,7 +52,7 @@ function Tarjeta({ c, saldo, onClick }: { c: Cuenta; saldo: number; onClick: () 
       </div>
     );
   return (
-    <div className="wallet-stack">
+    <div className={claseCapas(0)}>
       <button className="card account-card wallet-card" onClick={onClick}>
         <span className="account-type">
           <Icon name={c.tipo} size={18} />
@@ -57,6 +75,12 @@ export function Cuentas() {
   const cuentas = useCuentas().filter((c) => !c.eliminada);
   const movimientos = useMovimientos();
   const saldos = useSaldos();
+  const metas = useMetas();
+  // Bolsillo interno de cada meta → cuenta de ahorro visible a la que pertenece.
+  const bolsillos = useMemo(
+    () => new Map(cuentas.filter((c) => c.cuentaPadreId && c.bolsilloMetaId).map((c) => [c.id, c.cuentaPadreId!])),
+    [cuentas],
+  );
   const [form, setForm] = useState<{ cuenta?: Cuenta; ambito?: Ambito } | null>(null);
 
   const autonomo = ajustes?.autonomo ?? false;
@@ -122,7 +146,15 @@ export function Cuentas() {
               ) : (
                 <div className="grid grid-3">
                   {lista.map((c) => (
-                    <Tarjeta key={c.id} c={c} saldo={saldos.get(c.id) ?? 0} onClick={() => setForm({ cuenta: c })} />
+                    <Tarjeta
+                      key={c.id}
+                      c={c}
+                      saldo={saldos.get(c.id) ?? 0}
+                      onClick={() => setForm({ cuenta: c })}
+                      metasDentro={
+                        metas.filter((m) => m.activa && bolsillos.get(m.cuentaAhorroId ?? '') === c.id).length
+                      }
+                    />
                   ))}
                 </div>
               )}

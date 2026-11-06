@@ -96,29 +96,8 @@ export function Inicio() {
         </div>
       ) : (
         <div className="stack">
-          <div className="quick-movements" aria-label="Registrar un movimiento">
-            <button className="quick-movement" onClick={() => setForm({ tipo: 'gasto' })}>
-              <span className="expense-text">
-                <Icon name="gasto" />
-              </span>
-              <strong>Registrar gasto</strong>
-              <Icon name="mas" size={18} />
-            </button>
-            <button className="quick-movement" onClick={() => setForm({ tipo: 'ingreso' })}>
-              <span className="income-text">
-                <Icon name="ingreso" />
-              </span>
-              <strong>Registrar ingreso</strong>
-              <Icon name="mas" size={18} />
-            </button>
-            <button className="quick-movement" onClick={() => setForm({ tipo: 'transferencia' })}>
-              <Icon name="transferencia" />
-              <strong>Transferir</strong>
-              <Icon name="flecha" size={18} />
-            </button>
-          </div>
           <div className="overview-grid">
-            <section className="available-money">
+            <section className="available-money hero-dark">
               <div className="available-main">
                 <span className="eyebrow">Disponible para gastar</span>
                 <strong>{formatMoney(disponible.disponible)}</strong>
@@ -135,13 +114,36 @@ export function Inicio() {
                 <b>{formatMoney(disponible.ahorro)}</b>
                 <small>Todo tu ahorro, repartido entre tus metas.</small>
               </div>
+              <div className="quick-movements" aria-label="Registrar un movimiento">
+                <button className="quick-movement is-accent" onClick={() => setForm({ tipo: 'gasto' })}>
+                  <span className="expense-text">
+                    <Icon name="gasto" />
+                  </span>
+                  <strong>Gasto</strong>
+                  <Icon name="mas" size={18} />
+                </button>
+                <button className="quick-movement" onClick={() => setForm({ tipo: 'ingreso' })}>
+                  <span className="income-text">
+                    <Icon name="ingreso" />
+                  </span>
+                  <strong>Ingreso</strong>
+                  <Icon name="mas" size={18} />
+                </button>
+                <button className="quick-movement" onClick={() => setForm({ tipo: 'transferencia' })}>
+                  <span>
+                    <Icon name="transferencia" />
+                  </span>
+                  <strong>Transferir</strong>
+                  <Icon name="flecha" size={18} />
+                </button>
+              </div>
               <p>
                 <Icon name="check" size={15} />
                 Solo dinero registrado. Sin anticipar pagos ni ingresos.
               </p>
             </section>
             <div className="wallet-stack patrimony-stack">
-              <a className="card account-card card-inverse" href="#/cuentas" style={{ textDecoration: 'none' }}>
+              <a className="card account-card patrimony-card" href="#/cuentas" style={{ textDecoration: 'none' }}>
                 <div className="hero-heading">
                   <span className="eyebrow">Tu patrimonio en cuentas</span>
                   <span className="glass-icon">
