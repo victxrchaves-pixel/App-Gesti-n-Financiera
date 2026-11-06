@@ -88,7 +88,7 @@ it('las copias conservan el desglose y rechazan datos corruptos antes de restaur
   const id = await guardarMeta(meta, undefined, d);
   await guardarDesglose(id, partidas, d);
   const copia = await crearCopia(d);
-  expect(copia.version).toBe(10);
+  expect(copia.version).toBe(11);
   expect(validarCopia(copia).ok).toBe(true);
   await guardarDesglose(id, [], d);
   await restaurarCopia(copia, d);

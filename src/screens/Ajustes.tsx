@@ -15,6 +15,7 @@ import { CategoryIcon } from '../ui/CategoryIcon';
 import { CATALOGO_ICONOS, iconoCategoria } from '../lib/iconos';
 import { useConfirm, useToast } from '../ui/Modal';
 import { Switch } from '../ui/Switch';
+import { PerfilNegocioCard } from '../ui/PerfilNegocioCard';
 
 const COLORES = [...config.paleta, config.colorOtros];
 
@@ -332,6 +333,8 @@ export function Ajustes() {
             <Switch activo={ajustes.autonomo} onChange={(v) => void cambiarAutonomo(v)} etiqueta="Modo autónomo" />
           </div>
         </section>
+
+        {ajustes.autonomo && <PerfilNegocioCard perfil={ajustes.negocio} />}
 
         <section className="card">
           <div className="card-header">

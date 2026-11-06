@@ -12,7 +12,8 @@ import { db, TABLAS, type NetoDB, type NombreTabla } from '../db/db';
 import { isISODate } from './dates';
 import { validarSuscripcion } from './subscriptions';
 import { validarInversion } from './investments';
-import type { Inversion, Suscripcion, Presupuesto } from '../db/types';
+import type { Inversion, Suscripcion, Presupuesto, Factura, PerfilNegocio } from '../db/types';
+import { validarFactura, validarPerfilNegocio } from './facturas';
 import { validarPresupuesto } from './budgets';
 
 /** Formato del archivo de copia de seguridad. */
@@ -150,6 +151,11 @@ export function validarCopia(entrada: unknown): ResultadoValidacion {
       (plan.repetidoDe !== undefined && (!mesValido(plan.repetidoDe) || plan.repetidoDe >= plan.id))
     )
       return { ok: false, error: 'El plan mensual no es válido.' };
+  for (const a of datos.ajustes as { negocio?: PerfilNegocio }[])
+    if (a.negocio !== undefined) {
+      const error = esObjeto(a.negocio) ? validarPerfilNegocio(a.negocio) : 'Faltan los datos del negocio.';
+      if (error) return { ok: false, error: `Datos del negocio no válidos: ${error}` };
+    }
   for (const a of datos.ajustes as { ultimaCopiaEn?: string }[])
     if (
       a.ultimaCopiaEn !== undefined &&
@@ -171,6 +177,27 @@ export function validarCopia(entrada: unknown): ResultadoValidacion {
   for (const i of datos.inversiones) {
     const error = validarInversion(i as Inversion);
     if (error) return { ok: false, error: `Inversión no válida: ${error}` };
+  }
+  const idsClientes = new Set<string>();
+  for (const c of datos.clientes as Record<string, unknown>[]) {
+    if (typeof c.nombre !== 'string' || !c.nombre.trim() || typeof c.nif !== 'string')
+      return { ok: false, error: 'Hay un cliente sin nombre válido.' };
+    idsClientes.add(c.id as string);
+  }
+  const numerosFactura = new Set<string>();
+  const idsMovimientos = new Set((datos.movimientos as { id: string }[]).map((m) => m.id));
+  for (const f of datos.facturas as Factura[]) {
+    const error = validarFactura(f);
+    if (error) return { ok: false, error: `Factura ${String(f.numero)} no válida: ${error}` };
+    const n = f.numero.trim().toLocaleLowerCase('es-ES');
+    if (numerosFactura.has(n)) return { ok: false, error: `La factura ${f.numero} está repetida.` };
+    numerosFactura.add(n);
+    if (f.clienteId !== null && !idsClientes.has(f.clienteId))
+      return { ok: false, error: `La factura ${f.numero} apunta a un cliente que no está en la copia.` };
+    if (f.cobradaEn !== null && (typeof f.cobradaEn !== 'string' || !isISODate(f.cobradaEn)))
+      return { ok: false, error: `La fecha de cobro de la factura ${f.numero} no es válida.` };
+    if (f.movimientoId !== null && (!f.cobradaEn || !idsMovimientos.has(f.movimientoId)))
+      return { ok: false, error: `El cobro de la factura ${f.numero} no está en la copia.` };
   }
   for (const h of datos.historialCartera as Record<string, unknown>[]) {
     if (
@@ -307,5 +334,17 @@ export function resumenCopia(copia: CopiaNeto): string {
     t === 'cuentas'
       ? (copia.datos.cuentas as Cuenta[]).filter((c) => !c.cuentaPadreId && !c.eliminada).length
       : (copia.datos[t]?.length ?? 0);
-  return `${n('cuentas')} cuentas, ${n('movimientos')} movimientos, ${n('categorias')} categorías, ${n('suscripciones')} suscripciones, ${n('inversiones')} inversiones, ${n('presupuestos')} presupuestos, ${n('metas')} metas, ${n('pagosFijos')} recurrentes y ${n('pagosRegistrados')} pagos/cobros registrados`;
+  const partes = [
+    `${n('cuentas')} cuentas`,
+    `${n('movimientos')} movimientos`,
+    `${n('categorias')} categorías`,
+    `${n('suscripciones')} suscripciones`,
+    `${n('inversiones')} inversiones`,
+    `${n('presupuestos')} presupuestos`,
+    `${n('metas')} metas`,
+    `${n('pagosFijos')} recurrentes`,
+    `${n('pagosRegistrados')} pagos/cobros registrados`,
+  ];
+  if (n('facturas')) partes.push(`${n('facturas')} facturas`);
+  return `${partes.slice(0, -1).join(', ')} y ${partes[partes.length - 1]}`;
 }

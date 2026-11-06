@@ -1,5 +1,6 @@
 import {
   AppWindow,
+  UsersRound,
   CircleAlert,
   TriangleAlert,
   ArrowDown,
@@ -149,6 +150,8 @@ const LUCIDE: Record<string, LucideIcon> = {
   'suscripciones-negocio': Repeat,
   cuentas: Wallet,
   facturas: FileText,
+  clientes: UsersRound,
+  cobrar: HandCoins,
   gastos: Receipt,
   ajustes: Settings,
   editar: Pencil,

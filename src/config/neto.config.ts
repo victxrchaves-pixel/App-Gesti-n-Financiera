@@ -144,15 +144,28 @@ export const config = {
     ],
   },
 
-  /** Valores del modo autónomo (se usan a partir de la Fase 4). */
+  /** Valores del modo autónomo. Neto registra facturas hechas con otro programa: no las emite. */
   autonomo: {
+    /** Tipos de IVA que se pueden elegir en cada línea de una factura. 0 = exenta o no sujeta. */
     iva: { porDefecto: 21, tipos: [21, 10, 4, 0] },
     irpf: {
+      /** Retención general de las actividades profesionales. */
       retencion: 15,
+      /** Retención reducida de quien empieza: el año de alta y los dos siguientes. */
       retencionNuevoAutonomo: 7,
+      aniosRetencionReducida: 2,
+      /** Retenciones que se pueden elegir en una factura. */
+      tipos: [15, 7, 0],
+      /** Pago fraccionado del modelo 130 sobre el rendimiento neto acumulado. */
       pagoFraccionado: 20,
+      /** Parte del beneficio que Neto aparta para la renta, ajustable en Ajustes. */
+      reservaPorDefecto: 20,
     },
     diasVencimientoFactura: 30,
+    /** Categoría de ingreso donde se apuntan los cobros de facturas. Se crea sola la primera vez. */
+    categoriaCobros: 'Facturación',
+    /** Formato del número sugerido para la primera factura del año: AAAA-001. */
+    cifrasNumeroFactura: 3,
     categoriasGasto: ['Software', 'Cuota de autónomos', 'Equipo', 'Coworking', 'Formación', 'Otros'],
     /** Plazos de presentación por trimestre (mes 1–12; el 4T se presenta en enero del año siguiente). */
     plazos: [
@@ -167,7 +180,7 @@ export const config = {
 
   copiaSeguridad: {
     /** Versión del formato del archivo de copia. Súbela si cambia la estructura de los datos. */
-    version: 10,
+    version: 11,
     prefijoArchivo: 'neto-copia',
   },
 } as const;

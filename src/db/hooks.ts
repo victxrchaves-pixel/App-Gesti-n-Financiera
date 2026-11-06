@@ -81,3 +81,10 @@ export function useHoy() {
   }, []);
   return hoy;
 }
+
+export function useFacturas() {
+  return useLiveQuery(() => db.facturas.orderBy('fecha').reverse().toArray(), [], []);
+}
+export function useClientes() {
+  return useLiveQuery(() => db.clientes.orderBy('nombre').toArray(), [], []);
+}

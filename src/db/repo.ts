@@ -1,10 +1,11 @@
 import { validarReparto } from '../lib/movements';
+import { perfilNegocio, validarPerfilNegocio } from '../lib/facturas';
 import { isISODate, todayISO } from '../lib/dates';
 import { CAMPOS_COLOR, esColor } from '../lib/colors';
 import { config } from '../config/neto.config';
 import { newId } from '../lib/id';
 import { db, type NetoDB } from './db';
-import type { Ajustes, Categoria, Cuenta, Movimiento, TipoCategoria } from './types';
+import type { Ajustes, Categoria, Cuenta, Movimiento, PerfilNegocio, TipoCategoria } from './types';
 
 /** Operaciones de escritura. Las pantallas leen con useLiveQuery y escriben con estas funciones. */
 
@@ -20,9 +21,27 @@ export async function guardarAjustes(cambios: Partial<Omit<Ajustes, 'id'>>, d: N
   for (const campo of CAMPOS_COLOR)
     if (cambios[campo] != null && !esColor(cambios[campo]))
       throw new Error('Color no válido. Usa un código hexadecimal como #336699.');
+  if (cambios.negocio) {
+    const error = validarPerfilNegocio(cambios.negocio);
+    if (error) throw new Error(error);
+  }
   await d.transaction('rw', d.ajustes, async () => {
     const actual = await obtenerAjustes(d);
     await d.ajustes.put({ ...actual, ...cambios, id: 'ajustes' });
+  });
+}
+
+/**
+ * Cambia solo los campos indicados del perfil fiscal. Lee y escribe en la misma transacción para que
+ * dos cambios seguidos (un interruptor y una fecha) no se pisen.
+ */
+export async function guardarPerfilNegocio(cambios: Partial<PerfilNegocio>, d: NetoDB = db): Promise<void> {
+  await d.transaction('rw', d.ajustes, async () => {
+    const actual = await obtenerAjustes(d);
+    const negocio = { ...perfilNegocio(actual.negocio), ...cambios };
+    const error = validarPerfilNegocio(negocio);
+    if (error) throw new Error(error);
+    await d.ajustes.put({ ...actual, negocio, id: 'ajustes' });
   });
 }
 

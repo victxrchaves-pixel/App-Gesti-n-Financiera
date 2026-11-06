@@ -2,6 +2,8 @@ import { agruparAhorro } from './savings';
 import { neutralizarInicial, colorSemanticoInicial } from '../lib/colors';
 import Dexie, { type EntityTable } from 'dexie';
 import type {
+  Cliente,
+  Factura,
   Ajustes,
   Categoria,
   Cuenta,
@@ -35,6 +37,8 @@ export class NetoDB extends Dexie {
   planesMes!: EntityTable<PlanMes, 'id'>;
   pagosFijos!: EntityTable<PagoFijo, 'id'>;
   pagosRegistrados!: EntityTable<PagoRegistrado, 'id'>;
+  clientes!: EntityTable<Cliente, 'id'>;
+  facturas!: EntityTable<Factura, 'id'>;
 
   constructor(nombre = 'neto') {
     super(nombre);
@@ -99,6 +103,7 @@ export class NetoDB extends Dexie {
       .stores({})
       .upgrade((tx) => agruparAhorro({ cuentas: tx.table('cuentas'), metas: tx.table('metas') }).then(() => undefined));
     this.version(9).stores({ planesMes: 'id' });
+    this.version(10).stores({ clientes: 'id, nombre', facturas: 'id, fecha, clienteId, &numero' });
   }
 }
 
@@ -119,5 +124,7 @@ export const TABLAS = [
   'pagosFijos',
   'pagosRegistrados',
   'planesMes',
+  'clientes',
+  'facturas',
 ] as const;
 export type NombreTabla = (typeof TABLAS)[number];

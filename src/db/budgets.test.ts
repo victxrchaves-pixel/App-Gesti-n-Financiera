@@ -148,7 +148,7 @@ describe('presupuestos mensuales', () => {
   it('incluye presupuestos en copias y rechaza duplicados o referencias rotas antes de restaurar', async () => {
     await guardarPresupuesto({ mes, categoriaId: comida, limite: 30000 }, undefined, d);
     const copia = await crearCopia(d);
-    expect(copia.version).toBe(10);
+    expect(copia.version).toBe(11);
     expect(validarCopia(copia).ok).toBe(true);
     await borrarTodo(d);
     await restaurarCopia(copia, d);

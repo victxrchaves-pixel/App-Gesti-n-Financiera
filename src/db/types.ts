@@ -42,7 +42,9 @@ export interface Movimiento {
   /** Ingresos y gastos; las transferencias no llevan categoría. */
   categoriaId?: string;
   nota: string;
-  origen: 'manual' | 'recurrente' | 'importado' | 'ejemplo';
+  origen: 'manual' | 'recurrente' | 'importado' | 'ejemplo' | 'factura';
+  /** Cobro de una factura registrada en Negocio. */
+  facturaId?: string;
   creadoEn: string;
   actualizadoEn: string;
 }
@@ -69,6 +71,61 @@ export interface Ajustes {
   nombre: string;
   autonomo: boolean;
   inicioCompletado: boolean;
+  /** Datos fiscales del modo autónomo. Sin ellos se usan los valores por defecto. */
+  negocio?: PerfilNegocio;
+}
+
+export interface PerfilNegocio {
+  /** Las profesionales llevan retención de IRPF en sus facturas; las empresariales, normalmente no. */
+  actividad: 'profesional' | 'empresarial';
+  /** "AAAA-MM-DD" de alta en Hacienda, o null si no se ha indicado. */
+  fechaAlta: string | null;
+  nuevoAutonomo: boolean;
+  /** devengo: el IVA se declara al emitir la factura. caja: al cobrarla (régimen especial). */
+  regimenIVA: 'devengo' | 'caja';
+  regimenIRPF: 'simplificada' | 'normal';
+  /** Cuota mensual de autónomos, en céntimos. */
+  cuotaMensual: number;
+  /** Porcentaje del beneficio que se aparta para el IRPF. */
+  reservaIRPF: number;
+}
+
+export interface Cliente {
+  id: string;
+  nombre: string;
+  /** NIF o CIF, opcional. */
+  nif: string;
+  creadoEn: string;
+}
+
+export interface LineaFactura {
+  concepto: string;
+  /** Base imponible en céntimos. */
+  base: number;
+  /** Tipo de IVA en %. */
+  tipoIVA: number;
+}
+
+/** Factura emitida con otro programa y registrada en Neto. */
+export interface Factura {
+  id: string;
+  numero: string;
+  /** "AAAA-MM-DD" de expedición. */
+  fecha: string;
+  vencimiento: string;
+  clienteId: string | null;
+  /** Nombre del cliente al registrarla, por si el cliente se borra o cambia de nombre. */
+  clienteNombre: string;
+  lineas: LineaFactura[];
+  /** Retención de IRPF en %. */
+  retencion: number;
+  nota: string;
+  /** "AAAA-MM-DD" del cobro, o null si está pendiente. */
+  cobradaEn: string | null;
+  /** Ingreso apuntado en una cuenta al cobrarla. */
+  movimientoId: string | null;
+  creadaEn: string;
+  actualizadaEn: string;
 }
 
 export interface Suscripcion {

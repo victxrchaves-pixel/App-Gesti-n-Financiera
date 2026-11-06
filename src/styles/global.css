@@ -8183,3 +8183,344 @@ select {
     display: none;
   }
 }
+
+/* ── Negocio: tu negocio, facturas, cobros y clientes ───────────────────── */
+
+.business-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.business-profile .muted {
+  margin: -8px 0 0;
+}
+.business-profile-save {
+  margin-top: -10px;
+}
+.business-profile-summary {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--card-sunken);
+  color: var(--text-2);
+  font-size: 14px;
+}
+.business-profile-summary strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Campo con unidad al final («20 %»). */
+.input-suffix {
+  position: relative;
+  max-width: 160px;
+}
+.input-suffix > .input {
+  padding-right: 34px;
+}
+.input-suffix > span {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  pointer-events: none;
+}
+
+/* Resumen de facturas: tres cifras como en Recurrentes. */
+.invoice-summary {
+  margin-bottom: 22px;
+}
+
+.invoice-list-card {
+  padding: 8px;
+}
+.invoice-list-card > .empty {
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+.invoice-list-card > .empty .btn {
+  margin-top: 8px;
+}
+.invoice-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.invoice-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 12px;
+  border-radius: 16px;
+}
+.invoice-row + .invoice-row {
+  box-shadow: 0 -1px 0 var(--line);
+}
+.invoice-row-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+@media (hover: hover) and (pointer: fine) {
+  .invoice-row-main:hover {
+    background: var(--card-sunken);
+  }
+}
+.invoice-row-main:active {
+  transform: scale(0.99);
+}
+.invoice-row-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--card-sunken);
+  color: var(--text-2);
+}
+.invoice-row-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.invoice-row-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.invoice-row-title strong {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.invoice-row-title .faint {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.invoice-row-sub {
+  color: var(--text-3);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.invoice-row-amount {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.invoice-row-amount strong {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.invoice-status {
+  font-size: 12px;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.invoice-status.is-cobrada {
+  color: var(--positive);
+}
+.invoice-status.is-vencida {
+  color: var(--danger);
+  font-weight: 600;
+}
+.invoice-row-collect {
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .invoice-row {
+    flex-wrap: wrap;
+    padding: 0 0 12px;
+  }
+  .invoice-row-main {
+    flex-basis: 100%;
+    padding: 14px 8px 4px;
+    gap: 12px;
+  }
+  .invoice-row-icon {
+    display: none;
+  }
+  .invoice-row-collect {
+    margin-left: 8px;
+  }
+}
+
+/* Formulario de factura. */
+.invoice-form-intro {
+  margin: -6px 0 0;
+}
+.invoice-paid-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--positive) 9%, white);
+  color: var(--positive);
+  font-size: 14px;
+}
+.invoice-paid-note > span {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.invoice-paid-note .btn {
+  flex-shrink: 0;
+  color: var(--text);
+}
+.invoice-lines {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.invoice-lines > legend {
+  padding: 0;
+}
+.invoice-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px 128px auto;
+  gap: 8px;
+  align-items: center;
+}
+.invoice-line:not(:has(> .btn-icon)) {
+  grid-template-columns: minmax(0, 1fr) 140px 128px;
+}
+.invoice-add-line {
+  align-self: flex-start;
+}
+@media (max-width: 560px) {
+  .invoice-line,
+  .invoice-line:not(:has(> .btn-icon)) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+  .invoice-line-concept {
+    grid-column: 1 / -1;
+  }
+}
+.invoice-totals {
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--card-sunken);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.invoice-totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+.invoice-totals dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--text);
+}
+.invoice-totals-total {
+  padding-top: 10px;
+  margin-top: 2px;
+  border-top: 1px solid var(--line-strong);
+}
+.invoice-totals-total dt {
+  color: var(--text);
+  font-weight: 600;
+}
+.invoice-totals-total dd {
+  font-size: 20px;
+  font-weight: 650;
+}
+.invoice-more > summary {
+  cursor: pointer;
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 550;
+  padding: 4px 0;
+}
+.invoice-more[open] > summary {
+  margin-bottom: 14px;
+}
+
+/* Cobro. */
+.collect-amount {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--card-sunken);
+}
+.collect-amount > span {
+  color: var(--text-2);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.collect-amount > strong {
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Clientes. */
+.client-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.client-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 130px auto auto;
+  align-items: center;
+  gap: 8px;
+}
+.client-count {
+  font-size: 12px;
+  white-space: nowrap;
+}
+@media (max-width: 480px) {
+  .client-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .client-row > .input:first-child {
+    grid-column: 1 / -1;
+  }
+  .client-nif {
+    grid-column: 1;
+  }
+  .client-count {
+    display: none;
+  }
+}

@@ -16,6 +16,7 @@ import { Inicio } from './screens/Inicio';
 import { Movimientos } from './screens/Movimientos';
 import { Onboarding } from './screens/Onboarding';
 import { Proximamente } from './screens/Proximamente';
+import { Facturas } from './screens/Facturas';
 import { ConfirmProvider, ToastProvider } from './ui/Modal';
 
 if (esEscritorio() && esMac()) document.documentElement.classList.add('is-mac');
@@ -46,7 +47,8 @@ function Pantalla() {
       {efectiva === 'metas' && <Metas />}
       {efectiva === 'presupuestos' && <Presupuestos />}
       {efectiva === 'ajustes' && <Ajustes />}
-      {['facturas', 'gastos', 'impuestos'].includes(efectiva) && <Proximamente key={efectiva} seccion={efectiva} />}
+      {efectiva === 'facturas' && <Facturas />}
+      {['gastos', 'impuestos'].includes(efectiva) && <Proximamente key={efectiva} seccion={efectiva} />}
     </Shell>
   );
 }
