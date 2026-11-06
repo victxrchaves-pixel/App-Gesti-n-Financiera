@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { patrimonio, saldosPorCuenta } from './balances';
+import { esRepartoInterno, patrimonio, saldosPorCuenta } from './balances';
 import { cuenta, mov } from './testdata';
 
 describe('saldos', () => {
@@ -44,5 +44,29 @@ describe('saldos', () => {
   it('admite saldos iniciales negativos (por ejemplo, una tarjeta de crédito)', () => {
     const s = saldosPorCuenta([cuenta('tarjeta', -25000)], [mov('gasto', 1000, '2026-11-01', 'tarjeta')]);
     expect(s.get('tarjeta')).toBe(-26000);
+  });
+});
+
+describe('repartos internos del ahorro', () => {
+  // «Ahorro» es la cuenta visible; «Meta · Japón» y «Meta · Colchón» son sus bolsillos internos.
+  const ahorro = cuenta('ahorro', 0, { tipo: 'ahorro', ahorroGeneral: true });
+  const japon = cuenta('japon', 0, { tipo: 'ahorro', cuentaPadreId: 'ahorro', bolsilloMetaId: 'm1' });
+  const colchon = cuenta('colchon', 0, { tipo: 'ahorro', cuentaPadreId: 'ahorro', bolsilloMetaId: 'm2' });
+  const mapa = new Map([cuenta('banco'), ahorro, japon, colchon].map((c) => [c.id, c]));
+
+  it('pasar dinero del ahorro general a una meta, o de una meta a otra, es interno', () => {
+    expect(
+      esRepartoInterno(mov('transferencia', 500, '2026-11-01', 'ahorro', { cuentaDestinoId: 'japon' }), mapa),
+    ).toBe(true);
+    expect(
+      esRepartoInterno(mov('transferencia', 500, '2026-11-01', 'japon', { cuentaDestinoId: 'colchon' }), mapa),
+    ).toBe(true);
+  });
+
+  it('aportar desde el banco a una meta no es interno: cambia el saldo del banco', () => {
+    expect(esRepartoInterno(mov('transferencia', 500, '2026-11-01', 'banco', { cuentaDestinoId: 'japon' }), mapa)).toBe(
+      false,
+    );
+    expect(esRepartoInterno(mov('gasto', 500, '2026-11-01', 'japon'), mapa)).toBe(false);
   });
 });

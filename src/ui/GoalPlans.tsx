@@ -1,4 +1,4 @@
-import { dineroMeta } from '../lib/goalMoney';
+import { dineroMeta, porcentajeMeta } from '../lib/goalMoney';
 import { GoalActions } from './GoalActions';
 import { newId } from '../lib/id';
 import { COLORES_UX } from '../lib/colors';
@@ -76,7 +76,8 @@ function FormMeta({
           setBusy(true);
           setError('');
           try {
-            if ([objetivo.cents, inicial.cents, mensual.cents].some((v) => v === null))
+            const objetivoCents = objetivo.texto.trim() === '' ? 0 : objetivo.cents;
+            if ([objetivoCents, inicial.cents, mensual.cents].some((v) => v === null))
               throw new Error('Revisa los importes.');
             if (modoImporte === 'porcentaje' && (parseDecimal(porcentaje) === null || referencia.cents === null))
               throw new Error('Revisa el porcentaje y el ingreso mensual.');
@@ -87,7 +88,7 @@ function FormMeta({
                 porcentaje: modoImporte === 'porcentaje' ? parseDecimal(porcentaje) : null,
                 baseMensual: modoImporte === 'porcentaje' ? referencia.cents : null,
                 nombre,
-                objetivo: objetivo.cents!,
+                objetivo: objetivoCents!,
                 inicial: inicial.cents!,
                 mensual: mensual.cents!,
                 mesInicio: desde,
@@ -205,6 +206,7 @@ function FormMeta({
               Quiero reunir
             </label>
             <AmountInput id="goal-target" texto={objetivo.texto} onChange={objetivo.setTexto} />
+            <span className="field-hint">Déjalo vacío si no tiene una cifra concreta.</span>
           </div>
           <div className="field">
             <label className="field-label" htmlFor="goal-monthly">
@@ -676,6 +678,7 @@ function GoalPreview({
   const viaje =
     meta.categoriaAhorro === 'viajes' || meta.nombre.toLowerCase().includes('viaj') || !!meta.desglose?.length;
   const color = meta.color ?? (viaje ? COLORES_UX.inversion : COLORES_UX.ingreso);
+  const pct = porcentajeMeta(dinero.progreso, meta.objetivo);
   return (
     <button
       type="button"
@@ -702,22 +705,31 @@ function GoalPreview({
       </span>
       {pila && principal && (
         <span className="goal-deck-progress">
-          <span className="goal-progress-caption">
-            <span>
-              {Math.round((dinero.progreso / meta.objetivo) * 100)} % {viaje ? 'financiado' : 'conseguido'}
+          {pct === null ? (
+            <span className="goal-progress-caption">
+              <span>Sin objetivo</span>
+              <span>Reúne lo que reservas</span>
             </span>
-            <span>Objetivo {formatMoney(meta.objetivo)}</span>
-          </span>
-          <span
-            className="goal-preview-track"
-            role="progressbar"
-            aria-label={`Progreso de ${meta.nombre}`}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.max(0, Math.min(100, Math.round((dinero.progreso / meta.objetivo) * 100)))}
-          >
-            <span style={{ width: `${Math.max(0, Math.min(100, (dinero.progreso / meta.objetivo) * 100))}%` }} />
-          </span>
+          ) : (
+            <>
+              <span className="goal-progress-caption">
+                <span>
+                  {pct} % {viaje ? 'financiado' : 'conseguido'}
+                </span>
+                <span>Objetivo {formatMoney(meta.objetivo)}</span>
+              </span>
+              <span
+                className="goal-preview-track"
+                role="progressbar"
+                aria-label={`Progreso de ${meta.nombre}`}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.max(0, Math.min(100, pct))}
+              >
+                <span style={{ width: `${Math.max(0, Math.min(100, pct))}%` }} />
+              </span>
+            </>
+          )}
           <span className="goal-preview-link">
             Ver detalle <Icon name="flecha" size={15} />
           </span>
@@ -725,10 +737,12 @@ function GoalPreview({
       )}
       {!pila && (
         <span className="goal-preview-progress">
-          <span>Objetivo {formatMoney(meta.objetivo)}</span>
-          <span className="goal-preview-track" aria-hidden="true">
-            <span style={{ width: `${Math.max(0, Math.min(100, (dinero.progreso / meta.objetivo) * 100))}%` }} />
-          </span>
+          <span>{pct === null ? 'Sin objetivo' : `Objetivo ${formatMoney(meta.objetivo)}`}</span>
+          {pct !== null && (
+            <span className="goal-preview-track" aria-hidden="true">
+              <span style={{ width: `${Math.max(0, Math.min(100, pct))}%` }} />
+            </span>
+          )}
           <span className="goal-preview-link">
             Ver detalle <Icon name="flecha" size={15} />
           </span>
@@ -798,13 +812,22 @@ function GoalTile({
           <span>Disponible en esta meta</span>
           <strong>{formatMoney(dinero.disponible)}</strong>
         </div>
-        <div className="goal-progress-caption">
-          <span>
-            {Math.round((dinero.progreso / m.objetivo) * 100)} % {viaje ? 'financiado' : 'conseguido'}
-          </span>
-          <span>Objetivo {formatMoney(m.objetivo)}</span>
-        </div>
-        <Progress valor={dinero.progreso} total={m.objetivo} etiqueta={`Progreso de ${m.nombre}`} color={color} />
+        {m.objetivo > 0 ? (
+          <>
+            <div className="goal-progress-caption">
+              <span>
+                {porcentajeMeta(dinero.progreso, m.objetivo)} % {viaje ? 'financiado' : 'conseguido'}
+              </span>
+              <span>Objetivo {formatMoney(m.objetivo)}</span>
+            </div>
+            <Progress valor={dinero.progreso} total={m.objetivo} etiqueta={`Progreso de ${m.nombre}`} color={color} />
+          </>
+        ) : (
+          <div className="goal-progress-caption">
+            <span>Sin objetivo</span>
+            <span>Reúne lo que reservas</span>
+          </div>
+        )}
         <div className="goal-money-details">
           <span>
             Acumulado <b>{formatMoney(dinero.aportado)}</b>
@@ -824,7 +847,7 @@ function GoalTile({
           m.automatica &&
           m.mesInicio <= monthKey(todayISO()) &&
           !aportes.some((a) => a.metaId === m.id && a.mes === monthKey(todayISO()) && a.origen !== 'plan') &&
-          dinero.disponible < m.objetivo && (
+          (m.objetivo === 0 || dinero.disponible < m.objetivo) && (
             <p className="field-hint">
               Reserva pendiente. Disponible en origen:{' '}
               {formatMoney(saldoParaReservar(m.cuentaOrigenId, cuentas, movimientos))}. Se intentará de nuevo cuando

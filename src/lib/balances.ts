@@ -86,3 +86,19 @@ export function dineroDisponible(cuentas: Cuenta[], movimientos: Movimiento[]) {
   }
   return { total, ahorro, disponible: total - ahorro };
 }
+
+/** Cuenta que ve la persona: el bolsillo interno de una meta se muestra como su cuenta de ahorro. */
+export function cuentaVisible(id: string | undefined, cuentas: Map<string, Cuenta>): string | undefined {
+  if (!id) return undefined;
+  return cuentas.get(id)?.cuentaPadreId ?? id;
+}
+
+/**
+ * Reparto interno del ahorro: un traspaso entre el ahorro general y sus metas, o entre metas.
+ * No cambia el saldo de ninguna cuenta visible, así que no se muestra en las listas de
+ * movimientos salvo que se pida (sí aparece en el detalle de cada meta).
+ */
+export function esRepartoInterno(m: Movimiento, cuentas: Map<string, Cuenta>): boolean {
+  if (m.tipo !== 'transferencia' || !m.cuentaDestinoId) return false;
+  return cuentaVisible(m.cuentaId, cuentas) === cuentaVisible(m.cuentaDestinoId, cuentas);
+}

@@ -6711,3 +6711,14 @@ input[type='checkbox'] {
 .category-refunds small {
   line-height: 1.6;
 }
+
+/* Casilla para ver los repartos internos del ahorro en Movimientos. */
+.internos-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  align-self: flex-end;
+  font-size: 13px;
+  cursor: pointer;
+}

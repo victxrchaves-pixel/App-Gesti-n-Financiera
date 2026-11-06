@@ -38,3 +38,8 @@ export function dineroMeta(meta: Meta, aportes: AporteMeta[], cuentas: Cuenta[],
     progreso: meta.categoriaAhorro === 'viajes' ? financiado : disponible,
   };
 }
+
+/** Porcentaje conseguido de una meta, o null si la meta no tiene objetivo (objetivo 0). */
+export function porcentajeMeta(progreso: number, objetivo: number): number | null {
+  return objetivo > 0 ? Math.round((progreso / objetivo) * 100) : null;
+}

@@ -5,6 +5,7 @@ import type { Movimiento, TipoMovimiento } from '../db/types';
 import { addMonths, dayHeader, monthKey, monthLabel, todayISO } from '../lib/dates';
 import { formatMoney } from '../lib/money';
 import { clasificar, ordenarMovimientos } from '../lib/stats';
+import { esRepartoInterno } from '../lib/balances';
 import { PageHeader } from '../layout/Shell';
 import { Icon } from '../ui/Icon';
 import { MovimientoForm } from '../ui/MovimientoForm';
@@ -33,6 +34,7 @@ export function Movimientos() {
   const movimientos = useMovimientos();
   const hoy = todayISO();
   const [importar, setImportar] = useState(false);
+  const [verInternos, setVerInternos] = useState(false);
 
   const [mes, setMes] = useState(monthKey(hoy));
   const [tipo, setTipo] = useState<FiltroTipo>('todos');
@@ -44,7 +46,7 @@ export function Movimientos() {
   const mapaCuentas = useMemo(() => new Map(cuentas.map((c) => [c.id, c])), [cuentas]);
   const ambitoDe = (id: string | undefined) => (id ? mapaCuentas.get(id)?.ambito : undefined);
 
-  const filtrados = useMemo(() => {
+  const visibles = useMemo(() => {
     const q = normalizar(busqueda.trim());
     return ordenarMovimientos(
       movimientos.filter((m) => {
@@ -68,6 +70,15 @@ export function Movimientos() {
       }),
     );
   }, [movimientos, busqueda, mes, tipo, cuentaId, categoriaId, categorias, mapaCuentas]);
+  // Los repartos internos del ahorro (ahorro general ↔ metas) no cambian ningún saldo visible.
+  const internos = useMemo(
+    () => visibles.filter((m) => esRepartoInterno(m, mapaCuentas)).length,
+    [visibles, mapaCuentas],
+  );
+  const filtrados = useMemo(
+    () => (verInternos ? visibles : visibles.filter((m) => !esRepartoInterno(m, mapaCuentas))),
+    [visibles, verInternos, mapaCuentas],
+  );
 
   const totales = useMemo(() => {
     let ingresos = 0;
@@ -181,6 +192,12 @@ export function Movimientos() {
             <div className="kpi-label">Balance</div>
             <div className="kpi-value">{formatMoney(totales.ingresos - totales.gastos)}</div>
           </div>
+          {internos > 0 && (
+            <label className="muted internos-toggle">
+              <input type="checkbox" checked={verInternos} onChange={(e) => setVerInternos(e.target.checked)} />
+              Mostrar {internos} reparto{internos === 1 ? '' : 's'} interno{internos === 1 ? '' : 's'} del ahorro
+            </label>
+          )}
           {buscando && (
             <div className="muted" style={{ alignSelf: 'flex-end', fontSize: 13 }}>
               Buscando en todos los meses · {filtrados.length} resultado{filtrados.length === 1 ? '' : 's'}

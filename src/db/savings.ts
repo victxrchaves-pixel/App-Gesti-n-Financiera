@@ -76,7 +76,6 @@ export async function asignarAhorroGeneral(d: NetoDB) {
         (saldos.get(c.id) ?? 0) > 0,
     );
     if (!origenes.length) return;
-    const importe = origenes.reduce((s, c) => s + (saldos.get(c.id) ?? 0), 0);
     const metas = await d.metas.toArray();
     let meta = metas.find(
       (m) =>
@@ -89,7 +88,8 @@ export async function asignarAhorroGeneral(d: NetoDB) {
       meta = {
         id,
         nombre: 'Ahorro general',
-        objetivo: Math.max(importe, 100000),
+        // Sin objetivo: reúne el ahorro que no tiene otro destino, sin inventar una cifra.
+        objetivo: 0,
         inicial: 0,
         mensual: 0,
         mesInicio: monthKey(todayISO()),

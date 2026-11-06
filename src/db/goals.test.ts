@@ -240,3 +240,18 @@ it('migra v4 sin perder presupuestos o preferencias', async () => {
   expect(await nueva.pagosFijos.count()).toBe(0);
   await nueva.delete();
 });
+
+it('una meta sin objetivo (0 €) se guarda y reserva su cuota mensual completa', async () => {
+  // Sin objetivo no hay «lo que falta»: cada mes se reserva la cuota entera (100,00 €).
+  const id = await guardarMeta(
+    { ...base, nombre: 'Colchón', categoriaAhorro: 'ahorro', objetivo: 0, cuentaOrigenId: cuenta, mesInicio: mes() },
+    undefined,
+    d,
+  );
+  await sincronizarMetas(mes(), d);
+  expect((await estado(id)).disponible).toBe(10000);
+});
+
+it('un viaje necesita objetivo para poder repartirlo', async () => {
+  await expect(guardarMeta({ ...base, objetivo: 0 }, undefined, d)).rejects.toThrow('Un viaje necesita un objetivo');
+});

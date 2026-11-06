@@ -3,7 +3,7 @@ import { BudgetReview } from '../ui/BudgetReview';
 import { useMemo, useState } from 'react';
 import { colorCategoria, config } from '../config/neto.config';
 import { useAjustes, useCuentas, useMapaCategorias, useMovimientos, useHoy } from '../db/hooks';
-import { patrimonio, dineroDisponible } from '../lib/balances';
+import { patrimonio, dineroDisponible, esRepartoInterno } from '../lib/balances';
 import { greeting, longDate, monthKey, monthLabel, monthShortLabel } from '../lib/dates';
 import { formatMoney } from '../lib/money';
 import { gastoPorCategoria, ordenarMovimientos, resumenMes, ultimosMeses } from '../lib/stats';
@@ -38,7 +38,10 @@ export function Inicio() {
   const recientes = useMemo(
     () =>
       ordenarMovimientos(
-        movimientos.filter((m) => m.fecha <= hoy && mapaCuentas.get(m.cuentaId)?.ambito === 'personal'),
+        movimientos.filter(
+          (m) =>
+            m.fecha <= hoy && mapaCuentas.get(m.cuentaId)?.ambito === 'personal' && !esRepartoInterno(m, mapaCuentas),
+        ),
       ).slice(0, config.inicio.ultimosMovimientos),
     [movimientos, mapaCuentas, hoy],
   );

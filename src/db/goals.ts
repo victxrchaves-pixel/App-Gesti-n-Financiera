@@ -15,10 +15,11 @@ export function validarMeta(m: Omit<Meta, 'id'>) {
     return 'Pon un nombre de hasta 80 caracteres.';
   if (
     ![m.objetivo, m.inicial, m.mensual].every((n) => Number.isSafeInteger(n) && n >= 0) ||
-    m.objetivo <= 0 ||
     !Number.isSafeInteger(m.inicial + m.mensual)
   )
-    return 'Introduce importes válidos y un objetivo mayor que cero.';
+    return 'Introduce importes válidos.';
+  // Un objetivo de 0 € significa «sin objetivo»: la meta solo va reuniendo lo que reservas.
+  if (m.objetivo === 0 && m.categoriaAhorro === 'viajes') return 'Un viaje necesita un objetivo para poder repartirlo.';
   if (typeof m.mesInicio !== 'string' || !mesValido(m.mesInicio) || m.mesInicio < '2000-01')
     return 'Elige un mes de inicio válido desde el año 2000.';
   if (typeof m.automatica !== 'boolean' || typeof m.activa !== 'boolean') return 'El modo de aportación no es válido.';
@@ -97,7 +98,8 @@ export async function sincronizarMetas(hasta = monthKey(todayISO()), d: NetoDB =
       );
       const destino = cuentas.find((c) => c.id === m.cuentaAhorroId && !c.eliminada && !c.archivada);
       const estado = dineroMeta(m, aportes, cuentas, movs);
-      const importe = Math.max(0, Math.min(m.mensual, m.objetivo - estado.progreso));
+      const pendiente = m.objetivo > 0 ? m.objetivo - estado.progreso : m.mensual;
+      const importe = Math.max(0, Math.min(m.mensual, pendiente));
       if (!origen || !destino || !importe || saldoParaReservar(origen.id, cuentas, movs) < importe) continue;
       await aportarMeta(m.id, importe, [actual], todayISO(), `cuota:${m.id}:${actual}`, d);
     }
