@@ -1,5 +1,19 @@
 /** Iconos de trazo fino dibujados a mano (sin emojis ni librerías). */
 const paths: Record<string, string> = {
+  editar: 'm14 5 5 5M4 20l5-1L21 7l-4-4L5 15z',
+  recurrentes: 'M4 8a8 8 0 0 1 13-3l3 3M20 3v5h-5M20 16a8 8 0 0 1-13 3l-3-3M4 21v-5h5',
+  check: 'm5 12 4 4 10-10',
+  viaje: 'm3 10 7 2 4 8 2-1-1-7 6-7-2-2-7 6-7-1z',
+  escudo: 'M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6zM8 12l3 3 5-6',
+  cloud: 'M6 18a5 5 0 0 1-1-10 7 7 0 0 1 13 1 4.5 4.5 0 0 1 0 9z',
+  casa: 'M3 11 12 3l9 8M5 9v12h14V9M10 21v-7h4v7',
+  comida: 'M5 3v7M9 3v7M5 7h4M7 10v11M17 3v18M17 3c-4 3-4 9 0 9',
+  transporte: 'M5 16h14l-2-8H7zM7 8V5h10v3M5 16v4M19 16v4M8 13h1M15 13h1',
+  ocio: 'M9 18V5l11-2v13M9 8l11-2M9 18a3 3 0 1 1-3-3h3M20 16a3 3 0 1 1-3-3h3',
+
+  suscripciones: 'M4 7h16v13H4zM4 10h16M8 4v5M16 4v5M9 15h6',
+  'suscripciones-negocio': 'M4 7h16v13H4zM4 10h16M8 4v5M16 4v5M9 15h6',
+  inversion: 'M4 19V5M4 19h16M7 14l4-4 4 2 5-7M16 5h4v4',
   inicio: 'M3.5 10.5 12 4l8.5 6.5V19a1.5 1.5 0 0 1-1.5 1.5h-4v-6h-6v6H5A1.5 1.5 0 0 1 3.5 19z',
   movimientos: 'M7 4v16m0 0-3.5-3.5M7 20l3.5-3.5M17 20V4m0 0-3.5 3.5M17 4l3.5 3.5',
   presupuestos: 'M12 3a9 9 0 1 0 9 9h-9z M14.5 3.3A9 9 0 0 1 20.7 9.5H14.5z',

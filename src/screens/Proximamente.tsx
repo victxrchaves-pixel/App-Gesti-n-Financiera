@@ -1,7 +1,6 @@
 import { PageHeader } from '../layout/Shell';
 
 const TEXTOS: Record<string, { titulo: string; texto: string }> = {
-  presupuestos: { titulo: 'Presupuestos', texto: 'Pon un límite a cada categoría y Neto te avisará al llegar al 80 % y si te pasas.' },
   metas: { titulo: 'Metas', texto: 'Ahorra para un viaje o un colchón de emergencia y mira cuánto te falta.' },
   facturas: { titulo: 'Facturas', texto: 'Registra tus facturas emitidas con IVA y retención de IRPF, y sigue cuáles están cobradas.' },
   gastos: { titulo: 'Gastos del negocio', texto: 'Apunta los gastos del negocio con su IVA soportado y adjunta el ticket.' },

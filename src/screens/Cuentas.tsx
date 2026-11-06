@@ -11,26 +11,29 @@ import { Icon } from '../ui/Icon';
 const nombreTipo = (t: string) => config.tiposCuenta.find((x) => x.id === t)?.nombre ?? t;
 
 function Tarjeta({ c, saldo, onClick }: { c: Cuenta; saldo: number; onClick: () => void }) {
+  if(c.ahorroGeneral)return <div className="wallet-stack"><section className="card account-card wallet-card savings-account-card"><button className="wallet-main" onClick={onClick} aria-label={`Editar cuenta ${c.nombre}`}><span className="account-type"><Icon name="ahorro" size={18}/>Ahorro general</span><span className="account-name">{c.nombre}</span><span className="wallet-caption">Todo tu ahorro, incluidas las metas</span><span className={`account-balance${saldo<0?' danger-text':''}`}>{formatMoney(saldo)}</span></button><div className="wallet-footer"><span>Personal</span><a href="#/metas">Ver metas <Icon name="flecha" size={18}/></a></div></section></div>;
   return (
-    <button className="card account-card" onClick={onClick}>
-      <span className="account-type"><Icon name={c.tipo} size={18} />{nombreTipo(c.tipo)}{c.archivada && <span className="tag tag-neutral">Archivada</span>}</span>
+    <div className="wallet-stack"><button className="card account-card wallet-card" onClick={onClick}>
+      <span className="account-type"><Icon name={c.tipo} size={18} />{nombreTipo(c.tipo)}</span>
       <span className="account-name">{c.nombre}</span>
+      <span className="wallet-caption">Saldo disponible</span>
       <span className={`account-balance${saldo < 0 ? ' danger-text' : ''}`}>{formatMoney(saldo)}</span>
-    </button>
+      <span className="wallet-footer">{c.ambito === 'negocio' ? 'Negocio' : 'Personal'}<Icon name="flecha" size={18} /></span>
+    </button></div>
   );
 }
 
 export function Cuentas() {
   const ajustes = useAjustes();
-  const cuentas = useCuentas();
+  const cuentas = useCuentas().filter(c=>!c.eliminada);
   const movimientos = useMovimientos();
   const saldos = useSaldos();
   const [form, setForm] = useState<{ cuenta?: Cuenta; ambito?: Ambito } | null>(null);
-  const [verArchivadas, setVerArchivadas] = useState(false);
+
   const autonomo = ajustes?.autonomo ?? false;
 
   const ambitos: Ambito[] = autonomo ? ['personal', 'negocio'] : ['personal'];
-  const archivadas = cuentas.filter((c) => c.archivada && (autonomo || c.ambito === 'personal'));
+
   const totalPersonal = useMemo(() => patrimonio(cuentas, movimientos, 'personal'), [cuentas, movimientos]);
   const totalNegocio = useMemo(() => patrimonio(cuentas, movimientos, 'negocio'), [cuentas, movimientos]);
 
@@ -42,7 +45,7 @@ export function Cuentas() {
       />
 
       <div className="stack">
-        <section className="card">
+        <section className="card card-inverse">
           <div className="eyebrow">{autonomo ? 'Patrimonio personal' : 'Patrimonio'}</div>
           <div className="big-number" style={{ marginBottom: autonomo ? 14 : 0 }}>{formatMoney(totalPersonal)}</div>
           {autonomo && (
@@ -53,7 +56,7 @@ export function Cuentas() {
         </section>
 
         {ambitos.map((ambito) => {
-          const lista = cuentas.filter((c) => c.ambito === ambito && !c.archivada);
+          const lista = cuentas.filter((c) => c.ambito === ambito && !c.archivada && !c.cuentaPadreId);
           return (
             <section key={ambito}>
               {autonomo && <h2 className="card-title" style={{ margin: '8px 4px 14px' }}>{ambito === 'personal' ? 'Personales' : 'Del negocio'}</h2>}
@@ -74,18 +77,7 @@ export function Cuentas() {
           );
         })}
 
-        {archivadas.length > 0 && (
-          <section>
-            <button className="btn btn-ghost btn-sm" onClick={() => setVerArchivadas(!verArchivadas)}>
-              {verArchivadas ? 'Ocultar' : 'Ver'} archivadas ({archivadas.length})
-            </button>
-            {verArchivadas && (
-              <div className="grid grid-3" style={{ marginTop: 14 }}>
-                {archivadas.map((c) => <Tarjeta key={c.id} c={c} saldo={saldos.get(c.id) ?? 0} onClick={() => setForm({ cuenta: c })} />)}
-              </div>
-            )}
-          </section>
-        )}
+
       </div>
 
       {form && <CuentaForm cuenta={form.cuenta} ambitoInicial={form.ambito} onClose={() => setForm(null)} />}

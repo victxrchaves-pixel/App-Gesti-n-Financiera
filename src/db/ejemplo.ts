@@ -14,7 +14,9 @@ export async function cargarEjemplo(d: NetoDB = db, hoy: string = todayISO()): P
   const cat = (nombre: string) => cats.find((c) => c.nombre === nombre)?.id ?? cats[0].id;
 
   const banco = await crearCuenta({ nombre: 'Cuenta nómina', tipo: 'banco', ambito: 'personal', saldoInicial: 124000 }, d);
-  const ahorro = await crearCuenta({ nombre: 'Ahorro', tipo: 'ahorro', ambito: 'personal', saldoInicial: 520000 }, d);
+  const existente=await d.cuentas.filter(c=>!!c.ahorroGeneral&&!c.eliminada&&!c.archivada).first();
+  const ahorro=existente?.id??await crearCuenta({nombre:'Ahorro',tipo:'ahorro',ambito:'personal',saldoInicial:520000},d);
+  if(existente)await d.cuentas.update(existente.id,{saldoInicial:existente.saldoInicial+520000});
   const efectivo = await crearCuenta({ nombre: 'Efectivo', tipo: 'efectivo', ambito: 'personal', saldoInicial: 8000 }, d);
 
   const movs: Movimiento[] = [];

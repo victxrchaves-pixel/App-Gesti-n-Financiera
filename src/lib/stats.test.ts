@@ -10,10 +10,10 @@ describe('resumen del mes', () => {
   // Ingresos: 1.920,00 € · Gastos: 750,00 € · Te queda: 1.170,00 €
   const movimientos = [
     mov('ingreso', 180000, '2026-11-01', 'banco', { categoriaId: 'nomina' }),
-    mov('ingreso', 12000, '2026-11-15', 'banco', { categoriaId: 'otros-ing' }),
+    mov('ingreso', 12000, '2026-11-04', 'banco', { categoriaId: 'otros-ing' }),
     mov('gasto', 65000, '2026-11-02', 'banco', { categoriaId: 'casa' }),
     mov('gasto', 8435, '2026-11-03', 'banco', { categoriaId: 'comida' }),
-    mov('gasto', 1565, '2026-11-30', 'banco', { categoriaId: 'ocio' }),
+    mov('gasto', 1565, '2026-11-04', 'banco', { categoriaId: 'ocio' }),
     mov('transferencia', 30000, '2026-11-05', 'banco', { cuentaDestinoId: 'ahorro' }),
     mov('gasto', 99900, '2026-10-31', 'banco', { categoriaId: 'casa' }),
   ];
@@ -46,8 +46,8 @@ describe('ámbitos personal y negocio', () => {
   const movimientos = [
     mov('ingreso', 200000, '2026-11-02', 'empresa'),
     mov('gasto', 3000, '2026-11-03', 'empresa'),
-    mov('transferencia', 120000, '2026-11-10', 'empresa', { cuentaDestinoId: 'banco' }),
-    mov('gasto', 5000, '2026-11-11', 'banco'),
+    mov('transferencia', 120000, '2026-11-04', 'empresa', { cuentaDestinoId: 'banco' }),
+    mov('gasto', 5000, '2026-11-04', 'banco'),
   ];
 
   it('el gasto del negocio no aparece en lo personal', () => {

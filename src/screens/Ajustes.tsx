@@ -1,5 +1,7 @@
+import { COLORES_UX, colorCategoriaSugerido } from '../lib/colors';
+import { ColorPicker } from '../ui/ColorPicker';
 import { useRef, useState } from 'react';
-import { config } from '../config/neto.config';
+import { colorCategoria, config } from '../config/neto.config';
 import { cargarEjemplo } from '../db/ejemplo';
 import { useAjustes, useCategorias, useMovimientos } from '../db/hooks';
 import { actualizarCategoria, borrarCategoria, borrarTodo, crearCategoria, guardarAjustes } from '../db/repo';
@@ -25,15 +27,16 @@ function FilaCategoria({ c, usos, onBorrar }: { c: Categoria; usos: number; onBo
   return (
     <div>
       <div className="cat-row">
-        <button className="color-btn" style={{ background: c.color }} onClick={() => setAbierta(!abierta)} aria-label={`Cambiar color de ${c.nombre}`} />
+        <button className="color-btn" style={{ background: colorCategoria(c.color) }} onClick={() => setAbierta(!abierta)} aria-label={`Cambiar color de ${c.nombre}`} />
         <input className="input" value={nombre} onChange={(e) => setNombre(e.target.value)} onBlur={guardarNombre} onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()} aria-label="Nombre de la categoría" maxLength={40} />
         <span className="faint" style={{ fontSize: 12, whiteSpace: 'nowrap', minWidth: 74, textAlign: 'right' }}>{usos} mov.</span>
         <button className="btn btn-ghost btn-icon" onClick={onBorrar} aria-label={`Borrar ${c.nombre}`}><Icon name="papelera" size={18} /></button>
       </div>
       {abierta && (
         <div className="swatches" style={{ padding: '4px 0 10px 36px' }}>
+          <ColorPicker etiqueta={`Color de ${c.nombre}`} valor={colorCategoria(c.color)} onChange={color => { void actualizarCategoria(c.id, { color }); }} restablecer={() => { void actualizarCategoria(c.id, { color: colorCategoriaSugerido(c.nombre) }); }} textoRestablecer="Color sugerido" />
           {COLORES.map((col) => (
-            <button key={col} className="swatch" style={{ background: col }} aria-pressed={col === c.color} aria-label={`Color ${col}`} onClick={() => { void actualizarCategoria(c.id, { color: col }); setAbierta(false); }} />
+            <button key={col} className="swatch" style={{ background: col }} aria-pressed={col === colorCategoria(c.color)} aria-label={`Color ${col}`} onClick={() => { void actualizarCategoria(c.id, { color: col }); setAbierta(false); }} />
           ))}
         </div>
       )}
@@ -53,18 +56,18 @@ function BloqueCategorias({ tipo, categorias, usos }: { tipo: TipoCategoria; cat
     const n = usos.get(c.id) ?? 0;
     const ok = await confirmar({
       titulo: `Borrar «${c.nombre}»`,
-      mensaje: n > 0 ? `Sus ${n} movimientos pasarán a «${c.nombre === destino ? lista.find((x) => x.id !== c.id)?.nombre : destino}».` : 'No tiene movimientos.',
+      mensaje: (n > 0 ? `Sus ${n} movimientos pasarán a «${c.nombre === destino ? lista.find((x) => x.id !== c.id)?.nombre : destino}».` : 'No tiene movimientos.') + ' Si tiene presupuestos, sus límites también se trasladarán a la categoría de destino y se sumarán a los que ya existan en cada mes.',
       confirmar: 'Borrar',
       peligro: true,
     });
-    if (ok) await borrarCategoria(c.id);
+    if (ok) { try { await borrarCategoria(c.id); } catch (error) { avisar(error instanceof Error ? error.message : 'No se pudo borrar la categoría.'); } }
   };
 
   const anadir = async () => {
     const n = nueva.trim();
     if (!n) return;
     if (lista.some((c) => c.nombre.toLowerCase() === n.toLowerCase())) return avisar('Ya existe una categoría con ese nombre.');
-    const color = COLORES.find((col) => !lista.some((c) => c.color === col)) ?? config.colorOtros;
+    const color = COLORES.find((col) => !lista.some((c) => colorCategoria(c.color) === col)) ?? config.colorOtros;
     await crearCategoria(n, tipo, color);
     setNueva('');
   };
@@ -92,7 +95,7 @@ export function Ajustes() {
   const [nombre, setNombre] = useState<string | null>(null);
 
   const usos = new Map<string, number>();
-  for (const m of movimientos) if (m.categoriaId) usos.set(m.categoriaId, (usos.get(m.categoriaId) ?? 0) + 1);
+  for(const m of movimientos)for(const id of new Set(m.reparto?.map(p=>p.categoriaId)??(m.categoriaId?[m.categoriaId]:[])))usos.set(id,(usos.get(id)??0)+1);
 
   if (!ajustes) return null;
 
@@ -115,7 +118,7 @@ export function Ajustes() {
       const ok = await guardarArchivo(nombreArchivoCopia(), JSON.stringify(copia, null, 2), {
         descripcion: 'Copia de Neto', extension: 'json', tipoMime: 'application/json',
       });
-      if (ok) avisar('Copia de seguridad guardada');
+      if(ok){await guardarAjustes({ultimaCopiaEn:copia.exportadaEn});avisar('Copia de seguridad guardada');}
     } catch (e) {
       avisar(`No se pudo guardar la copia: ${e instanceof Error ? e.message : String(e)}`);
     }
@@ -142,6 +145,7 @@ export function Ajustes() {
     });
     if (!ok) return;
     await restaurarCopia(r.copia);
+    if(Number.isFinite(Date.parse(r.copia.exportadaEn)))await guardarAjustes({ultimaCopiaEn:r.copia.exportadaEn});
     avisar('Copia restaurada');
   };
 
@@ -196,6 +200,17 @@ export function Ajustes() {
         </section>
 
         <section className="card">
+          <div className="card-header"><h2 className="card-title">Apariencia y colores</h2></div>
+          <p className="muted">Fondos blancos y selecciones grises, con colores para entender los datos: ingresos en verde, gastos en rojo y categorías diferenciadas. Personaliza lo que quieras; cada elección se guarda en este navegador y en tus copias de seguridad.</p>
+          <div className="stack">
+            <ColorPicker etiqueta="Color de destaque" valor={ajustes.colorAcento ?? '#444444'} onChange={colorAcento => { void guardarAjustes({ colorAcento }); }} restablecer={() => { void guardarAjustes({ colorAcento: null }); }} textoRestablecer="Sin destaque de color" />
+            <ColorPicker etiqueta="Gráfico de ingresos" valor={ajustes.colorIngresos ?? COLORES_UX.ingreso} onChange={colorIngresos => { void guardarAjustes({ colorIngresos }); }} restablecer={() => { void guardarAjustes({ colorIngresos: null }); }} />
+            <ColorPicker etiqueta="Gráfico de gastos" valor={ajustes.colorGastos ?? COLORES_UX.gasto} onChange={colorGastos => { void guardarAjustes({ colorGastos }); }} restablecer={() => { void guardarAjustes({ colorGastos: null }); }} />
+            <ColorPicker etiqueta="Gráfico de inversiones" valor={ajustes.colorInversiones ?? COLORES_UX.inversion} onChange={colorInversiones => { void guardarAjustes({ colorInversiones }); }} restablecer={() => { void guardarAjustes({ colorInversiones: null }); }} />
+          </div>
+          <p className="field-hint">El destaque se aplica a la navegación, tarjetas y controles. Los colores claros se oscurecen en textos y trazos para conservar el contraste. Los presupuestos se personalizan al crearlos o editarlos.</p>
+        </section>
+        <section className="card">
           <div className="card-header"><h2 className="card-title">Categorías</h2></div>
           <div className="grid grid-2" style={{ gap: 32 }}>
             <BloqueCategorias tipo="gasto" categorias={categorias} usos={usos} />
@@ -208,6 +223,7 @@ export function Ajustes() {
           <p className="muted" style={{ margin: '0 0 18px', maxWidth: 620 }}>
             Tus datos solo están en este ordenador. Guarda una copia de vez en cuando (por ejemplo, en un disco externo o en tu nube) para no perderlos si cambias de ordenador.
           </p>
+          <p className="backup-last">Última copia: {ajustes.ultimaCopiaEn?new Date(ajustes.ultimaCopiaEn).toLocaleString('es-ES',{dateStyle:'long',timeStyle:'short'}):'Todavía no has guardado una copia'}</p>
           <div className="page-actions">
             <button className="btn btn-primary" onClick={() => void exportar()}><Icon name="descargar" size={16} stroke={2} />Guardar copia</button>
             <button className="btn btn-secondary" onClick={() => archivo.current?.click()}><Icon name="subir" size={16} stroke={2} />Restaurar copia</button>

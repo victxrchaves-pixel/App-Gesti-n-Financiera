@@ -1,3 +1,4 @@
+import { COLORES_UX, COLORES_CATEGORIAS } from '../lib/colors';
 /**
  * Configuración de Neto.
  *
@@ -22,30 +23,30 @@ export const config = {
   ],
 
   /**
-   * Paleta de categorías, en orden fijo. Validada para que cada color se distinga del
-   * siguiente también con daltonismo. El gris queda reservado para «Otros».
+   * Colores funcionales de categorías. Las leyendas incluyen siempre nombre e
+   * importe para que la información no dependa del color.
    */
-  paleta: ['#2E7D55', '#D46191', '#2F73C9', '#DB6F36', '#169A8C', '#E3A21E', '#C8433E'],
-  colorOtros: '#9A9A93',
+  paleta: ['#16803C', '#2563B8', '#8B5FBF', '#C07816', '#0F817D', '#BA4E83', '#5D62C2'],
+  colorOtros: '#858585',
 
-  /** Colores del gráfico de barras (ingresos frente a gastos). */
-  graficos: { ingresos: '#2E7D55', gastos: '#D46191' },
+  /** Colores del gráfico de líneas (ingresos frente a gastos). */
+  graficos: { ingresos: COLORES_UX.ingreso, gastos: COLORES_UX.gasto },
 
   /** Categorías con las que empieza la app. Se pueden editar desde Ajustes. */
   categoriasIniciales: {
     gasto: [
-      { nombre: 'Casa', color: '#2E7D55' },
-      { nombre: 'Comida', color: '#D46191' },
-      { nombre: 'Transporte', color: '#2F73C9' },
-      { nombre: 'Ocio', color: '#DB6F36' },
-      { nombre: 'Salud', color: '#169A8C' },
-      { nombre: 'Ropa', color: '#E3A21E' },
-      { nombre: 'Suscripciones', color: '#C8433E' },
-      { nombre: 'Otros', color: '#9A9A93' },
+      { nombre: 'Casa', color: COLORES_CATEGORIAS['Casa'] },
+      { nombre: 'Comida', color: COLORES_CATEGORIAS['Comida'] },
+      { nombre: 'Transporte', color: COLORES_CATEGORIAS['Transporte'] },
+      { nombre: 'Ocio', color: COLORES_CATEGORIAS['Ocio'] },
+      { nombre: 'Salud', color: COLORES_CATEGORIAS['Salud'] },
+      { nombre: 'Ropa', color: COLORES_CATEGORIAS['Ropa'] },
+      { nombre: 'Suscripciones', color: COLORES_CATEGORIAS['Suscripciones'] },
+      { nombre: 'Otros', color: COLORES_CATEGORIAS['Otros'] },
     ],
     ingreso: [
-      { nombre: 'Nómina', color: '#2E7D55' },
-      { nombre: 'Otros ingresos', color: '#2F73C9' },
+      { nombre: 'Nómina', color: COLORES_CATEGORIAS['Nómina'] },
+      { nombre: 'Otros ingresos', color: COLORES_CATEGORIAS['Otros ingresos'] },
     ],
   },
 
@@ -60,12 +61,23 @@ export const config = {
   ],
 
   inicio: {
-    /** Meses que muestra el gráfico de barras. */
-    mesesHistorico: 6,
+    /** Periodos disponibles en el gráfico de evolución. */
+    periodoInicial: '6',
+    periodosGrafico: [{ valor: '3', texto: '3M' }, { valor: '6', texto: '6M' }, { valor: '12', texto: '1A' }],
     /** Movimientos recientes que aparecen en Inicio. */
     ultimosMovimientos: 5,
     /** Categorías que se muestran en la leyenda de la dona antes de agrupar el resto. */
     maxCategoriasDona: 6,
+  },
+
+  suscripciones: {
+    categorias: ['Entretenimiento', 'Software', 'Asociaciones', 'Formación', 'Salud y deporte', 'Servicios', 'Otros'],
+    periodos: [{ id: 'mensual', nombre: 'Mensual', meses: 1 }, { id: 'trimestral', nombre: 'Trimestral', meses: 3 }, { id: 'anual', nombre: 'Anual', meses: 12 }],
+    avisoDias: 7,
+  },
+  inversiones: {
+    tipos: [{ id: 'cripto', nombre: 'Criptomoneda' }, { id: 'divisa', nombre: 'Divisa' }, { id: 'accion', nombre: 'Acción' }, { id: 'fondo', nombre: 'Fondo / ETF' }, { id: 'otra', nombre: 'Otra inversión' }],
+    antiguedadAvisoHoras: 48,
   },
 
   presupuestos: {
@@ -96,9 +108,14 @@ export const config = {
 
   copiaSeguridad: {
     /** Versión del formato del archivo de copia. Súbela si cambia la estructura de los datos. */
-    version: 1,
+    version: 10,
     prefijoArchivo: 'neto-copia',
   },
 } as const;
 
 export type Config = typeof config;
+
+/** Acepta colores personalizados seguros, sin limitar la paleta del usuario. */
+export function colorCategoria(color?: string): string {
+  return color && /^#[0-9a-f]{6}$/i.test(color) ? color : config.colorOtros;
+}

@@ -1,7 +1,14 @@
+import { Recurrentes } from './screens/Recurrentes';
+import { SavingsSync } from './ui/SavingsSync';
+import { Metas } from './screens/Metas';
+import { Theme } from './ui/Theme';
 import { useAjustes } from './db/hooks';
 import { Shell } from './layout/Shell';
 import { esEscritorio, esMac } from './lib/platform';
 import { useRuta } from './router';
+import { Suscripciones } from './screens/Suscripciones';
+import { Inversiones } from './screens/Inversiones';
+import { Presupuestos } from './screens/Presupuestos';
 import { Ajustes } from './screens/Ajustes';
 import { Cuentas } from './screens/Cuentas';
 import { Inicio } from './screens/Inicio';
@@ -24,15 +31,21 @@ function Pantalla() {
       </>
     );
   }
-  const negocio = ruta === 'facturas' || ruta === 'gastos' || ruta === 'impuestos';
+  const negocio = ruta === 'facturas' || ruta === 'gastos' || ruta === 'impuestos' || ruta === 'suscripciones-negocio';
   const efectiva = negocio && !ajustes.autonomo ? 'inicio' : ruta;
   return (
     <Shell ruta={efectiva}>
       {efectiva === 'inicio' && <Inicio />}
       {efectiva === 'movimientos' && <Movimientos />}
       {efectiva === 'cuentas' && <Cuentas />}
+      {efectiva === 'recurrentes' && <Recurrentes />}
+      {efectiva === 'suscripciones' && <Recurrentes soloSuscripciones />}
+      {efectiva === 'suscripciones-negocio' && <Suscripciones ambito="negocio" />}
+      {efectiva === 'inversion' && <Inversiones />}
+      {efectiva === 'metas' && <Metas />}
+      {efectiva === 'presupuestos' && <Presupuestos />}
       {efectiva === 'ajustes' && <Ajustes />}
-      {['presupuestos', 'metas', 'facturas', 'gastos', 'impuestos'].includes(efectiva) && <Proximamente key={efectiva} seccion={efectiva} />}
+      {['facturas', 'gastos', 'impuestos'].includes(efectiva) && <Proximamente key={efectiva} seccion={efectiva} />}
     </Shell>
   );
 }
@@ -40,6 +53,8 @@ function Pantalla() {
 export function App() {
   return (
     <ToastProvider>
+      <Theme />
+      <SavingsSync />
       <ConfirmProvider>
         <Pantalla />
       </ConfirmProvider>
