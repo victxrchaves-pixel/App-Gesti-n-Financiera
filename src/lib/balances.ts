@@ -24,7 +24,7 @@ export function saldosDirectos(cuentas: Cuenta[], movimientos: Movimiento[]): Ma
   const sumar = (id: string | undefined, v: number) => {
     if (id !== undefined && saldos.has(id)) saldos.set(id, saldos.get(id)! + v);
   };
-  for (const m of movimientos.filter(m=>m.fecha<=todayISO())) {
+  for (const m of movimientos.filter((m) => m.fecha <= todayISO())) {
     if (m.tipo === 'ingreso') sumar(m.cuentaId, m.importe);
     else if (m.tipo === 'gasto') sumar(m.cuentaId, -m.importe);
     else {
@@ -36,21 +36,25 @@ export function saldosDirectos(cuentas: Cuenta[], movimientos: Movimiento[]): Ma
 }
 
 /** Grouped balances are for visible accounts; each pocket keeps its own balance. */
-export function saldosPorCuenta(cuentas:Cuenta[],movimientos:Movimiento[]) {
-  const directos=saldosDirectos(cuentas,movimientos);const saldos=new Map(directos);
-  for(const c of cuentas)if(c.cuentaPadreId&&!c.eliminada&&!c.archivada){
-    const padre=cuentas.find(p=>p.id===c.cuentaPadreId&&!p.eliminada&&!p.archivada);
-    if(padre)saldos.set(padre.id,(saldos.get(padre.id)??0)+(directos.get(c.id)??0));
-  }
+export function saldosPorCuenta(cuentas: Cuenta[], movimientos: Movimiento[]) {
+  const directos = saldosDirectos(cuentas, movimientos);
+  const saldos = new Map(directos);
+  for (const c of cuentas)
+    if (c.cuentaPadreId && !c.eliminada && !c.archivada) {
+      const padre = cuentas.find((p) => p.id === c.cuentaPadreId && !p.eliminada && !p.archivada);
+      if (padre) saldos.set(padre.id, (saldos.get(padre.id) ?? 0) + (directos.get(c.id) ?? 0));
+    }
   return saldos;
 }
 
 /** Savings outside goal pockets can fund a new reservation; other goals stay protected. */
-export function saldoParaReservar(id:string,cuentas:Cuenta[],movimientos:Movimiento[]) {
-  const directos=saldosDirectos(cuentas,movimientos);let saldo=directos.get(id)??0;
-  if(cuentas.find(c=>c.id===id)?.ahorroGeneral)for(const c of cuentas){
-    if(c.cuentaPadreId===id&&!c.bolsilloMetaId&&!c.eliminada&&!c.archivada)saldo+=directos.get(c.id)??0;
-  }
+export function saldoParaReservar(id: string, cuentas: Cuenta[], movimientos: Movimiento[]) {
+  const directos = saldosDirectos(cuentas, movimientos);
+  let saldo = directos.get(id) ?? 0;
+  if (cuentas.find((c) => c.id === id)?.ahorroGeneral)
+    for (const c of cuentas) {
+      if (c.cuentaPadreId === id && !c.bolsilloMetaId && !c.eliminada && !c.archivada) saldo += directos.get(c.id) ?? 0;
+    }
   return saldo;
 }
 
@@ -71,12 +75,14 @@ export function patrimonio(cuentas: Cuenta[], movimientos: Movimiento[], ambito?
 
 /** Disponible real: saldos de uso, excluyendo cuentas de ahorro y cuentas eliminadas. */
 export function dineroDisponible(cuentas: Cuenta[], movimientos: Movimiento[]) {
-  const saldos=saldosPorCuenta(cuentas,movimientos);
-  let total=0, ahorro=0;
-  for(const c of cuentas) {
-    if(c.ambito!=='personal'||c.eliminada||c.archivada||c.cuentaPadreId)continue;
-    const saldo=saldos.get(c.id)??0;total+=saldo;
-    if(c.tipo==='ahorro')ahorro+=saldo;
+  const saldos = saldosPorCuenta(cuentas, movimientos);
+  let total = 0,
+    ahorro = 0;
+  for (const c of cuentas) {
+    if (c.ambito !== 'personal' || c.eliminada || c.archivada || c.cuentaPadreId) continue;
+    const saldo = saldos.get(c.id) ?? 0;
+    total += saldo;
+    if (c.tipo === 'ahorro') ahorro += saldo;
   }
-  return {total,ahorro,disponible:total-ahorro};
+  return { total, ahorro, disponible: total - ahorro };
 }

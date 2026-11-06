@@ -63,7 +63,11 @@ export const config = {
   inicio: {
     /** Periodos disponibles en el gráfico de evolución. */
     periodoInicial: '6',
-    periodosGrafico: [{ valor: '3', texto: '3M' }, { valor: '6', texto: '6M' }, { valor: '12', texto: '1A' }],
+    periodosGrafico: [
+      { valor: '3', texto: '3M' },
+      { valor: '6', texto: '6M' },
+      { valor: '12', texto: '1A' },
+    ],
     /** Movimientos recientes que aparecen en Inicio. */
     ultimosMovimientos: 5,
     /** Categorías que se muestran en la leyenda de la dona antes de agrupar el resto. */
@@ -72,11 +76,21 @@ export const config = {
 
   suscripciones: {
     categorias: ['Entretenimiento', 'Software', 'Asociaciones', 'Formación', 'Salud y deporte', 'Servicios', 'Otros'],
-    periodos: [{ id: 'mensual', nombre: 'Mensual', meses: 1 }, { id: 'trimestral', nombre: 'Trimestral', meses: 3 }, { id: 'anual', nombre: 'Anual', meses: 12 }],
+    periodos: [
+      { id: 'mensual', nombre: 'Mensual', meses: 1 },
+      { id: 'trimestral', nombre: 'Trimestral', meses: 3 },
+      { id: 'anual', nombre: 'Anual', meses: 12 },
+    ],
     avisoDias: 7,
   },
   inversiones: {
-    tipos: [{ id: 'cripto', nombre: 'Criptomoneda' }, { id: 'divisa', nombre: 'Divisa' }, { id: 'accion', nombre: 'Acción' }, { id: 'fondo', nombre: 'Fondo / ETF' }, { id: 'otra', nombre: 'Otra inversión' }],
+    tipos: [
+      { id: 'cripto', nombre: 'Criptomoneda' },
+      { id: 'divisa', nombre: 'Divisa' },
+      { id: 'accion', nombre: 'Acción' },
+      { id: 'fondo', nombre: 'Fondo / ETF' },
+      { id: 'otra', nombre: 'Otra inversión' },
+    ],
     antiguedadAvisoHoras: 48,
   },
 

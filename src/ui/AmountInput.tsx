@@ -10,7 +10,12 @@ export function useAmountField(inicial?: number) {
 }
 
 export function AmountInput({
-  texto, onChange, grande = false, autoFocus = false, permitirNegativo = false, id,
+  texto,
+  onChange,
+  grande = false,
+  autoFocus = false,
+  permitirNegativo = false,
+  id,
 }: {
   texto: string;
   onChange: (t: string) => void;

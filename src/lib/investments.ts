@@ -15,14 +15,22 @@ export function parseDecimal(texto: string): number | null {
   return Number.isFinite(n) && n >= 0 && n <= Number.MAX_SAFE_INTEGER ? n : null;
 }
 export function validarInversion(i: Omit<Inversion, 'id'>): string | null {
-  if (typeof i.nombre !== 'string' || !i.nombre.trim() || i.nombre.length > 80) return 'Escribe un nombre de hasta 80 caracteres.';
-  if (!config.inversiones.tipos.some(t => t.id === i.tipo)) return 'El tipo de inversión no es válido.';
-  if (!Number.isFinite(i.cantidad) || i.cantidad < 1e-12 || i.cantidad > Number.MAX_SAFE_INTEGER) return 'Introduce una cantidad mayor que cero.';
+  if (typeof i.nombre !== 'string' || !i.nombre.trim() || i.nombre.length > 80)
+    return 'Escribe un nombre de hasta 80 caracteres.';
+  if (!config.inversiones.tipos.some((t) => t.id === i.tipo)) return 'El tipo de inversión no es válido.';
+  if (!Number.isFinite(i.cantidad) || i.cantidad < 1e-12 || i.cantidad > Number.MAX_SAFE_INTEGER)
+    return 'Introduce una cantidad mayor que cero.';
   if (!Number.isSafeInteger(i.coste) || i.coste < 0) return 'Introduce un coste de compra válido en euros.';
-  if (!Number.isFinite(i.precioEUR) || i.precioEUR < 0 || i.precioEUR > Number.MAX_SAFE_INTEGER) return 'Introduce un precio por unidad válido.';
+  if (!Number.isFinite(i.precioEUR) || i.precioEUR < 0 || i.precioEUR > Number.MAX_SAFE_INTEGER)
+    return 'Introduce un precio por unidad válido.';
   if (i.activoId !== null && (typeof i.activoId !== 'string' || !i.activoId)) return 'El activo no es válido.';
-  if (typeof i.precioFecha !== 'string' || !Number.isFinite(Date.parse(i.precioFecha))) return 'La fecha del precio no es válida.';
+  if (typeof i.precioFecha !== 'string' || !Number.isFinite(Date.parse(i.precioFecha)))
+    return 'La fecha del precio no es válida.';
   if (typeof i.fuente !== 'string' || typeof i.nota !== 'string') return 'Los datos de la inversión no son válidos.';
-  try { valorInversion(i); } catch { return 'La valoración supera el importe permitido.'; }
+  try {
+    valorInversion(i);
+  } catch {
+    return 'La valoración supera el importe permitido.';
+  }
   return null;
 }

@@ -19,7 +19,12 @@ describe('resumen del mes', () => {
   ];
 
   it('suma ingresos y gastos del mes e ignora las transferencias entre cuentas propias', () => {
-    expect(resumenMes(movimientos, cuentas, '2026-11')).toEqual({ mes: '2026-11', ingresos: 192000, gastos: 75000, neto: 117000 });
+    expect(resumenMes(movimientos, cuentas, '2026-11')).toEqual({
+      mes: '2026-11',
+      ingresos: 192000,
+      gastos: 75000,
+      neto: 117000,
+    });
   });
 
   it('agrupa el gasto por categoría de mayor a menor', () => {
@@ -57,7 +62,12 @@ describe('ámbitos personal y negocio', () => {
 
   it('pasar dinero del negocio a lo personal es ingreso personal y no gasto del negocio', () => {
     expect(resumenMes(movimientos, cuentas, '2026-11', 'personal').ingresos).toBe(120000);
-    expect(resumenMes(movimientos, cuentas, '2026-11', 'negocio')).toEqual({ mes: '2026-11', ingresos: 200000, gastos: 3000, neto: 197000 });
+    expect(resumenMes(movimientos, cuentas, '2026-11', 'negocio')).toEqual({
+      mes: '2026-11',
+      ingresos: 200000,
+      gastos: 3000,
+      neto: 197000,
+    });
   });
 });
 

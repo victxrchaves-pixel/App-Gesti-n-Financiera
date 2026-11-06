@@ -293,7 +293,6 @@ cabeceras sin obstrucción, cierre de diálogos anidados, versiones de móvil,
 y los casos de una meta y ninguna. La selección en dos pasos funciona también
 con teclado y devuelve el foco a la tarjeta al cerrar el detalle.
 
-
 ## Una cuenta general de ahorro
 
 Cuentas muestra una sola cuenta personal de ahorro, con la suma del ahorro libre
@@ -328,7 +327,6 @@ cuentas, aportaciones, gastos, reparto, creación de metas, protección contra
 duplicados y navegación en dos pasos. Revisadas anchuras de 1440, 1024, 768,
 390 y 320 px; pruebas de actualización real de una base v7 y conservación de
 historial, saldos y copias.
-
 
 ## Finanzas cotidianas: disponible, movimientos y avisos
 

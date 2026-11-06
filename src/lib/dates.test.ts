@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, addMonths, dayHeader, greeting, isISODate, lastMonths, longDate, monthLabel, shortDate } from './dates';
+import {
+  addDays,
+  addMonths,
+  dayHeader,
+  greeting,
+  isISODate,
+  lastMonths,
+  longDate,
+  monthLabel,
+  shortDate,
+} from './dates';
 
 describe('fechas', () => {
   it('suma meses cruzando años', () => {

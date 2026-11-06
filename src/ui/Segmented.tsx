@@ -4,7 +4,11 @@ export interface Opcion<T extends string> {
 }
 
 export function Segmented<T extends string>({
-  opciones, valor, onChange, block = false, etiqueta,
+  opciones,
+  valor,
+  onChange,
+  block = false,
+  etiqueta,
 }: {
   opciones: readonly Opcion<T>[];
   valor: T;

@@ -13,19 +13,44 @@ export async function cargarEjemplo(d: NetoDB = db, hoy: string = todayISO()): P
   const cats = await d.categorias.toArray();
   const cat = (nombre: string) => cats.find((c) => c.nombre === nombre)?.id ?? cats[0].id;
 
-  const banco = await crearCuenta({ nombre: 'Cuenta nómina', tipo: 'banco', ambito: 'personal', saldoInicial: 124000 }, d);
-  const existente=await d.cuentas.filter(c=>!!c.ahorroGeneral&&!c.eliminada&&!c.archivada).first();
-  const ahorro=existente?.id??await crearCuenta({nombre:'Ahorro',tipo:'ahorro',ambito:'personal',saldoInicial:520000},d);
-  if(existente)await d.cuentas.update(existente.id,{saldoInicial:existente.saldoInicial+520000});
-  const efectivo = await crearCuenta({ nombre: 'Efectivo', tipo: 'efectivo', ambito: 'personal', saldoInicial: 8000 }, d);
+  const banco = await crearCuenta(
+    { nombre: 'Cuenta nómina', tipo: 'banco', ambito: 'personal', saldoInicial: 124000 },
+    d,
+  );
+  const existente = await d.cuentas.filter((c) => !!c.ahorroGeneral && !c.eliminada && !c.archivada).first();
+  const ahorro =
+    existente?.id ??
+    (await crearCuenta({ nombre: 'Ahorro', tipo: 'ahorro', ambito: 'personal', saldoInicial: 520000 }, d));
+  if (existente) await d.cuentas.update(existente.id, { saldoInicial: existente.saldoInicial + 520000 });
+  const efectivo = await crearCuenta(
+    { nombre: 'Efectivo', tipo: 'efectivo', ambito: 'personal', saldoInicial: 8000 },
+    d,
+  );
 
   const movs: Movimiento[] = [];
   const t = new Date().toISOString();
-  const add = (tipo: Movimiento['tipo'], importe: number, fecha: string, cuentaId: string, categoria?: string, nota = '', destino?: string) => {
+  const add = (
+    tipo: Movimiento['tipo'],
+    importe: number,
+    fecha: string,
+    cuentaId: string,
+    categoria?: string,
+    nota = '',
+    destino?: string,
+  ) => {
     if (fecha > hoy) return;
     movs.push({
-      id: newId(), tipo, importe, fecha, cuentaId, nota, origen: 'ejemplo', creadoEn: t, actualizadoEn: t,
-      categoriaId: categoria ? cat(categoria) : undefined, cuentaDestinoId: destino,
+      id: newId(),
+      tipo,
+      importe,
+      fecha,
+      cuentaId,
+      nota,
+      origen: 'ejemplo',
+      creadoEn: t,
+      actualizadoEn: t,
+      categoriaId: categoria ? cat(categoria) : undefined,
+      cuentaDestinoId: destino,
     });
   };
 

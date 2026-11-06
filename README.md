@@ -8,14 +8,14 @@ Finanzas personales para cualquier persona, con un **modo autónomo** opcional p
 
 ## Estado
 
-| Fase | Contenido | Estado |
-| --- | --- | --- |
-| 1 | Base, cuentas, movimientos, inicio, ajustes, copia de seguridad, app de escritorio | Hecha, en revisión |
-| 2 | Presupuestos, recurrentes y suscripciones, metas | Pendiente |
-| 3 | Importar CSV del banco | Pendiente |
-| 4a | Modo autónomo: facturas, gastos, «Me pago a mí», inicio del negocio | Pendiente |
-| 4b | Modo autónomo: impuestos y exportación para el gestor | Pendiente |
-| 5 | Publicación: firma, notarización y página de descarga | Pendiente |
+| Fase | Contenido                                                                          | Estado             |
+| ---- | ---------------------------------------------------------------------------------- | ------------------ |
+| 1    | Base, cuentas, movimientos, inicio, ajustes, copia de seguridad, app de escritorio | Hecha, en revisión |
+| 2    | Presupuestos, recurrentes y suscripciones, metas                                   | Pendiente          |
+| 3    | Importar CSV del banco                                                             | Pendiente          |
+| 4a   | Modo autónomo: facturas, gastos, «Me pago a mí», inicio del negocio                | Pendiente          |
+| 4b   | Modo autónomo: impuestos y exportación para el gestor                              | Pendiente          |
+| 5    | Publicación: firma, notarización y página de descarga                              | Pendiente          |
 
 ## Instalar una versión de prueba
 
@@ -28,7 +28,7 @@ Cada vez que se sube código, GitHub Actions genera los instaladores:
 Estas versiones **no están firmadas** todavía (eso llega en la Fase 5), así que el sistema avisará:
 
 - **macOS**: arrastra Neto a Aplicaciones y ábrela. Si dice que no se puede abrir, ve a
-  *Ajustes del Sistema → Privacidad y seguridad* y pulsa **Abrir igualmente**.
+  _Ajustes del Sistema → Privacidad y seguridad_ y pulsa **Abrir igualmente**.
   Si dice que «está dañada», abre Terminal y ejecuta `xattr -cr /Applications/Neto.app`.
 - **Windows**: en «Windows protegió tu PC», pulsa **Más información → Ejecutar de todas formas**.
 

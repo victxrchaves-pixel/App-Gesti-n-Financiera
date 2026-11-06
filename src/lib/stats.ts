@@ -14,9 +14,13 @@ export interface Clasificacion {
   gasto: number;
 }
 
-export function clasificar(m: Movimiento, ambitoDe: (cuentaId: string | undefined) => Ambito | undefined, ambito: Ambito): Clasificacion {
+export function clasificar(
+  m: Movimiento,
+  ambitoDe: (cuentaId: string | undefined) => Ambito | undefined,
+  ambito: Ambito,
+): Clasificacion {
   const origen = ambitoDe(m.cuentaId);
-  if(m.devolucionDe)return {ingreso:0,gasto:origen===ambito?-m.importe:0};
+  if (m.devolucionDe) return { ingreso: 0, gasto: origen === ambito ? -m.importe : 0 };
   if (m.tipo === 'ingreso') return { ingreso: origen === ambito ? m.importe : 0, gasto: 0 };
   if (m.tipo === 'gasto') return { ingreso: 0, gasto: origen === ambito ? m.importe : 0 };
   const destino = ambitoDe(m.cuentaDestinoId);
@@ -37,15 +41,25 @@ export interface ResumenMes {
   neto: number;
 }
 
-export function resumenMes(movimientos: Movimiento[], cuentas: Cuenta[], mes: string, ambito: Ambito = 'personal'): ResumenMes {
+export function resumenMes(
+  movimientos: Movimiento[],
+  cuentas: Cuenta[],
+  mes: string,
+  ambito: Ambito = 'personal',
+): ResumenMes {
   return serieMensual(movimientos, cuentas, [mes], ambito)[0];
 }
 
 /** Ingresos y gastos de cada mes de `meses`, en el mismo orden. */
-export function serieMensual(movimientos: Movimiento[], cuentas: Cuenta[], meses: string[], ambito: Ambito = 'personal'): ResumenMes[] {
+export function serieMensual(
+  movimientos: Movimiento[],
+  cuentas: Cuenta[],
+  meses: string[],
+  ambito: Ambito = 'personal',
+): ResumenMes[] {
   const ambitoDe = indiceAmbitos(cuentas);
   const acc = new Map(meses.map((mes) => [mes, { mes, ingresos: 0, gastos: 0, neto: 0 }]));
-  for (const m of movimientos.filter(m=>m.fecha<=todayISO())) {
+  for (const m of movimientos.filter((m) => m.fecha <= todayISO())) {
     const fila = acc.get(monthKey(m.fecha));
     if (!fila) continue;
     const c = clasificar(m, ambitoDe, ambito);
@@ -56,7 +70,13 @@ export function serieMensual(movimientos: Movimiento[], cuentas: Cuenta[], meses
   return meses.map((mes) => acc.get(mes)!);
 }
 
-export function ultimosMeses(movimientos: Movimiento[], cuentas: Cuenta[], mesFinal: string, n: number, ambito: Ambito = 'personal'): ResumenMes[] {
+export function ultimosMeses(
+  movimientos: Movimiento[],
+  cuentas: Cuenta[],
+  mesFinal: string,
+  n: number,
+  ambito: Ambito = 'personal',
+): ResumenMes[] {
   return serieMensual(movimientos, cuentas, lastMonths(mesFinal, n), ambito);
 }
 
@@ -66,16 +86,23 @@ export interface GastoCategoria {
 }
 
 /** Gasto del mes agrupado por categoría, de mayor a menor. */
-export function gastoPorCategoria(movimientos: Movimiento[], cuentas: Cuenta[], mes: string, ambito: Ambito = 'personal'): GastoCategoria[] {
+export function gastoPorCategoria(
+  movimientos: Movimiento[],
+  cuentas: Cuenta[],
+  mes: string,
+  ambito: Ambito = 'personal',
+): GastoCategoria[] {
   const ambitoDe = indiceAmbitos(cuentas);
   const acc = new Map<string | undefined, number>();
-  for (const m of desglosarGastos(movimientos).filter(m=>m.fecha<=todayISO())) {
-    if (!['gasto','ingreso'].includes(m.tipo) || monthKey(m.fecha) !== mes || ambitoDe(m.cuentaId) !== ambito) continue;
+  for (const m of desglosarGastos(movimientos).filter((m) => m.fecha <= todayISO())) {
+    if (!['gasto', 'ingreso'].includes(m.tipo) || monthKey(m.fecha) !== mes || ambitoDe(m.cuentaId) !== ambito)
+      continue;
     acc.set(m.categoriaId, (acc.get(m.categoriaId) ?? 0) + m.importe);
   }
   return [...acc.entries()]
     .map(([categoriaId, importe]) => ({ categoriaId, importe }))
-    .filter(p=>p.importe!==0).sort((a, b) => b.importe - a.importe);
+    .filter((p) => p.importe !== 0)
+    .sort((a, b) => b.importe - a.importe);
 }
 
 /** Ordena por fecha descendente y, a igual fecha, por hora de creación descendente. */
