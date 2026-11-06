@@ -6,11 +6,21 @@ import { useHistorialCartera, useInversiones } from '../db/hooks';
 import { aplicarCotizaciones, borrarInversion, guardarInversion } from '../db/finance';
 import type { Inversion } from '../db/types';
 import { todayISO, isISODate } from '../lib/dates';
-import { formatMoney } from '../lib/money';
+import { formatEuros, formatMoney } from '../lib/money';
 import { parseDecimal, valorInversion } from '../lib/investments';
 import { cargarCotizaciones, fechaPrecio, precioAntiguo, type Cotizacion } from '../lib/quotes';
 import { PageHeader } from '../layout/Shell';
 import { Icon } from '../ui/Icon';
+import { CategoryIcon } from '../ui/CategoryIcon';
+
+/** Icono de cada tipo de inversión (nombres de src/lib/iconos.ts). */
+const ICONO_TIPO: Record<string, string> = {
+  cripto: 'cripto',
+  divisa: 'efectivo',
+  accion: 'inversion',
+  fondo: 'presupuestos',
+  otra: 'otros',
+};
 import { AmountInput, useAmountField } from '../ui/AmountInput';
 import { Modal, useConfirm, useToast } from '../ui/Modal';
 import { ValueChart } from '../ui/ValueChart';
@@ -360,36 +370,45 @@ export function Inversiones() {
             {error}
           </div>
         )}
-        <section className="portfolio-overview">
-          <div className="portfolio-value">
-            <span className="eyebrow">Lo que vale tu cartera hoy</span>
-            <strong>{formatMoney(total)}</strong>
-            <span>
-              {inversiones.length} {inversiones.length === 1 ? 'inversión' : 'inversiones'} · todo convertido a euros
+        <section className="recurring-summary portfolio-summary">
+          <div>
+            <span className="summary-icon">
+              <Icon name="inversion" size={20} />
             </span>
+            <span>Lo que vale tu cartera</span>
+            <strong>{formatMoney(total)}</strong>
+            <small>
+              {inversiones.length} {inversiones.length === 1 ? 'inversión' : 'inversiones'} · todo en euros
+            </small>
           </div>
-          <div className="portfolio-equation">
-            <div>
-              <span>Pagaste en total</span>
-              <b>{formatMoney(coste)}</b>
-            </div>
-            <span className="equation-sign">→</span>
-            <div className={total === coste ? undefined : total > coste ? 'income-text' : 'expense-text'}>
-              <span>{total === coste ? 'Sin cambios' : total > coste ? 'Ha subido' : 'Ha bajado'}</span>
-              <b>{formatMoney(Math.abs(total - coste))}</b>
-              <small>
-                {coste > 0
-                  ? `${((Math.abs(total - coste) / coste) * 100).toLocaleString('es-ES', { maximumFractionDigits: 2 })} % frente a lo que pagaste`
-                  : 'Añade el coste de compra para comparar'}
-              </small>
-            </div>
+          <div>
+            <span className="summary-icon">
+              <Icon name="efectivo" size={20} />
+            </span>
+            <span>Lo que pusiste</span>
+            <strong>{formatMoney(coste)}</strong>
+            <small>Coste de compra, con comisiones</small>
+          </div>
+          <div>
+            <span className={`summary-icon ${total >= coste ? 'income-text' : 'expense-text'}`}>
+              <Icon name={total >= coste ? 'ingreso' : 'gasto'} size={20} />
+            </span>
+            <span>{total === coste ? 'Sin cambios' : total > coste ? 'Has ganado' : 'Has perdido'}</span>
+            <strong className={total === coste ? undefined : total > coste ? 'income-text' : 'expense-text'}>
+              {formatMoney(Math.abs(total - coste))}
+            </strong>
+            <small>
+              {coste > 0 ? (
+                <span className={`gain-chip ${total >= coste ? 'is-up' : 'is-down'}`}>
+                  {total >= coste ? '+' : '−'}
+                  {((Math.abs(total - coste) / coste) * 100).toLocaleString('es-ES', { maximumFractionDigits: 2 })} %
+                </span>
+              ) : (
+                'Añade el coste de compra para comparar'
+              )}
+            </small>
           </div>
         </section>
-        <div className="portfolio-intro">
-          <Icon name="inversion" size={26} />
-          <span>Tu dinero invertido, de un vistazo</span>
-          <small>Valor actual = unidades que tienes × precio por unidad</small>
-        </div>
         {(antiguas > 0 || (!busy && automaticasSinPrecio > 0)) && (
           <div className="finance-notice">
             {antiguas > 0 &&
@@ -403,7 +422,10 @@ export function Inversiones() {
         <div className="portfolio-breakdown">
           <section className="card holdings-card">
             <div className="card-header">
-              <h2 className="card-title">Qué tienes y cuánto vale</h2>
+              <div>
+                <h2 className="card-title">Qué tienes y cuánto vale</h2>
+                <div className="card-sub">Valor actual = unidades que tienes × precio por unidad</div>
+              </div>
               <select
                 className="select finance-select"
                 aria-label="Filtrar tipo de inversión"
@@ -451,19 +473,12 @@ export function Inversiones() {
                           document.querySelector('.value-chart')?.scrollIntoView({ block: 'center' });
                         }}
                       >
-                        <span className="finance-avatar">
-                          <Icon name="inversion" />
-                        </span>
+                        <CategoryIcon icono={ICONO_TIPO[i.tipo] ?? 'inversion'} color={COLORES_INVERSION[i.tipo]} />
                         <span>
                           <strong>{i.nombre}</strong>
                           <span className="row-sub">
                             {i.cantidad.toLocaleString('es-ES', { maximumFractionDigits: 12 })} unidades ×{' '}
-                            {new Intl.NumberFormat('es-ES', {
-                              style: 'currency',
-                              currency: 'EUR',
-                              maximumFractionDigits: 6,
-                            }).format(i.precioEUR)}{' '}
-                            · {i.activoId ? 'Cotización periódica' : 'Manual'}
+                            {formatEuros(i.precioEUR, 6)} · {i.activoId ? 'Cotización periódica' : 'Manual'}
                           </span>
                           <span className="quote-source">
                             {fechaPrecio(i.precioFecha)} · {i.fuente}

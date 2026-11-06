@@ -137,3 +137,21 @@ export function porcentaje(parte: number, total: number): number {
   if (total === 0) return 0;
   return Math.round((parte / total) * 100);
 }
+
+/**
+ * Precio por unidad en euros con decimales variables (cripto y divisas): «71.484,00 €»,
+ * «0,000012 €». Siempre agrupa los miles, también con cuatro cifras, como formatMoney.
+ */
+export function formatEuros(valor: number, maxDecimales = 2): string {
+  if (!Number.isFinite(valor)) return '—';
+  const negativo = valor < 0;
+  let texto = Math.abs(valor).toFixed(maxDecimales);
+  if (maxDecimales > 2)
+    texto = texto
+      .replace(/0+$/, '')
+      .replace(/\.(\d)$/, '.$10')
+      .replace(/\.$/, '.00');
+  const [entera, decimales = '00'] = texto.split('.');
+  const conMiles = entera.replace(/\B(?=(\d{3})+(?!\d))/g, config.moneda.separadorMiles);
+  return `${negativo ? '−' : ''}${conMiles}${config.moneda.separadorDecimales}${decimales} ${config.moneda.simbolo}`;
+}

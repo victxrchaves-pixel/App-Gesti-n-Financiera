@@ -1,3 +1,5 @@
+import { formatEuros } from '../lib/money';
+import { dayHeader, shortDate, todayISO } from '../lib/dates';
 import { curva } from '../lib/chartPath';
 import { useId, useState } from 'react';
 import { useWidth } from './useWidth';
@@ -50,16 +52,23 @@ export function ValueChart({
       if (Math.abs(x(puntos[i]) - posicion) < Math.abs(x(puntos[cercano]) - posicion)) cercano = i;
     setSeleccion(cercano);
   };
-  const money = (value: number) =>
-    new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: precio ? 6 : 2,
-    }).format(value);
+  // Intl con es-ES no agrupa los miles de 4 cifras («3574,20 €»); formatEuros sí.
+  const money = (value: number) => formatEuros(value, precio ? 6 : 2);
+  const fecha = dayHeader(selected.fecha.slice(0, 10), todayISO());
+  if (puntos.length < 2)
+    return (
+      <div className="value-chart value-chart-single" ref={ref}>
+        <div className="chart-period">{fecha}</div>
+        <div className="mid-number">{money(selected.valor)}</div>
+        <p className="field-hint">
+          Es la primera valoración guardada. La evolución aparecerá aquí cuando Neto tenga valores de más días: se
+          guarda uno cada día que abres la app.
+        </p>
+      </div>
+    );
   return (
     <div className="value-chart" ref={ref}>
-      <div className="chart-period">{selected.fecha.slice(0, 10).split('-').reverse().join('/')}</div>
+      <div className="chart-period">{fecha}</div>
       <div className="mid-number">{money(selected.valor)}</div>
       <div className="value-plot">
         <svg
@@ -139,8 +148,8 @@ export function ValueChart({
             onChange={(e) => setSeleccion(Number(e.target.value))}
           />
           <div className="chart-endpoints">
-            <span>{puntos[0].fecha.slice(0, 10)}</span>
-            <span>{puntos[puntos.length - 1].fecha.slice(0, 10)}</span>
+            <span>{shortDate(puntos[0].fecha.slice(0, 10))}</span>
+            <span>{shortDate(puntos[puntos.length - 1].fecha.slice(0, 10))}</span>
           </div>
         </>
       ) : (

@@ -7340,3 +7340,29 @@ input[type='checkbox'] {
   font-size: 12px;
   font-weight: 600;
 }
+
+/* Inversión: el porcentaje ganado o perdido, en una pastilla. */
+.gain-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.gain-chip.is-up {
+  background: #e3f4ea;
+  color: var(--positive);
+}
+.gain-chip.is-down {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.value-chart-single {
+  padding: 4px 0 8px;
+}
+.value-chart-single .field-hint {
+  max-width: 60ch;
+}

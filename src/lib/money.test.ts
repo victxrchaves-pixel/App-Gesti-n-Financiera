@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { centsToInput, formatMoney, parseMoney, porcentaje, sumCents } from './money';
+import { centsToInput, formatEuros, formatMoney, parseMoney, porcentaje, sumCents } from './money';
 
 const E = ' €';
 
@@ -70,5 +70,17 @@ describe('sumas y porcentajes', () => {
     expect(porcentaje(8000, 10000)).toBe(80);
     expect(porcentaje(1, 3)).toBe(33);
     expect(porcentaje(5, 0)).toBe(0);
+  });
+});
+
+describe('formatEuros (precios con decimales)', () => {
+  it('agrupa los miles también con cuatro cifras', () => {
+    expect(formatEuros(3574.2)).toBe(`3.574,20${E}`);
+    expect(formatEuros(71484)).toBe(`71.484,00${E}`);
+  });
+  it('muestra hasta los decimales pedidos sin ceros sobrantes, con dos como mínimo', () => {
+    expect(formatEuros(0.000012345, 6)).toBe(`0,000012${E}`);
+    expect(formatEuros(0.92, 6)).toBe(`0,92${E}`);
+    expect(formatEuros(1234.5, 6)).toBe(`1.234,50${E}`);
   });
 });
