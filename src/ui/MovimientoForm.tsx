@@ -1,3 +1,5 @@
+import { Icon } from './Icon';
+import { iconoCategoria } from '../lib/iconos';
 import { colorCategoria } from '../config/neto.config';
 import { useMemo, useState } from 'react';
 import { useAjustes, useCategorias, useCuentas, useMovimientos } from '../db/hooks';
@@ -388,7 +390,9 @@ export function MovimientoForm({
                         setError(null);
                       }}
                     >
-                      <span className="dot" style={{ background: colorCategoria(c.color) }} />
+                      <span className="chip-icon" style={{ color: colorCategoria(c.color) }}>
+                        <Icon name={iconoCategoria(c)} size={16} stroke={2} />
+                      </span>
                       {c.nombre}
                     </button>
                   ))}

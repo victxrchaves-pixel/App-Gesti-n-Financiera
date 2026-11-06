@@ -11,6 +11,8 @@ import { guardarArchivo } from '../lib/platform';
 import { PageHeader } from '../layout/Shell';
 import { ir } from '../router';
 import { Icon } from '../ui/Icon';
+import { CategoryIcon } from '../ui/CategoryIcon';
+import { CATALOGO_ICONOS, iconoCategoria } from '../lib/iconos';
 import { useConfirm, useToast } from '../ui/Modal';
 import { Switch } from '../ui/Switch';
 
@@ -28,11 +30,14 @@ function FilaCategoria({ c, usos, onBorrar }: { c: Categoria; usos: number; onBo
     <div>
       <div className="cat-row">
         <button
-          className="color-btn"
-          style={{ background: colorCategoria(c.color) }}
+          className="cat-icon-btn"
           onClick={() => setAbierta(!abierta)}
-          aria-label={`Cambiar color de ${c.nombre}`}
-        />
+          aria-expanded={abierta}
+          aria-label={`Cambiar icono y color de ${c.nombre}`}
+          title="Cambiar icono y color"
+        >
+          <CategoryIcon icono={iconoCategoria(c)} color={colorCategoria(c.color)} size={36} />
+        </button>
         <input
           className="input"
           value={nombre}
@@ -74,6 +79,32 @@ function FilaCategoria({ c, usos, onBorrar }: { c: Categoria; usos: number; onBo
                 setAbierta(false);
               }}
             />
+          ))}
+        </div>
+      )}
+      {abierta && (
+        <div className="icon-picker" role="group" aria-label={`Icono de ${c.nombre}`}>
+          <button
+            type="button"
+            className="icon-choice icon-choice-auto"
+            aria-pressed={!c.icono}
+            onClick={() => void actualizarCategoria(c.id, { icono: null })}
+            title="Elegir según el nombre"
+          >
+            Automático
+          </button>
+          {CATALOGO_ICONOS.flatMap((g) => g.iconos).map((i) => (
+            <button
+              key={i.id}
+              type="button"
+              className="icon-choice"
+              aria-pressed={c.icono === i.id}
+              aria-label={i.etiqueta}
+              title={i.etiqueta}
+              onClick={() => void actualizarCategoria(c.id, { icono: i.id })}
+            >
+              <Icon name={i.id} size={18} />
+            </button>
           ))}
         </div>
       )}

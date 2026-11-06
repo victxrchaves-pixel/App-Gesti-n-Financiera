@@ -217,7 +217,7 @@ export async function crearCategoria(
 
 export async function actualizarCategoria(
   id: string,
-  cambios: Partial<Pick<Categoria, 'nombre' | 'color'>>,
+  cambios: Partial<Pick<Categoria, 'nombre' | 'color' | 'icono'>>,
   d: NetoDB = db,
 ): Promise<void> {
   if (cambios.color !== undefined && !esColor(cambios.color)) throw new Error('Color no válido.');

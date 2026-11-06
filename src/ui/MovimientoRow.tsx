@@ -2,7 +2,8 @@ import { todayISO } from '../lib/dates';
 import { colorCategoria } from '../config/neto.config';
 import type { Categoria, Cuenta, Movimiento } from '../db/types';
 import { formatMoney } from '../lib/money';
-import { Icon } from './Icon';
+import { CategoryIcon } from './CategoryIcon';
+import { iconoCategoria, reconocerIcono } from '../lib/iconos';
 
 export function MovimientoRow({
   m,
@@ -32,13 +33,19 @@ export function MovimientoRow({
       ]
         .filter(Boolean)
         .join(' · ');
-  const color = esTransfer ? 'var(--text-3)' : colorCategoria(cat?.color);
+  const catIcono = cat ?? (m.reparto?.length ? categorias.get(m.reparto[0].categoriaId) : undefined);
+  const color = esTransfer ? 'var(--text-2)' : colorCategoria(catIcono?.color);
+  // El concepto manda si se reconoce («Gimnasio» lleva mancuerna aunque la categoría sea Salud).
+  const icono = esTransfer
+    ? 'transferencia'
+    : m.devolucionDe
+      ? 'devolucion'
+      : (reconocerIcono(m.nota) ??
+        (catIcono ? iconoCategoria(catIcono) : m.tipo === 'ingreso' ? 'ingreso-extra' : 'otros'));
 
   return (
     <button type="button" className="list-row" onClick={onClick}>
-      <span className="row-icon" style={{ background: color }}>
-        {esTransfer ? <Icon name="transferencia" size={18} stroke={2} /> : <Icon name={m.tipo} size={18} stroke={2} />}
-      </span>
+      <CategoryIcon icono={icono} color={color} />
       <span className="row-main">
         <div className="row-title">{titulo}</div>
         <div className="row-sub">

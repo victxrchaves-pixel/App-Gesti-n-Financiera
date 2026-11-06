@@ -1,4 +1,5 @@
 import { dineroMeta, porcentajeMeta } from '../lib/goalMoney';
+import { iconoMeta } from '../lib/iconos';
 import { GoalActions } from './GoalActions';
 import { newId } from '../lib/id';
 import { COLORES_UX } from '../lib/colors';
@@ -694,7 +695,7 @@ function GoalPreview({
     >
       <span className="goal-preview-heading">
         <span className="goal-mark" style={{ color }}>
-          <Icon name={viaje ? 'viaje' : 'ahorro'} size={22} />
+          <Icon name={iconoMeta(meta)} size={22} />
         </span>
         <span className="goal-preview-name">{meta.nombre}</span>
         <Icon name="derecha" size={18} />
@@ -789,7 +790,7 @@ function GoalTile({
       <div className="goal-main">
         <div className="goal-top">
           <span className="goal-mark" style={{ color }}>
-            <Icon name={viaje ? 'viaje' : 'ahorro'} size={23} />
+            <Icon name={iconoMeta(m)} size={23} />
           </span>
           <h3>
             {m.nombre}

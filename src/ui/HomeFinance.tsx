@@ -20,6 +20,7 @@ import { fichasRecurrentes, recurrentesPendientes, type Ficha } from '../lib/rec
 import { FormPago } from '../screens/Recurrentes';
 import { Modal } from './Modal';
 import { Icon } from './Icon';
+import { RecurrenteIcon } from './RecurrenteIcon';
 import { ServiceIcon } from './ServiceIcon';
 
 export function AvailableDetails({ cerrar }: { cerrar: () => void }) {
@@ -119,9 +120,11 @@ export function HomeRecurring() {
             {f.origen === 'suscripcion' ? (
               <ServiceIcon id={f.servicioId} nombre={f.nombre} />
             ) : (
-              <span className={`reminder-symbol ${f.tipo === 'ingreso' ? 'income-text' : 'expense-text'}`}>
-                <Icon name={f.tipo} />
-              </span>
+              <RecurrenteIcon
+                nombre={f.nombre}
+                tipo={f.tipo === 'ingreso' ? 'ingreso' : 'gasto'}
+                categoriaId={(f as { categoriaId?: string }).categoriaId}
+              />
             )}
             <div className="reminder-name">
               <strong>{f.nombre}</strong>

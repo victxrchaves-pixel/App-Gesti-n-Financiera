@@ -6747,3 +6747,62 @@ input[type='checkbox'] {
   margin: 0;
   font-size: 14px;
 }
+
+/* Icono de categoría: dibujo del color de la categoría sobre un círculo suave del mismo tono. */
+.cat-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  color: var(--cat-color);
+  background: #f1f1ef;
+  background: color-mix(in srgb, var(--cat-color) 13%, #fff);
+}
+
+/* Ajustes: el icono de cada categoría abre su color y su icono. */
+.cat-icon-btn {
+  border: 0;
+  padding: 0;
+  background: none;
+  border-radius: 50%;
+  flex: none;
+}
+.icon-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+  gap: 6px;
+  padding: 4px 0 14px 46px;
+}
+.icon-choice {
+  display: grid;
+  place-items: center;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text);
+}
+.icon-choice:hover {
+  background: var(--card-sunken);
+}
+.icon-choice[aria-pressed='true'] {
+  background: var(--text);
+  border-color: var(--text);
+  color: #fff;
+}
+.icon-choice-auto {
+  grid-column: span 3;
+  font-size: 12px;
+  font-weight: 600;
+}
+.chip-icon {
+  display: inline-grid;
+  place-items: center;
+}
+.chip[aria-pressed='true'] .chip-icon {
+  color: #fff !important;
+}
+.budget-unplanned-name {
+  gap: 12px;
+  padding-left: 4px;
+}

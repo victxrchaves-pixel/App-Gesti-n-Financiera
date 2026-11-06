@@ -54,6 +54,8 @@ export interface Categoria {
   nombre: string;
   tipo: TipoCategoria;
   color: string;
+  /** Icono elegido en Ajustes (catálogo de src/lib/iconos.ts). Sin él, se deduce del nombre. */
+  icono?: string | null;
   orden: number;
 }
 

@@ -18,6 +18,7 @@ import { PageHeader } from '../layout/Shell';
 import { AmountInput, useAmountField } from '../ui/AmountInput';
 import { Modal, useConfirm, useToast } from '../ui/Modal';
 import { Icon } from '../ui/Icon';
+import { RecurrenteIcon } from '../ui/RecurrenteIcon';
 import { ServiceIcon } from '../ui/ServiceIcon';
 import { FormularioSuscripcion } from './Suscripciones';
 import { MovimientoForm } from '../ui/MovimientoForm';
@@ -559,9 +560,11 @@ export function Recurrentes({ soloSuscripciones = false }: { soloSuscripciones?:
                     {f.origen === 'suscripcion' ? (
                       <ServiceIcon id={f.servicioId} nombre={f.nombre} />
                     ) : (
-                      <span className="service-icon">
-                        <Icon name={f.tipo === 'ingreso' ? 'ingreso' : 'gastos'} />
-                      </span>
+                      <RecurrenteIcon
+                        nombre={f.nombre}
+                        tipo={f.tipo === 'ingreso' ? 'ingreso' : 'gasto'}
+                        categoriaId={(f as { categoriaId?: string }).categoriaId}
+                      />
                     )}
                     <span>
                       <strong>{f.nombre}</strong>

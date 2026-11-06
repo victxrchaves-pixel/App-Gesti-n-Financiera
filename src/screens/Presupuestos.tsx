@@ -10,10 +10,12 @@ import { asegurarPlanMes, borrarPresupuesto, copiarPresupuestos, guardarPresupue
 import { estadoPresupuesto, gastosPresupuesto, mesValido, resumenPresupuestos } from '../lib/budgets';
 import { addMonths, monthKey, monthLabel, todayISO } from '../lib/dates';
 import { formatMoney } from '../lib/money';
-import { config } from '../config/neto.config';
+import { colorCategoria, config } from '../config/neto.config';
 import { PageHeader } from '../layout/Shell';
 import { AmountInput, useAmountField } from '../ui/AmountInput';
 import { Icon } from '../ui/Icon';
+import { iconoCategoria } from '../lib/iconos';
+import { CategoryIcon } from '../ui/CategoryIcon';
 import { Modal, useConfirm, useToast } from '../ui/Modal';
 import { GoalPlans } from '../ui/GoalPlans';
 import { Progress } from '../ui/Progress';
@@ -332,19 +334,7 @@ function PlanMes({ mes }: { mes: string }) {
                         >
                           <div className="budget-card-top">
                             <span className="finance-avatar">
-                              <Icon
-                                name={
-                                  nombre === 'Casa'
-                                    ? 'casa'
-                                    : nombre === 'Comida'
-                                      ? 'comida'
-                                      : nombre === 'Transporte'
-                                        ? 'transporte'
-                                        : nombre === 'Ocio'
-                                          ? 'ocio'
-                                          : 'presupuestos'
-                                }
-                              />
+                              <Icon name={iconoCategoria(mapa.get(p.categoriaId) ?? { nombre, tipo: 'gasto' })} />
                             </span>
                             <h3>{nombre}</h3>
                             <button
@@ -414,7 +404,12 @@ function PlanMes({ mes }: { mes: string }) {
               </div>
               {[...sinLimite].map(([id, importe]) => (
                 <div className="budget-unplanned" key={id}>
-                  <button className="btn btn-ghost" onClick={() => setDetalle(id)}>
+                  <button className="btn btn-ghost budget-unplanned-name" onClick={() => setDetalle(id)}>
+                    <CategoryIcon
+                      icono={mapa.get(id) ? iconoCategoria(mapa.get(id)!) : 'otros'}
+                      color={colorCategoria(mapa.get(id)?.color)}
+                      size={32}
+                    />
                     {mapa.get(id)?.nombre ?? 'Sin categoría'}
                   </button>
                   <strong>{formatMoney(importe)}</strong>
@@ -437,19 +432,7 @@ function PlanMes({ mes }: { mes: string }) {
             <div className="pick-list">
               {disponibles.map((c) => (
                 <button key={c.id} className="plan-pick" onClick={() => setForm({ categoriaId: c.id })}>
-                  <Icon
-                    name={
-                      c.nombre === 'Casa'
-                        ? 'casa'
-                        : c.nombre === 'Comida'
-                          ? 'comida'
-                          : c.nombre === 'Transporte'
-                            ? 'transporte'
-                            : c.nombre === 'Ocio'
-                              ? 'ocio'
-                              : 'presupuestos'
-                    }
-                  />
+                  <Icon name={iconoCategoria(c)} />
                   <span>{c.nombre}</span>
                   <Icon name="mas" size={16} />
                 </button>
