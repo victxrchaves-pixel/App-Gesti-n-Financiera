@@ -28,6 +28,7 @@ export function Donut({ porciones, titulo }: { porciones: Porcion[]; titulo: str
     return { ...p, inicio, longitud: Math.max(0.01, longitud - separacion - (redondo ? grosor : 0)), redondo };
   });
   const sel = valores.find((p) => p.id === activa);
+  const textoCentro = formatMoney(sel?.importe ?? total, { sinCentimosSiCero: true });
   return (
     <div className="donut-wrap">
       <div className="ring-visual">
@@ -54,7 +55,9 @@ export function Donut({ porciones, titulo }: { porciones: Porcion[]; titulo: str
         </svg>
         <div className="ring-center" aria-live="polite">
           <span>{sel ? `${porcentaje(sel.importe, total)} % del total` : 'Total'}</span>
-          <strong>{formatMoney(sel?.importe ?? total, { sinCentimosSiCero: true })}</strong>
+          <strong data-largo={textoCentro.length > 12 ? 'mucho' : textoCentro.length > 9 ? 'si' : undefined}>
+            {textoCentro}
+          </strong>
           <small>{sel?.nombre ?? 'Todos los conceptos'}</small>
         </div>
       </div>

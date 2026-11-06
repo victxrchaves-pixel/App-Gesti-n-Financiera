@@ -27,6 +27,7 @@ const ICONO_TIPO: Record<string, string> = {
 import { AmountInput, useAmountField } from '../ui/AmountInput';
 import { Modal, useConfirm, useToast } from '../ui/Modal';
 import { ValueChart } from '../ui/ValueChart';
+import { contar } from '../lib/plural';
 
 function Formulario({
   actual,
@@ -421,10 +422,10 @@ export function Inversiones() {
         {(antiguas > 0 || (!busy && automaticasSinPrecio > 0)) && (
           <div className="finance-notice">
             {antiguas > 0 &&
-              `${antiguas} posiciones tienen precios anteriores a ${config.inversiones.antiguedadAvisoHoras} horas. `}
+              `${contar(antiguas, 'posición tiene', 'posiciones tienen')} precios anteriores a ${config.inversiones.antiguedadAvisoHoras} horas. `}
             {!busy &&
               automaticasSinPrecio > 0 &&
-              `${automaticasSinPrecio} posiciones conservan el precio guardado porque no hay una cotización disponible en el catálogo. `}
+              `${contar(automaticasSinPrecio, 'posición conserva', 'posiciones conservan')} el precio guardado porque no hay una cotización disponible en el catálogo. `}
             Consulta la fecha y la fuente antes de interpretar el total.
           </div>
         )}

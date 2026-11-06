@@ -6,6 +6,7 @@ import { saldosPorCuenta } from '../lib/balances';
 import { formatMoney } from '../lib/money';
 import { newId } from '../lib/id';
 import { Modal, useToast } from './Modal';
+import { contar } from '../lib/plural';
 type Archivo = ReturnType<typeof leerCSV>;
 export function ImportCSV({ cerrar }: { cerrar: () => void }) {
   const cuentas = useCuentas().filter(
@@ -69,7 +70,9 @@ export function ImportCSV({ cerrar }: { cerrar: () => void }) {
               conservarSaldo: conservar,
               loteId,
             });
-            avisar(`${r.guardados} movimientos importados${r.omitidos ? ` · ${r.omitidos} duplicados omitidos` : ''}`);
+            avisar(
+              `${contar(r.guardados, 'movimiento importado', 'movimientos importados')}${r.omitidos ? ` · ${contar(r.omitidos, 'duplicado omitido', 'duplicados omitidos')}` : ''}`,
+            );
             cerrar();
           } catch (e) {
             setError(e instanceof Error ? e.message : 'No se pudo importar.');
@@ -306,7 +309,7 @@ export function ImportCSV({ cerrar }: { cerrar: () => void }) {
             Cancelar
           </button>
           <button className="btn btn-primary" disabled={busy || !seleccion.length || !cuentas.length || !totalValido}>
-            {busy ? 'Importando…' : `Importar ${seleccion.length} movimientos`}
+            {busy ? 'Importando…' : `Importar ${contar(seleccion.length, 'movimiento', 'movimientos')}`}
           </button>
         </div>
       </form>

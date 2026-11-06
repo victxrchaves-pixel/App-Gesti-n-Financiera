@@ -47,9 +47,7 @@ function FilaCategoria({ c, usos, onBorrar }: { c: Categoria; usos: number; onBo
           aria-label="Nombre de la categoría"
           maxLength={40}
         />
-        <span className="faint" style={{ fontSize: 12, whiteSpace: 'nowrap', minWidth: 74, textAlign: 'right' }}>
-          {usos} mov.
-        </span>
+        <span className="faint cat-uses">{usos} mov.</span>
         <button className="btn btn-ghost btn-icon" onClick={onBorrar} aria-label={`Borrar ${c.nombre}`}>
           <Icon name="papelera" size={18} />
         </button>
@@ -134,7 +132,7 @@ function BloqueCategorias({
       titulo: `Borrar «${c.nombre}»`,
       mensaje:
         (n > 0
-          ? `Sus ${n} movimientos pasarán a «${c.nombre === destino ? lista.find((x) => x.id !== c.id)?.nombre : destino}».`
+          ? `${n === 1 ? 'Su movimiento pasará' : `Sus ${n} movimientos pasarán`} a «${c.nombre === destino ? lista.find((x) => x.id !== c.id)?.nombre : destino}».`
           : 'No tiene movimientos.') +
         ' Si tiene presupuestos, sus límites también se trasladarán a la categoría de destino y se sumarán a los que ya existan en cada mes.',
       confirmar: 'Borrar',

@@ -24,6 +24,7 @@ import { db } from '../db/db';
 import { crearCategoria } from '../db/repo';
 import { MovimientoForm } from '../ui/MovimientoForm';
 import { MovimientoRow } from '../ui/MovimientoRow';
+import { contar } from '../lib/plural';
 
 function Formulario({
   mes,
@@ -251,7 +252,7 @@ function PlanMes({ mes }: { mes: string }) {
               setError('');
               try {
                 const n = await copiarPresupuestos(anterior, mes);
-                avisar(`${n} presupuestos copiados`);
+                avisar(contar(n, 'presupuesto copiado', 'presupuestos copiados'));
               } catch (e) {
                 setError(e instanceof Error ? e.message : 'No se pudo copiar.');
               } finally {
@@ -435,7 +436,7 @@ function PlanMes({ mes }: { mes: string }) {
                       color={colorCategoria(mapa.get(id)?.color)}
                       size={32}
                     />
-                    {mapa.get(id)?.nombre ?? 'Sin categoría'}
+                    <span className="unplanned-label">{mapa.get(id)?.nombre ?? 'Sin categoría'}</span>
                   </button>
                   <strong>{formatMoney(importe)}</strong>
                   {disponibles.some((c) => c.id === id) && (
@@ -456,7 +457,12 @@ function PlanMes({ mes }: { mes: string }) {
             <p className="field-hint">Empieza por estas categorías. Tú decides el límite de cada una.</p>
             <div className="pick-list">
               {disponibles.map((c) => (
-                <button key={c.id} className="plan-pick" onClick={() => setForm({ categoriaId: c.id })}>
+                <button
+                  key={c.id}
+                  className="plan-pick"
+                  title={c.nombre}
+                  onClick={() => setForm({ categoriaId: c.id })}
+                >
                   <Icon name={iconoCategoria(c)} />
                   <span>{c.nombre}</span>
                   <Icon name="mas" size={16} />

@@ -159,9 +159,11 @@ h3 {
 .nav-link svg {
   flex: none;
 }
-.nav-link:hover {
-  background: rgba(0, 0, 0, 0.045);
-  color: var(--text);
+@media (hover: hover) and (pointer: fine) {
+  .nav-link:hover {
+    background: rgba(0, 0, 0, 0.045);
+    color: var(--text);
+  }
 }
 .nav-link .nav-badge {
   margin-left: auto;
@@ -316,8 +318,10 @@ a.btn {
 .btn-secondary {
   color: var(--text);
 }
-.btn-secondary:hover:not(:disabled) {
-  background: var(--card-sunken);
+@media (hover: hover) and (pointer: fine) {
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--card-sunken);
+  }
 }
 .btn-ghost {
   background: transparent;
@@ -326,8 +330,10 @@ a.btn {
   background: var(--danger-soft);
   color: var(--danger);
 }
-.btn-danger:hover:not(:disabled) {
-  background: #dddddd;
+@media (hover: hover) and (pointer: fine) {
+  .btn-danger:hover:not(:disabled) {
+    background: #dddddd;
+  }
 }
 .btn:disabled {
   opacity: 0.45;
@@ -357,8 +363,10 @@ a.btn {
   color: var(--text-2);
   white-space: nowrap;
 }
-.segmented button:hover {
-  color: var(--text);
+@media (hover: hover) and (pointer: fine) {
+  .segmented button:hover {
+    color: var(--text);
+  }
 }
 .segmented button[aria-pressed='true'] {
   color: var(--text);
@@ -466,8 +474,10 @@ a.btn {
   font-size: 14px;
   font-weight: 500;
 }
-.chip:hover {
-  background: var(--card-sunken);
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover {
+    background: var(--card-sunken);
+  }
 }
 .chip[aria-pressed='true'] {
   background: var(--primary);
@@ -529,15 +539,19 @@ a.btn {
   width: calc(100% + 20px);
   min-width: 0;
 }
-button.list-row:hover {
-  background: var(--card-sunken);
+@media (hover: hover) and (pointer: fine) {
+  button.list-row:hover {
+    background: var(--card-sunken);
+  }
 }
 .list-row + .list-row {
   box-shadow: 0 -1px 0 var(--line);
 }
-.list-row:hover + .list-row,
-button.list-row:hover {
-  box-shadow: none;
+@media (hover: hover) and (pointer: fine) {
+  .list-row:hover + .list-row,
+  button.list-row:hover {
+    box-shadow: none;
+  }
 }
 .row-icon {
   display: grid;
@@ -684,10 +698,12 @@ button.list-row:hover {
     box-shadow 0.15s,
     transform 0.15s;
 }
-.account-card:hover {
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.05),
-    0 12px 32px rgba(0, 0, 0, 0.08);
+@media (hover: hover) and (pointer: fine) {
+  .account-card:hover {
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.05),
+      0 12px 32px rgba(0, 0, 0, 0.08);
+  }
 }
 .account-type {
   display: flex;
@@ -790,7 +806,7 @@ button.list-row:hover {
 .modal {
   box-shadow: var(--shadow-pop);
   max-width: 520px;
-  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   overflow-y: auto;
   animation: pop 0.18s ease-out;
 }
@@ -882,8 +898,10 @@ button.list-row:hover {
   flex-direction: column;
   gap: 6px;
 }
-.choice:hover {
-  border-color: var(--primary);
+@media (hover: hover) and (pointer: fine) {
+  .choice:hover {
+    border-color: var(--primary);
+  }
 }
 .choice[aria-pressed='true'] {
   background: var(--primary-soft);
@@ -972,10 +990,6 @@ table.sr-only {
 .card-inverse .card-link svg {
   color: var(--primary);
 }
-.form-error {
-  border-left: 3px solid var(--text);
-}
-
 @media (max-width: 560px) {
   .setting-row {
     align-items: flex-start;
@@ -1199,8 +1213,10 @@ table.sr-only {
     0 8px 30px rgba(0, 0, 0, 0.025);
 }
 
-.wallet-card:hover {
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .wallet-card:hover {
+    transform: translateY(-2px);
+  }
 }
 
 .account-type svg {
@@ -1615,11 +1631,15 @@ table.sr-only {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Menos movimiento no es cero: se conservan los fundidos y cambios de color que explican el cambio de estado. */
   *,
   *::before,
   *::after {
-    animation: none !important;
-    transition: none !important;
+    transition-property: opacity, color, background-color, border-color, box-shadow !important;
+  }
+  .modal,
+  .toast {
+    animation-name: fade !important;
   }
 }
 
@@ -1668,9 +1688,11 @@ table.sr-only {
   background: var(--primary-ink);
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: var(--primary-ink);
-  filter: brightness(0.85);
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover:not(:disabled) {
+    background: var(--primary-ink);
+    filter: brightness(0.85);
+  }
 }
 
 .finance-group-title {
@@ -1795,8 +1817,10 @@ table.sr-only {
   color: #d0d0d0;
 }
 
-.finance-row-main:hover {
-  background: var(--card-sunken);
+@media (hover: hover) and (pointer: fine) {
+  .finance-row-main:hover {
+    background: var(--card-sunken);
+  }
 }
 
 @media (max-width: 640px) {
@@ -2090,7 +2114,6 @@ table.sr-only {
 .scene-suscripciones .scene-identity,
 .scene-suscripciones-negocio .scene-identity {
   border-radius: 12px;
-  border-top: 8px solid var(--text);
 }
 
 .scene-inversion .scene-identity {
@@ -2216,9 +2239,11 @@ table.sr-only {
   flex: 1;
 }
 
-.plan-pick:hover {
-  background: var(--card);
-  color: var(--text);
+@media (hover: hover) and (pointer: fine) {
+  .plan-pick:hover {
+    background: var(--card);
+    color: var(--text);
+  }
 }
 
 .savings-panel {
@@ -2491,8 +2516,10 @@ table.sr-only {
   align-self: flex-end;
 }
 
-.service-tile:hover {
-  border-color: var(--text-3);
+@media (hover: hover) and (pointer: fine) {
+  .service-tile:hover {
+    border-color: var(--text-3);
+  }
 }
 
 .scene-suscripciones .subscription-row,
@@ -3440,9 +3467,11 @@ body {
   color: var(--text-2);
 }
 
-.btn-ghost:hover:not(:disabled) {
-  color: var(--text);
-  background: var(--card-sunken);
+@media (hover: hover) and (pointer: fine) {
+  .btn-ghost:hover:not(:disabled) {
+    color: var(--text);
+    background: var(--card-sunken);
+  }
 }
 
 .btn-sm {
@@ -5699,8 +5728,10 @@ input[type='checkbox'] {
   transition: background 0.18s;
 }
 
-.goal-preview:hover {
-  background: color-mix(in srgb, var(--goal-color) 3%, white);
+@media (hover: hover) and (pointer: fine) {
+  .goal-preview:hover {
+    background: color-mix(in srgb, var(--goal-color) 3%, white);
+  }
 }
 
 .goal-preview:focus-visible {
@@ -5900,8 +5931,10 @@ input[type='checkbox'] {
   box-shadow: 0 8px 20px #1823370c;
 }
 
-.goal-deck-card:hover {
-  box-shadow: 0 -3px 12px #18233715;
+@media (hover: hover) and (pointer: fine) {
+  .goal-deck-card:hover {
+    box-shadow: 0 -3px 12px #18233715;
+  }
 }
 
 .goal-deck-card:focus-visible {
@@ -6081,8 +6114,10 @@ input[type='checkbox'] {
   text-decoration: none;
 }
 
-.savings-deck-panel .text-link:hover {
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .savings-deck-panel .text-link:hover {
+    text-decoration: underline;
+  }
 }
 
 /* Los presupuestos ocupan las dos primeras columnas; el ahorro, la tercera. */
@@ -6209,8 +6244,10 @@ input[type='checkbox'] {
   min-height: 36px;
 }
 
-.savings-account-card .wallet-footer a:hover {
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .savings-account-card .wallet-footer a:hover {
+    text-decoration: underline;
+  }
 }
 
 /* Finanzas del día a día: acciones rápidas, saldos claros y avisos de vencimiento. */
@@ -6248,9 +6285,11 @@ input[type='checkbox'] {
   font-size: 15px;
 }
 
-.quick-movement:hover {
-  background: #fafbfc;
-  border-color: var(--line-strong);
+@media (hover: hover) and (pointer: fine) {
+  .quick-movement:hover {
+    background: #fafbfc;
+    border-color: var(--line-strong);
+  }
 }
 
 .available-explain {
@@ -6780,8 +6819,10 @@ input[type='checkbox'] {
   background: var(--card);
   color: var(--text);
 }
-.icon-choice:hover {
-  background: var(--card-sunken);
+@media (hover: hover) and (pointer: fine) {
+  .icon-choice:hover {
+    background: var(--card-sunken);
+  }
 }
 .icon-choice[aria-pressed='true'] {
   background: var(--text);
@@ -6922,9 +6963,11 @@ input[type='checkbox'] {
   color: #fff;
   box-shadow: none;
 }
-.hero-dark .quick-movement:hover {
-  background: rgba(255, 255, 255, 0.13);
-  border-color: rgba(255, 255, 255, 0.22);
+@media (hover: hover) and (pointer: fine) {
+  .hero-dark .quick-movement:hover {
+    background: rgba(255, 255, 255, 0.13);
+    border-color: rgba(255, 255, 255, 0.22);
+  }
 }
 .hero-dark .quick-movement > span {
   padding: 7px;
@@ -6946,8 +6989,10 @@ input[type='checkbox'] {
 .hero-dark .quick-movement.is-accent > span {
   background: rgba(0, 0, 0, 0.08);
 }
-.hero-dark .quick-movement.is-accent:hover {
-  filter: brightness(0.96);
+@media (hover: hover) and (pointer: fine) {
+  .hero-dark .quick-movement.is-accent:hover {
+    filter: brightness(0.96);
+  }
 }
 
 /* Patrimonio de Inicio: tarjeta clara con capas detrás (las cuentas que reúne). */
@@ -7023,9 +7068,11 @@ input[type='checkbox'] {
   justify-content: space-between;
   color: var(--text-2);
 }
-.patrimony-card:hover .card-link .glass-icon {
-  background: var(--ink);
-  color: #fff;
+@media (hover: hover) and (pointer: fine) {
+  .patrimony-card:hover .card-link .glass-icon {
+    background: var(--ink);
+    color: #fff;
+  }
 }
 
 .hero-dark .btn-primary {
@@ -7298,8 +7345,10 @@ input[type='checkbox'] {
   text-decoration: none;
   min-width: 0;
 }
-.home-budget:hover {
-  background: var(--card-sunken);
+@media (hover: hover) and (pointer: fine) {
+  .home-budget:hover {
+    background: var(--card-sunken);
+  }
 }
 .home-budget-main {
   flex: 1;
@@ -7706,4 +7755,431 @@ input[type='checkbox'] {
   align-items: flex-end;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
+}
+
+/* ── Pulido: tacto, movimiento y superficies del navegador ──────────────── */
+/* Curvas compartidas: salida enérgica para lo que responde a la persona y una más suave para lo que se desplaza. */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --dur-press: 120ms;
+  --dur-ui: 180ms;
+}
+
+/* Que la web se sienta instalada en el móvil: sin destello gris al tocar, sin inflado de texto y sin
+   que el tirón de "recargar" arrastre la app. */
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+/* El texto es contenido y se puede copiar (importes, nombres, notas). Solo los controles no se seleccionan. */
+body {
+  user-select: auto;
+  -webkit-user-select: auto;
+}
+button,
+[role='button'],
+.btn,
+.nav-link,
+.segmented,
+.chip,
+.mobile-dock,
+.sidebar {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+button,
+a,
+[role='button'],
+label,
+summary {
+  touch-action: manipulation;
+}
+
+/* iOS amplía la página al enfocar un campo de menos de 16 px y no la devuelve. Va con !important porque
+   es una garantía, no un estilo: ningún filtro más específico puede bajarlo en pantallas táctiles. */
+@media (pointer: coarse) {
+  input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], .input-amount),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Con viewport-fit=cover el contenido se aparta de la muesca en horizontal. */
+@media (max-width: 640px) {
+  .main {
+    padding-left: max(18px, env(safe-area-inset-left));
+    padding-right: max(18px, env(safe-area-inset-right));
+  }
+}
+
+/* Los listados y ventanas largas no arrastran la página de detrás al llegar al final. */
+.modal {
+  overscroll-behavior: contain;
+}
+
+/* Selección, cursor y foco con la paleta de Neto en vez de los azules del navegador. */
+::selection {
+  background: color-mix(in srgb, var(--ink) 16%, transparent);
+  color: inherit;
+}
+input,
+textarea {
+  caret-color: var(--ink);
+}
+
+/* Las cifras se comparan: mismo ancho para cada dígito y nunca partidas en dos líneas. */
+.mid-number,
+.money,
+.amount,
+.recurring-summary strong,
+.kpi-value {
+  font-variant-numeric: tabular-nums;
+}
+.recurring-summary strong {
+  white-space: nowrap;
+}
+
+/* Respuesta al pulsar: lo que se toca se hunde un poco al instante y vuelve rápido al soltar. */
+.btn,
+.chip,
+.choice,
+.plan-pick,
+.service-tile,
+.quick-movement,
+.icon-choice,
+.segmented button,
+.nav-link,
+.account-card,
+.wallet-card,
+.goal-preview,
+.goal-deck-card,
+.home-budget,
+button.list-row,
+.finance-row-main {
+  transition-property: transform, background-color, box-shadow, color, border-color, opacity;
+  transition-duration: var(--dur-press);
+  transition-timing-function: var(--ease-out);
+}
+.btn:active:not(:disabled),
+.chip:active,
+.choice:active,
+.plan-pick:active,
+.service-tile:active,
+.quick-movement:active,
+.icon-choice:active,
+.segmented button:active,
+.mobile-dock .nav-link:active {
+  transform: scale(0.97);
+}
+/* Las tarjetas grandes se hunden menos: a ese tamaño un 3 % se nota como un salto. */
+.account-card:active,
+.wallet-card:active,
+.goal-preview:active,
+.goal-deck-card:active,
+.home-budget:active,
+button.list-row:active,
+.finance-row-main:active {
+  transform: scale(0.99);
+}
+
+/* Ventanas y avisos entran con la curva compartida. */
+.modal,
+.toast {
+  animation-duration: 200ms;
+  animation-timing-function: var(--ease-out);
+}
+
+/* Botones: el icono nunca cede espacio al texto. */
+.btn svg,
+.plan-pick svg,
+.cat-icon,
+.summary-icon {
+  flex-shrink: 0;
+}
+
+/* Control segmentado: la pastilla blanca se desliza a la opción elegida y muestra de dónde viene el cambio. */
+.segmented.has-indicator {
+  position: relative;
+  isolation: isolate;
+}
+.segmented.has-indicator > .segmented-indicator {
+  position: absolute;
+  z-index: -1;
+  top: var(--seg-top, 4px);
+  left: 0;
+  height: var(--seg-h, calc(100% - 8px));
+  width: var(--seg-w, 0);
+  transform: translateX(var(--seg-x, 0));
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  transition:
+    transform var(--dur-ui) var(--ease-out),
+    width var(--dur-ui) var(--ease-out);
+  pointer-events: none;
+}
+.segmented.has-indicator > .segmented-indicator[data-ready='false'] {
+  transition: none;
+}
+.segmented.has-indicator button[aria-pressed='true'] {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Recordatorio de copia en móvil: icono, texto y cerrar en una fila; el botón debajo del texto. */
+@media (max-width: 640px) {
+  .backup-reminder {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: 12px;
+    row-gap: 12px;
+  }
+  .backup-reminder > svg {
+    margin-top: 2px;
+  }
+  .backup-reminder > .btn-secondary {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    margin-left: 0;
+  }
+  .backup-reminder > .btn-ghost {
+    grid-column: 3;
+    grid-row: 1;
+    margin-top: -6px;
+  }
+}
+
+/* Botones de cabecera en móvil: cada uno con su texto en una línea; si no caben, bajan de fila.
+   Con tres botones, el principal ocupa la fila entera. */
+@media (max-width: 640px) {
+  .page-actions {
+    flex-wrap: wrap;
+  }
+  .page-actions > .btn {
+    flex: 1 1 auto;
+    white-space: nowrap;
+  }
+  .page-actions:has(> .btn:nth-child(3)) > .btn-primary {
+    order: -1;
+    flex-basis: 100%;
+  }
+  .budget-actions > div {
+    flex-wrap: wrap;
+  }
+  .budget-actions .btn {
+    flex: 1 1 auto;
+    white-space: nowrap;
+  }
+  .budget-actions > div:has(> .btn:nth-child(3)) > .btn-primary {
+    order: -1;
+    flex-basis: 100%;
+  }
+}
+
+/* Resumen de Recurrentes e Inversión en móvil: cifras enteras, sin partir el símbolo del euro. */
+@media (max-width: 640px) {
+  .recurring-summary > div {
+    min-width: 0;
+  }
+  .recurring-summary strong {
+    font-size: 24px;
+  }
+  .recurring-summary > div:last-child strong {
+    font-size: 20px;
+  }
+}
+@media (max-width: 380px) {
+  .recurring-summary strong {
+    font-size: 21px;
+  }
+}
+
+/* Categorías de Ajustes: el nombre se lleva todo el ancho disponible. */
+.cat-row .input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.cat-row > span,
+.cat-row .btn-icon {
+  flex-shrink: 0;
+}
+
+/* Las cifras nunca se parten: «1.250.970,00 €» se lee entero o no se lee.
+   Los nombres sí pueden partirse; los importes ceden tamaño, no líneas. */
+.big-number,
+.card-inverse .mid-number,
+.kpi-value,
+.account-balance,
+.budget-remaining strong,
+.budget-figures b,
+.trip-summary strong,
+.available-money strong,
+.available-money b,
+.month-summary strong,
+.recurring-summary strong,
+.savings-full .savings-monthly strong,
+.portfolio-value > strong,
+.ring-center > strong,
+.chart-floating-value > strong,
+.mid-number,
+.goal-totals strong,
+.plan-overview strong,
+.plan-free b,
+.portfolio-equation b,
+.savings-monthly strong,
+.subscription-card-price strong,
+.goal-preview-amount > strong,
+.holding-numbers b,
+.holding-numbers strong {
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+.ring-center > strong[data-largo='si'] {
+  font-size: 18px;
+}
+.ring-center > strong[data-largo='mucho'] {
+  font-size: 15px;
+}
+
+/* Cifras de cada inversión: en fila mientras quepan enteras; si no, la siguiente baja de línea. */
+.holding-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 24px;
+  row-gap: 14px;
+}
+.holding-numbers > span {
+  flex: 1 0 auto;
+  overflow-wrap: normal;
+}
+
+/* Un desplegable nunca es más ancho que su sitio, aunque una categoría tenga un nombre largo. */
+.select,
+select {
+  max-width: 100%;
+}
+
+@media (max-width: 360px) {
+  .savings-overview .savings-monthly strong {
+    font-size: 20px;
+  }
+  .value-chart > .mid-number {
+    font-size: 30px;
+  }
+  .segmented button {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+}
+
+/* Resumen de cuotas de Metas y Recurrentes en pantallas estrechas: una sola columna antes que cifras partidas. */
+@media (max-width: 360px) {
+  .recurring-summary {
+    grid-template-columns: 1fr;
+  }
+  .recurring-summary > div + div {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding: 16px 0 0;
+  }
+}
+
+/* Última fila de Recurrentes en móvil: icono y etiqueta arriba, el importe al mes debajo con todo el ancho. */
+@media (max-width: 640px) {
+  .recurring-summary > div:last-child {
+    grid-template-columns: 38px minmax(0, 1fr);
+    row-gap: 4px;
+  }
+  .recurring-summary > div:last-child .summary-icon {
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+  .recurring-summary > div:last-child > span:not(.summary-icon) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .recurring-summary > div:last-child strong {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .recurring-summary > div:last-child small {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+}
+
+/* Categorías sin presupuesto: el nombre largo se parte en líneas dentro de la tarjeta. */
+.budget-unplanned-name {
+  flex: 1 1 12rem;
+  min-width: 0;
+  white-space: normal;
+  text-align: left;
+  justify-content: flex-start;
+  height: auto;
+  min-height: 40px;
+}
+.budget-unplanned-name > .unplanned-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Sugerencias de categoría: como mucho dos líneas; el nombre completo queda en el título. */
+.plan-pick > span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Contador de usos de cada categoría. */
+.cat-uses {
+  font-size: 12px;
+  white-space: nowrap;
+  min-width: 74px;
+  text-align: right;
+}
+@media (max-width: 420px) {
+  .cat-uses {
+    min-width: 0;
+  }
+  .cat-row {
+    gap: 8px;
+  }
+}
+
+/* Accesos rápidos de Inicio en anchos intermedios: la etiqueta cabe entera y el icono final se retira. */
+.hero-dark .quick-movement > strong {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hero-dark .quick-movement > span,
+.hero-dark .quick-movement > svg {
+  flex-shrink: 0;
+}
+@media (min-width: 651px) and (max-width: 1100px) {
+  .hero-dark .quick-movement {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+    gap: 8px;
+    border-radius: 18px;
+  }
+  .hero-dark .quick-movement > strong {
+    font-size: 13px;
+  }
+  .hero-dark .quick-movement > svg:last-child {
+    display: none;
+  }
 }
