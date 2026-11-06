@@ -2,7 +2,7 @@ name: Neto · vista previa web
 
 on:
   push:
-    branches: [codex/neto-web-preview]
+    branches: [claude/busy-babbage-vt67in]
   workflow_dispatch:
 
 permissions:

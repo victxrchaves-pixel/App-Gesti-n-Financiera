@@ -1,5 +1,8 @@
 name: Neto
 
+# Los tests se ejecutan en cada push. Los instaladores (macOS y Windows) solo se crean
+# a mano desde la pestaña Actions («Run workflow») o al subir una etiqueta de versión
+# (por ejemplo v0.2.0): crearlos en cada push gastaba muchos minutos de GitHub.
 on:
   push:
   workflow_dispatch:
@@ -19,12 +22,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run format:check
       - run: npm run typecheck
       - run: npm test
 
   instaladores:
     name: Instalador ${{ matrix.nombre }}
     needs: tests
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
     strategy:
       fail-fast: false
       matrix:

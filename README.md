@@ -19,9 +19,10 @@ Finanzas personales para cualquier persona, con un **modo autónomo** opcional p
 
 ## Instalar una versión de prueba
 
-Cada vez que se sube código, GitHub Actions genera los instaladores:
+Los instaladores no se crean en cada push (gastaría muchos minutos de GitHub). Para pedirlos:
 
-1. Entra en la pestaña **Actions** del repositorio y abre la última ejecución de «Neto» en verde.
+1. Entra en la pestaña **Actions** del repositorio, elige el workflow «Neto» y pulsa **Run workflow**
+   (o sube una etiqueta de versión, por ejemplo `v0.2.0`). Cuando termine en verde, ábrela.
 2. Abajo, en **Artifacts**, descarga `Neto-macOS` (un `.dmg`) o `Neto-Windows` (un `.exe`).
 3. Descomprime el `.zip` e instala.
 

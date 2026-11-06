@@ -16,9 +16,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Sin «ref»: las ejecuciones programadas usan la rama predeterminada del repositorio.
       - uses: actions/checkout@v4
-        with:
-          ref: codex/neto-web-preview
       - uses: actions/setup-node@v4
         with:
           node-version: 22

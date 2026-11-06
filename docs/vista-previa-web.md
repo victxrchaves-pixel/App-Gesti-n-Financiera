@@ -9,17 +9,17 @@ la aplicación compilada. Los datos de ejemplo solo se añaden al pulsar «Carga
 1. Comprobar que el repositorio admite GitHub Pages y que no hay un sitio existente
    que deba conservarse. Si ya lo hay, acordar otro destino antes de desplegar.
 2. En Settings → Pages del repositorio, elegir GitHub Actions como origen.
-3. Subir el código revisado a la rama `codex/neto-web-preview`. El workflow
+3. Subir el código revisado a la rama `claude/busy-babbage-vt67in`. El workflow
    `Neto · vista previa web` ejecuta los tests, comprueba los tipos, compila y despliega.
 4. Abrir el enlace que devuelve el paso de despliegue cuando termine correctamente.
    No dar una URL por activa hasta comprobarla desde el navegador.
 
 Si el entorno `github-pages` tiene restricciones de ramas, permitir
-`codex/neto-web-preview` para ese despliegue. No desactivar revisiones obligatorias.
+`claude/busy-babbage-vt67in` para ese despliegue. No desactivar revisiones obligatorias.
 
 ## Cada cambio
 
-Hacer commit y push de los cambios a `codex/neto-web-preview`. GitHub Actions
+Hacer commit y push de los cambios a `claude/busy-babbage-vt67in`. GitHub Actions
 actualizará el mismo enlace tras completar el despliegue. Recargar la página para
 ver la nueva versión; la web alojada no recibe las ediciones locales al instante.
 Si los tests o la compilación fallan, la versión publicada anterior permanece.
@@ -74,7 +74,7 @@ de rentabilidad ajustada por flujos.
 
 El workflow `refresh-quotes.yml` debe existir también en la rama predeterminada
 para que GitHub ejecute su programación. Cada seis horas hace checkout de
-`codex/neto-web-preview`, consulta precios, verifica y recompila la web, y publica
+la rama predeterminada, consulta precios, verifica y recompila la web, y publica
 el mismo enlace. GitHub puede retrasar o desactivar ejecuciones programadas según
 sus límites y la actividad del repositorio; las fechas visibles permiten detectarlo.
 La publicación periódica no modifica las posiciones guardadas en cada navegador:
