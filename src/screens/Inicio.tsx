@@ -1,8 +1,10 @@
+import {AvailableDetails,HomeRecurring,BackupReminder} from '../ui/HomeFinance';
+import {BudgetReview} from '../ui/BudgetReview';
 import { useMemo, useState } from 'react';
 import { colorCategoria, config } from '../config/neto.config';
-import { useAjustes, useCuentas, useMapaCategorias, useMovimientos } from '../db/hooks';
+import { useAjustes, useCuentas, useMapaCategorias, useMovimientos, useHoy } from '../db/hooks';
 import { patrimonio, dineroDisponible } from '../lib/balances';
-import { greeting, longDate, monthKey, monthLabel, monthShortLabel, todayISO } from '../lib/dates';
+import { greeting, longDate, monthKey, monthLabel, monthShortLabel } from '../lib/dates';
 import { formatMoney } from '../lib/money';
 import { gastoPorCategoria, ordenarMovimientos, resumenMes, ultimosMeses } from '../lib/stats';
 import { PageHeader } from '../layout/Shell';
@@ -12,18 +14,19 @@ import { Donut, type Porcion } from '../ui/Donut';
 import { Icon } from '../ui/Icon';
 import { MovimientoForm } from '../ui/MovimientoForm';
 import { MovimientoRow } from '../ui/MovimientoRow';
-import type { Movimiento } from '../db/types';
+import type { Movimiento,TipoMovimiento } from '../db/types';
 
 export function Inicio() {
   const ajustes = useAjustes();
   const cuentas = useCuentas();
   const movimientos = useMovimientos();
   const categorias = useMapaCategorias();
-  const [form, setForm] = useState<{ movimiento?: Movimiento } | null>(null);
+  const [form, setForm] = useState<{ movimiento?: Movimiento;tipo?:TipoMovimiento } | null>(null);
 
   const [periodo, setPeriodo] = useState<string>(config.inicio.periodoInicial);
   const meses = Number(periodo);
-  const hoy = todayISO();
+  const hoy = useHoy();
+  const [verDisponible,setVerDisponible]=useState(false);
   const mes = monthKey(hoy);
   const ahora = new Date();
 
@@ -38,7 +41,7 @@ export function Inicio() {
   );
 
   const porciones = useMemo<Porcion[]>(() => {
-    const lista = gastoPorCategoria(movimientos, cuentas, mes);
+    const lista = gastoPorCategoria(movimientos, cuentas, mes).filter(p=>p.importe>0);
     const max = config.inicio.maxCategoriasDona;
     const visibles = lista.length > max ? lista.slice(0, max - 1) : lista;
     const resto = lista.slice(visibles.length).reduce((s, x) => s + x.importe, 0);
@@ -50,6 +53,7 @@ export function Inicio() {
     return out;
   }, [movimientos, cuentas, mes, categorias]);
 
+  const creditos=gastoPorCategoria(movimientos,cuentas,mes).filter(p=>p.importe<0);
   const cuentasPersonales = cuentas.filter((c) => c.ambito === 'personal' && !c.eliminada && !c.archivada && !c.cuentaPadreId);
   const nombre = ajustes?.nombre ? `, ${ajustes.nombre}` : '';
   const fechaTexto = longDate(hoy);
@@ -72,10 +76,11 @@ export function Inicio() {
         </div>
       ) : (
         <div className="stack">
+          <div className="quick-movements" aria-label="Registrar un movimiento"><button className="quick-movement" onClick={()=>setForm({tipo:'gasto'})}><span className="expense-text"><Icon name="gasto"/></span><strong>Registrar gasto</strong><Icon name="mas" size={18}/></button><button className="quick-movement" onClick={()=>setForm({tipo:'ingreso'})}><span className="income-text"><Icon name="ingreso"/></span><strong>Registrar ingreso</strong><Icon name="mas" size={18}/></button><button className="quick-movement" onClick={()=>setForm({tipo:'transferencia'})}><Icon name="transferencia"/><strong>Transferir</strong><Icon name="flecha" size={18}/></button></div>
           <div className="overview-grid">
             <section className="available-money">
-              <div className="available-main"><span className="eyebrow">Disponible para gastar</span><strong>{formatMoney(disponible.disponible)}</strong><small>Dinero actual en tus cuentas de uso.</small></div>
-              <div className="available-savings"><span className="savings-symbol"><Icon name="ahorro" size={22}/></span><span>Ahorro separado</span><b>{formatMoney(disponible.ahorro)}</b><small>Incluye tus cuentas de ahorro y metas.</small></div>
+              <div className="available-main"><span className="eyebrow">Disponible para gastar</span><strong>{formatMoney(disponible.disponible)}</strong><small>Dinero actual en tus cuentas de uso.</small><button className="available-explain text-link" onClick={()=>setVerDisponible(true)}>Ver cómo se calcula <Icon name="derecha" size={15}/></button></div>
+              <div className="available-savings"><span className="savings-symbol"><Icon name="ahorro" size={22}/></span><span>Ahorro separado</span><b>{formatMoney(disponible.ahorro)}</b><small>Todo tu ahorro, repartido entre tus metas.</small></div>
               <p><Icon name="check" size={15}/>Solo dinero registrado. Sin anticipar pagos ni ingresos.</p>
             </section>
             <div className="wallet-stack patrimony-stack"><a className="card account-card card-inverse" href="#/cuentas" style={{ textDecoration:'none' }}>
@@ -84,6 +89,7 @@ export function Inicio() {
               <div className="muted card-link"><span>{cuentasPersonales.length} cuenta{cuentasPersonales.length === 1 ? '' : 's'} · Ver cuentas</span><span className="glass-icon"><Icon name="flecha" size={18}/></span></div>
             </a></div>
           </div>
+          <HomeRecurring/><BudgetReview mes={mes}/>
           <section className="month-summary" aria-label="Resumen del mes">
             <div><span className="eyebrow">Balance de {monthLabel(mes, false)}</span><strong>{formatMoney(resumen.neto)}</strong><small>Ingresos menos gastos</small></div>
             <div><span className="summary-icon income-text"><Icon name="ingreso" size={20}/></span><span className="kpi-label">Ingresos del mes</span><strong className="income-text">{formatMoney(resumen.ingresos)}</strong></div>
@@ -111,9 +117,11 @@ export function Inicio() {
               ) : (
                 <Donut porciones={porciones} titulo={`Gasto por categoría en ${monthLabel(mes)}`} />
               )}
+              {creditos.length>0&&<div className="category-refunds"><p>Devoluciones que superan los gastos de su categoría este mes:</p><dl className="finance-breakdown">{creditos.map(p=><div key={p.categoriaId}><dt>{categorias.get(p.categoriaId??'')?.nombre??'Sin categoría'}</dt><dd>{formatMoney(-p.importe)}</dd></div>)}</dl><small>El anillo muestra las categorías con gasto neto positivo. Estas devoluciones se restan del gasto total del mes.</small></div>}
             </section>
           </div>
 
+          <BackupReminder/>
           <section className="card">
             <div className="card-header">
               <h2 className="card-title">Últimos movimientos</h2>
@@ -132,7 +140,8 @@ export function Inicio() {
         </div>
       )}
 
-      {form && <MovimientoForm movimiento={form.movimiento} onClose={() => setForm(null)} />}
+      {verDisponible&&<AvailableDetails cerrar={()=>setVerDisponible(false)}/>}
+      {form && <MovimientoForm tipoInicial={form.tipo} movimiento={form.movimiento} onClose={() => setForm(null)} />}
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { saldosPorCuenta } from '../lib/balances';
 import { db } from './db';
 import { AJUSTES_POR_DEFECTO } from './repo';
@@ -44,3 +44,11 @@ export function useAportesMetas() { return useLiveQuery(() => db.aportesMetas.or
 
 export function usePagosFijos() { return useLiveQuery(() => db.pagosFijos.toArray(), [], []); }
 export function usePagosRegistrados() { return useLiveQuery(() => db.pagosRegistrados.orderBy('fecha').reverse().toArray(), [], []); }
+
+export function usePlanMes(mes:string) { return useLiveQuery(()=>db.planesMes.get(mes),[mes]); }
+export function useHoy() {
+  const fecha=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+  const [hoy,setHoy]=useState(fecha);
+  useEffect(()=>{const actualizar=()=>setHoy(fecha());const timer=setInterval(actualizar,30000);window.addEventListener('focus',actualizar);return()=>{clearInterval(timer);window.removeEventListener('focus',actualizar)}},[]);
+  return hoy;
+}

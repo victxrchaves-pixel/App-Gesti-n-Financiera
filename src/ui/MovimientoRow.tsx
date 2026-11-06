@@ -20,7 +20,7 @@ export function MovimientoRow({
   const titulo = m.nota || (esTransfer ? 'Transferencia' : cat?.nombre ?? 'Sin categoría');
   const sub = esTransfer
     ? `${nombreCuenta(cuenta)??'—'} → ${nombreCuenta(destino)??'—'}`
-    : [m.nota ? cat?.nombre : null, nombreCuenta(cuenta)].filter(Boolean).join(' · ');
+    : [m.devolucionDe?'Devolución':m.reparto?.length?'Varias categorías':m.nota ? cat?.nombre : null, nombreCuenta(cuenta)].filter(Boolean).join(' · ');
   const color = esTransfer ? 'var(--text-3)' : colorCategoria(cat?.color);
 
   return (
@@ -33,7 +33,7 @@ export function MovimientoRow({
         <div className="row-sub">{sub}{cuenta?.eliminada?' · Cuenta eliminada':''}{m.fecha>todayISO()?' · Corregir fecha futura':''}</div>
       </span>
       <span className={`row-amount${m.tipo === 'ingreso' ? ' positive' : m.tipo === 'gasto' ? ' expense-text' : ''}${esTransfer ? ' faint' : ''}`}>
-        {formatMoney(m.tipo === 'gasto' ? -m.importe : m.importe, { signo: m.tipo === 'ingreso' ? 'siempre' : 'auto' })}
+        {formatMoney(m.tipo === 'gasto' ? -Math.abs(m.importe) : Math.abs(m.importe), { signo: m.tipo === 'ingreso' ? 'siempre' : 'auto' })}
       </span>
     </button>
   );

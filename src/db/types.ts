@@ -23,6 +23,9 @@ export interface Cuenta {
 export type TipoMovimiento = 'ingreso' | 'gasto' | 'transferencia';
 
 export interface Movimiento {
+  /** One bank movement, several accounting categories. */
+  reparto?: { categoriaId: string; importe: number }[];
+  devolucionDe?: string;
   operacionId?: string;
   metaId?: string;
   partidaViajeId?: string;
@@ -55,6 +58,7 @@ export interface Categoria {
 }
 
 export interface Ajustes {
+  ultimaCopiaEn?: string;
   id: 'ajustes';
   colorAcento?: string | null;
   colorIngresos?: string | null;
@@ -66,6 +70,7 @@ export interface Ajustes {
 }
 
 export interface Suscripcion {
+  periodosOmitidos?: string[];
   servicioId?: string | null;
   id: string;
   nombre: string;
@@ -112,6 +117,12 @@ export interface Presupuesto {
   limite: number;
 }
 
+export interface PlanMes {
+  id: string;
+  repetidoDe?: string;
+  revisado: boolean;
+}
+
 export interface PartidaViaje {
   id: string;
   nombre: string;
@@ -148,6 +159,7 @@ export interface AporteMeta {
 }
 
 export interface PagoFijo {
+  periodosOmitidos?: string[];
   id: string;
   nombre: string;
   tipo: 'gasto' | 'ingreso';

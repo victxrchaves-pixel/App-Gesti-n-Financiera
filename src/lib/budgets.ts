@@ -1,3 +1,4 @@
+import { desglosarGastos } from './movements';
 import { esColor } from './colors';
 import type { Cuenta, Movimiento, Presupuesto } from '../db/types';
 import { config } from '../config/neto.config';
@@ -13,9 +14,10 @@ export function validarPresupuesto(p: Omit<Presupuesto, 'id'>): string | null {
 }
 export function gastosPresupuesto(movimientos: Movimiento[], cuentas: Cuenta[], mes: string, hoy: string): Movimiento[] {
   const personales = new Set(cuentas.filter(c => c.ambito === 'personal').map(c => c.id));
-  return movimientos.filter(m => m.tipo === 'gasto' && personales.has(m.cuentaId) && m.fecha.startsWith(`${mes}-`) && m.fecha <= hoy);
+  return desglosarGastos(movimientos).filter(m => personales.has(m.cuentaId) && m.fecha.startsWith(`${mes}-`) && m.fecha <= hoy);
 }
 export function estadoPresupuesto(gastado: number, limite: number) {
+  if (gastado < 0) return 'Saldo a favor';
   if (gastado > limite) return 'Superado';
   if (gastado === limite) return 'Límite alcanzado';
   if (gastado / limite * 100 >= config.presupuestos.avisoPorcentaje) return 'Cerca del límite';

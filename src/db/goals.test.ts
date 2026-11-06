@@ -65,9 +65,9 @@ it('elimina una cuenta de los totales, preserva el historial y pausa sus metas; 
  const id=await guardarMeta({...base,cuentaOrigenId:cuenta},undefined,d);await expect(actualizarCuenta(cuenta,{archivada:true},d)).rejects.toThrow('no se archivan');await borrarCuenta(cuenta,d);await sincronizarMetas(mes(),d);
  expect((await d.metas.get(id))?.activa).toBe(false);expect(await d.movimientos.count()).toBe(1);expect(dineroDisponible(await d.cuentas.toArray(),await d.movimientos.toArray())).toEqual({total:10000,ahorro:10000,disponible:0});expect(saldosPorCuenta(await d.cuentas.toArray(),await d.movimientos.toArray()).get(cuenta)).toBe(90000);
 });
-it('las copias v9 conservan reparto, viajes y cuentas eliminadas; detectan repartos que no cuadran y admiten v7',async()=>{
+it('las copias v10 conservan reparto, viajes y cuentas eliminadas; detectan repartos que no cuadran y admiten v7',async()=>{
  const id=await guardarMeta({...base,cuentaOrigenId:cuenta,automatica:false},undefined,d);await aportarMeta(id,30000,[addMonths(mes(),-2),addMonths(mes(),-1),mes()],todayISO(),'bulk',d);await gastarMeta({metaId:id,importe:5000,fecha:todayISO(),categoriaId:gasto,nota:'Hotel',operacionId:'hotel'},d);await borrarCuenta(cuenta,d);
- const copia=await crearCopia(d);expect(copia.version).toBe(9);expect(validarCopia(copia).ok).toBe(true);await restaurarCopia(copia,d);expect(await crearCopia(d,new Date(copia.exportadaEn))).toEqual(copia);
+ const copia=await crearCopia(d);expect(copia.version).toBe(10);expect(validarCopia(copia).ok).toBe(true);await restaurarCopia(copia,d);expect(await crearCopia(d,new Date(copia.exportadaEn))).toEqual(copia);
  const mala=structuredClone(copia);(mala.datos.aportesMetas[0] as {importe:number}).importe++;expect(validarCopia(mala).ok).toBe(false);expect(validarCopia({app:'neto',version:7,datos:{}}).ok).toBe(true);
  const total=patrimonio(await d.cuentas.toArray(),await d.movimientos.toArray(),'personal');await borrarMeta(id,d);expect(await d.aportesMetas.count()).toBe(0);expect(await d.movimientos.count()).toBe(3);expect(patrimonio(await d.cuentas.toArray(),await d.movimientos.toArray(),'personal')).toBe(total);
 });

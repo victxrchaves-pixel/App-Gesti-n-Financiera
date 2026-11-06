@@ -3,6 +3,18 @@ import type { Presupuesto } from './types';
 import { mesValido, validarPresupuesto } from '../lib/budgets';
 import { newId } from '../lib/id';
 
+/** Materialise a month once. Empty plans are intentional and never resurrect deleted limits. */
+export async function asegurarPlanMes(mes:string,d:NetoDB=db) {
+  if(!mesValido(mes))throw new Error('Elige un mes válido.');
+  return d.transaction('rw',d.planesMes,d.presupuestos,d.categorias,async()=>{
+    const existente=await d.planesMes.get(mes);if(existente)return existente;
+    const presupuestos=await d.presupuestos.toArray(),planes=await d.planesMes.toArray();
+    const anterior=[...new Set([...presupuestos.map(p=>p.mes),...planes.map(p=>p.id)])].filter(m=>m<mes).sort().at(-1);
+    if(anterior)await copiarPresupuestos(anterior,mes,d);
+    const plan={id:mes,repetidoDe:anterior,revisado:!anterior};await d.planesMes.add(plan);return plan;
+  });
+}
+
 export async function guardarPresupuesto(datos: Omit<Presupuesto, 'id'>, id?: string, d: NetoDB = db) {
   const error = validarPresupuesto(datos); if (error) throw new Error(error);
   return d.transaction('rw', d.presupuestos, d.categorias, async () => {

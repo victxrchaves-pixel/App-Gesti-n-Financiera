@@ -1,5 +1,7 @@
+import { validarReparto,partesMovimiento } from './movements';
+import { mesValido } from './budgets';
 import { agruparAhorro } from '../db/savings';
-import type { Cuenta } from '../db/types';
+import type { Cuenta,Movimiento } from '../db/types';
 import { validarPagoFijo } from '../db/recurring';
 import type { PagoFijo, PagoRegistrado } from '../db/types';
 import { validarMeta, validarAporte } from '../db/goals';
@@ -86,6 +88,26 @@ export function validarCopia(entrada: unknown): ResultadoValidacion {
       return { ok: false, error: 'Hay movimientos con importe o fecha no válidos.' };
     }
   }
+  const movimientos=datos.movimientos as Movimiento[],mapaMov=new Map(movimientos.map(m=>[m.id,m]));
+  const totalesDevueltos=new Map<string,Map<string|undefined,number>>();
+  for(const m of movimientos){
+    const error=validarReparto(m);if(error)return {ok:false,error};
+    if(m.reparto?.some(p=>!(datos.categorias as {id:string;tipo:string}[]).some(c=>c.id===p.categoriaId&&c.tipo===(m.devolucionDe?'gasto':m.tipo))))return {ok:false,error:'El reparto contiene categorías no válidas.'};
+    if(m.devolucionDe){
+      const original=mapaMov.get(m.devolucionDe);
+      if(m.tipo!=='ingreso'||original?.tipo!=='gasto'||m.fecha<original.fecha)return {ok:false,error:'Hay una devolución sin gasto original válido.'};
+      const totales=totalesDevueltos.get(original.id)??new Map<string|undefined,number>();
+      for(const parte of partesMovimiento(m))totales.set(parte.categoriaId,(totales.get(parte.categoriaId)??0)+parte.importe);
+      totalesDevueltos.set(original.id,totales);
+    }
+  }
+  for(const [id,totales] of totalesDevueltos){
+    const partes=partesMovimiento(mapaMov.get(id)!);
+    for(const [categoriaId,total] of totales)if(!Number.isSafeInteger(total)||total>(partes.find(p=>p.categoriaId===categoriaId)?.importe??0))return {ok:false,error:'Las devoluciones superan el gasto original.'};
+  }
+  for(const plan of datos.planesMes as {id:string;repetidoDe?:string;revisado:boolean}[])if(!mesValido(plan.id)||typeof plan.revisado!=='boolean'||(plan.repetidoDe!==undefined&&(!mesValido(plan.repetidoDe)||plan.repetidoDe>=plan.id)))return {ok:false,error:'El plan mensual no es válido.'};
+  for(const a of datos.ajustes as {ultimaCopiaEn?:string}[])if(a.ultimaCopiaEn!==undefined&&(typeof a.ultimaCopiaEn!=='string'||!Number.isFinite(Date.parse(a.ultimaCopiaEn))))return {ok:false,error:'La fecha de la última copia no es válida.'};
+  for(const ficha of [...datos.suscripciones,...datos.pagosFijos] as {periodosOmitidos?:string[]}[])if(ficha.periodosOmitidos!==undefined&&(!Array.isArray(ficha.periodosOmitidos)||ficha.periodosOmitidos.some(f=>typeof f!=='string'||!isISODate(f))||new Set(ficha.periodosOmitidos).size!==ficha.periodosOmitidos.length))return {ok:false,error:'Hay periodos omitidos no válidos.'};
   for (const s of datos.suscripciones) {
     const error = validarSuscripcion(s as Suscripcion);
     if (error) return { ok: false, error: `Suscripción no válida: ${error}` };

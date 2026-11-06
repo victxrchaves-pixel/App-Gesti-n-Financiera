@@ -59,10 +59,10 @@ export function CuentaForm({ cuenta, onClose, ambitoInicial = 'personal' }: { cu
           </div>
         )}
         <div className="field">
-          <label className="field-label" htmlFor="cf-saldo">{cuenta?.ahorroGeneral?'Saldo inicial fuera de metas':cuenta?'Saldo inicial':'Saldo actual'}</label>
+          <label className="field-label" htmlFor="cf-saldo">{cuenta?.ahorroGeneral?'Saldo inicial de ahorro':cuenta?'Saldo inicial':'Saldo actual'}</label>
           <AmountInput id="cf-saldo" texto={saldo.texto} onChange={(t) => { saldo.setTexto(t); setError(null); }} permitirNegativo />
           <span className="field-hint">
-            {cuenta?.ahorroGeneral?'El ahorro de las metas se suma automáticamente. Este campo solo cambia el saldo inicial del ahorro sin asignar.':cuenta
+            {cuenta?.ahorroGeneral?'El ahorro de las metas se suma automáticamente. El saldo inicial se incluye en la meta Ahorro general.':cuenta
               ? 'El saldo con el que diste de alta la cuenta. El saldo actual se calcula sumando los movimientos.'
               : 'Lo que tienes hoy. A partir de aquí, el saldo se actualiza con tus movimientos.'}
           </span>

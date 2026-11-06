@@ -1,7 +1,7 @@
 import { agruparAhorro } from './savings';
 import { neutralizarInicial, colorSemanticoInicial } from '../lib/colors';
 import Dexie, { type EntityTable } from 'dexie';
-import type { Ajustes, Categoria, Cuenta, Movimiento, Suscripcion, Inversion, HistorialCartera, Presupuesto, Meta, AporteMeta, PagoFijo, PagoRegistrado } from './types';
+import type { Ajustes, Categoria, Cuenta, Movimiento, Suscripcion, Inversion, HistorialCartera, Presupuesto, Meta, AporteMeta, PagoFijo, PagoRegistrado, PlanMes } from './types';
 
 /** Base de datos local (IndexedDB). Los datos nunca salen del ordenador. */
 export class NetoDB extends Dexie {
@@ -18,6 +18,7 @@ export class NetoDB extends Dexie {
   metas!: EntityTable<Meta, 'id'>;
   aportesMetas!: EntityTable<AporteMeta, 'id'>;
 
+  planesMes!: EntityTable<PlanMes, 'id'>;
   pagosFijos!: EntityTable<PagoFijo, 'id'>;
   pagosRegistrados!: EntityTable<PagoRegistrado, 'id'>;
 
@@ -52,11 +53,12 @@ export class NetoDB extends Dexie {
       });
     });
     this.version(8).stores({}).upgrade(tx=>agruparAhorro({cuentas:tx.table('cuentas'),metas:tx.table('metas')}).then(()=>undefined));
+    this.version(9).stores({planesMes:'id'});
   }
 }
 
 export const db = new NetoDB();
 
 /** Tablas incluidas en la copia de seguridad. Añade aquí las nuevas tablas. */
-export const TABLAS = ['cuentas', 'movimientos', 'categorias', 'ajustes', 'suscripciones', 'inversiones', 'historialCartera', 'presupuestos', 'metas', 'aportesMetas', 'pagosFijos', 'pagosRegistrados'] as const;
+export const TABLAS = ['cuentas', 'movimientos', 'categorias', 'ajustes', 'suscripciones', 'inversiones', 'historialCartera', 'presupuestos', 'metas', 'aportesMetas', 'pagosFijos', 'pagosRegistrados', 'planesMes'] as const;
 export type NombreTabla = (typeof TABLAS)[number];

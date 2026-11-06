@@ -1,3 +1,4 @@
+import { validarReparto } from '../lib/movements';
 import { isISODate, todayISO } from '../lib/dates';
 import { CAMPOS_COLOR, esColor } from '../lib/colors';
 import { config } from '../config/neto.config';
@@ -91,6 +92,7 @@ export async function borrarCuenta(id: string, d: NetoDB = db): Promise<void> {
 
 export type DatosMovimiento = Pick<Movimiento, 'tipo' | 'fecha' | 'importe' | 'cuentaId' | 'cuentaDestinoId' | 'categoriaId' | 'nota'> & {
   origen?: Movimiento['origen'];
+  reparto?: Movimiento['reparto'];
 };
 
 export function validarMovimiento(m: DatosMovimiento): string | null {
@@ -104,18 +106,19 @@ export function validarMovimiento(m: DatosMovimiento): string | null {
   } else if (!m.categoriaId) {
     return 'Elige una categoría.';
   }
-  return null;
+  return validarReparto(m);
 }
 
 function normalizar(m: DatosMovimiento): DatosMovimiento {
   return m.tipo === 'transferencia'
-    ? { ...m, categoriaId: undefined }
-    : { ...m, cuentaDestinoId: undefined };
+    ? { ...m, categoriaId: undefined, reparto:undefined }
+    : { ...m, cuentaDestinoId: undefined, reparto:m.reparto };
 }
 
 export async function crearMovimiento(datos: DatosMovimiento, d: NetoDB = db): Promise<string> {
   const error = validarMovimiento(datos);
   if (error) throw new Error(error);
+  if(datos.reparto)for(const parte of datos.reparto)if((await d.categorias.get(parte.categoriaId))?.tipo!==datos.tipo)throw new Error('El reparto usa una categoría del tipo incorrecto.');
   const id = newId();
   const t = ahora();
   await d.movimientos.add({ ...normalizar(datos), origen: datos.origen ?? 'manual', id, nota: datos.nota.trim(), creadoEn: t, actualizadoEn: t });
@@ -125,13 +128,20 @@ export async function crearMovimiento(datos: DatosMovimiento, d: NetoDB = db): P
 export async function actualizarMovimiento(id: string, datos: DatosMovimiento, d: NetoDB = db): Promise<void> {
   const error = validarMovimiento(datos);
   if (error) throw new Error(error);
-  const actual = await d.movimientos.get(id);
-  if (!actual) throw new Error('El movimiento ya no existe.');
-  await d.movimientos.put({ ...actual, ...normalizar(datos), nota: datos.nota.trim(), actualizadoEn: ahora() });
+  await d.transaction('rw',d.movimientos,d.categorias,async()=>{
+    const actual=await d.movimientos.get(id);if(!actual)throw new Error('El movimiento ya no existe.');
+    if(actual.devolucionDe)throw new Error('Anula esta devolución y vuelve a registrarla con los datos correctos.');
+    if(await d.movimientos.filter(m=>m.devolucionDe===id).count())throw new Error('Anula primero las devoluciones vinculadas antes de modificar el gasto original.');
+    if(datos.reparto)for(const parte of datos.reparto)if((await d.categorias.get(parte.categoriaId))?.tipo!==datos.tipo)throw new Error('El reparto usa una categoría del tipo incorrecto.');
+    await d.movimientos.put({...actual,...normalizar(datos),nota:datos.nota.trim(),actualizadoEn:ahora()});
+  });
 }
 
 export async function borrarMovimiento(id: string, d: NetoDB = db): Promise<void> {
-  await d.movimientos.delete(id);
+  await d.transaction('rw',d.movimientos,async()=>{
+    if(await d.movimientos.filter(m=>m.devolucionDe===id).count())throw new Error('Anula primero las devoluciones vinculadas antes de borrar el gasto original.');
+    await d.movimientos.delete(id);
+  });
 }
 
 // ── Categorías ─────────────────────────────────────────────────────────────
@@ -171,7 +181,10 @@ export async function borrarCategoria(id: string, destinoId?: string, d: NetoDB 
         await d.presupuestos.delete(p.id);
       } else await d.presupuestos.update(p.id, { categoriaId: destino });
     }
-    await d.movimientos.where('categoriaId').equals(id).modify({ categoriaId: destino });
+    await d.movimientos.toCollection().modify(m=>{
+      if(m.categoriaId===id)m.categoriaId=destino;
+      if(m.reparto){const partes=new Map<string,number>();for(const p of m.reparto){const clave=p.categoriaId===id?destino:p.categoriaId;partes.set(clave,(partes.get(clave)??0)+p.importe)}m.reparto=partes.size>1?[...partes].map(([categoriaId,importe])=>({categoriaId,importe})):undefined;if(partes.size===1)m.categoriaId=[...partes.keys()][0];}
+    });
     await d.pagosFijos.filter(p=>p.categoriaId===id).modify({ categoriaId: destino });
     await d.categorias.delete(id);
   });

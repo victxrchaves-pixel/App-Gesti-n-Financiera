@@ -1,3 +1,4 @@
+import { desglosarGastos } from './movements';
 import type { Ambito, Cuenta, Movimiento } from '../db/types';
 import { lastMonths, monthKey, todayISO } from './dates';
 
@@ -15,6 +16,7 @@ export interface Clasificacion {
 
 export function clasificar(m: Movimiento, ambitoDe: (cuentaId: string | undefined) => Ambito | undefined, ambito: Ambito): Clasificacion {
   const origen = ambitoDe(m.cuentaId);
+  if(m.devolucionDe)return {ingreso:0,gasto:origen===ambito?-m.importe:0};
   if (m.tipo === 'ingreso') return { ingreso: origen === ambito ? m.importe : 0, gasto: 0 };
   if (m.tipo === 'gasto') return { ingreso: 0, gasto: origen === ambito ? m.importe : 0 };
   const destino = ambitoDe(m.cuentaDestinoId);
@@ -67,13 +69,13 @@ export interface GastoCategoria {
 export function gastoPorCategoria(movimientos: Movimiento[], cuentas: Cuenta[], mes: string, ambito: Ambito = 'personal'): GastoCategoria[] {
   const ambitoDe = indiceAmbitos(cuentas);
   const acc = new Map<string | undefined, number>();
-  for (const m of movimientos.filter(m=>m.fecha<=todayISO())) {
-    if (m.tipo !== 'gasto' || monthKey(m.fecha) !== mes || ambitoDe(m.cuentaId) !== ambito) continue;
+  for (const m of desglosarGastos(movimientos).filter(m=>m.fecha<=todayISO())) {
+    if (!['gasto','ingreso'].includes(m.tipo) || monthKey(m.fecha) !== mes || ambitoDe(m.cuentaId) !== ambito) continue;
     acc.set(m.categoriaId, (acc.get(m.categoriaId) ?? 0) + m.importe);
   }
   return [...acc.entries()]
     .map(([categoriaId, importe]) => ({ categoriaId, importe }))
-    .sort((a, b) => b.importe - a.importe);
+    .filter(p=>p.importe!==0).sort((a, b) => b.importe - a.importe);
 }
 
 /** Ordena por fecha descendente y, a igual fecha, por hora de creación descendente. */

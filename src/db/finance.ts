@@ -7,7 +7,7 @@ import { validarInversion, valorInversion } from '../lib/investments';
 export async function guardarSuscripcion(datos: Omit<Suscripcion, 'id'>, id?: string, d: NetoDB = db) {
   const error = validarSuscripcion(datos); if (error) throw new Error(error);
   const clave = id ?? newId();
-  await d.suscripciones.put({ ...datos, nombre: datos.nombre.trim(), categoria: datos.categoria.trim(), id: clave });
+  await d.suscripciones.put({ ...(id?await d.suscripciones.get(id):{}),...datos, nombre: datos.nombre.trim(), categoria: datos.categoria.trim(), id: clave });
   return clave;
 }
 /** Avanza una sola cuota y exige la fecha que vio el usuario: evita dobles pulsaciones. */

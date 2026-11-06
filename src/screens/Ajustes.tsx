@@ -95,7 +95,7 @@ export function Ajustes() {
   const [nombre, setNombre] = useState<string | null>(null);
 
   const usos = new Map<string, number>();
-  for (const m of movimientos) if (m.categoriaId) usos.set(m.categoriaId, (usos.get(m.categoriaId) ?? 0) + 1);
+  for(const m of movimientos)for(const id of new Set(m.reparto?.map(p=>p.categoriaId)??(m.categoriaId?[m.categoriaId]:[])))usos.set(id,(usos.get(id)??0)+1);
 
   if (!ajustes) return null;
 
@@ -118,7 +118,7 @@ export function Ajustes() {
       const ok = await guardarArchivo(nombreArchivoCopia(), JSON.stringify(copia, null, 2), {
         descripcion: 'Copia de Neto', extension: 'json', tipoMime: 'application/json',
       });
-      if (ok) avisar('Copia de seguridad guardada');
+      if(ok){await guardarAjustes({ultimaCopiaEn:copia.exportadaEn});avisar('Copia de seguridad guardada');}
     } catch (e) {
       avisar(`No se pudo guardar la copia: ${e instanceof Error ? e.message : String(e)}`);
     }
@@ -145,6 +145,7 @@ export function Ajustes() {
     });
     if (!ok) return;
     await restaurarCopia(r.copia);
+    if(Number.isFinite(Date.parse(r.copia.exportadaEn)))await guardarAjustes({ultimaCopiaEn:r.copia.exportadaEn});
     avisar('Copia restaurada');
   };
 
@@ -222,6 +223,7 @@ export function Ajustes() {
           <p className="muted" style={{ margin: '0 0 18px', maxWidth: 620 }}>
             Tus datos solo están en este ordenador. Guarda una copia de vez en cuando (por ejemplo, en un disco externo o en tu nube) para no perderlos si cambias de ordenador.
           </p>
+          <p className="backup-last">Última copia: {ajustes.ultimaCopiaEn?new Date(ajustes.ultimaCopiaEn).toLocaleString('es-ES',{dateStyle:'long',timeStyle:'short'}):'Todavía no has guardado una copia'}</p>
           <div className="page-actions">
             <button className="btn btn-primary" onClick={() => void exportar()}><Icon name="descargar" size={16} stroke={2} />Guardar copia</button>
             <button className="btn btn-secondary" onClick={() => archivo.current?.click()}><Icon name="subir" size={16} stroke={2} />Restaurar copia</button>

@@ -1,3 +1,4 @@
+import {ImportCSV} from '../ui/ImportCSV';
 import { useMemo, useState } from 'react';
 import { useAjustes, useCategorias, useCuentas, useMapaCategorias, useMovimientos } from '../db/hooks';
 import type { Movimiento, TipoMovimiento } from '../db/types';
@@ -27,6 +28,7 @@ export function Movimientos() {
   const categorias = useMapaCategorias();
   const movimientos = useMovimientos();
   const hoy = todayISO();
+  const [importar,setImportar]=useState(false);
 
   const [mes, setMes] = useState(monthKey(hoy));
   const [tipo, setTipo] = useState<FiltroTipo>('todos');
@@ -43,12 +45,12 @@ export function Movimientos() {
     return ordenarMovimientos(
       movimientos.filter((m) => {
         if (q) {
-          const texto = normalizar(`${m.nota} ${m.categoriaId ? categorias.get(m.categoriaId)?.nombre ?? '' : ''}`);
+          const texto = normalizar(`${m.reparto?.map(p=>categorias.get(p.categoriaId)?.nombre).join(' ')??''} ${m.nota} ${m.categoriaId ? categorias.get(m.categoriaId)?.nombre ?? '' : ''}`);
           if (!texto.includes(q)) return false;
         } else if (monthKey(m.fecha) !== mes) return false;
         if (tipo !== 'todos' && m.tipo !== tipo) return false;
         if(cuentaId&&![m.cuentaId,m.cuentaDestinoId].some(id=>id===cuentaId||(id&&mapaCuentas.get(id)?.cuentaPadreId===cuentaId)))return false;
-        if (categoriaId && m.categoriaId !== categoriaId) return false;
+        if (categoriaId && m.categoriaId !== categoriaId && !m.reparto?.some(p=>p.categoriaId===categoriaId)) return false;
         return true;
       }),
     );
@@ -78,7 +80,7 @@ export function Movimientos() {
     <>
       <PageHeader
         titulo="Movimientos"
-        acciones={<button className="btn btn-primary" onClick={() => setForm({})}><Icon name="mas" size={16} stroke={2.2} />Nuevo movimiento</button>}
+        acciones={<><button className="btn btn-secondary" onClick={()=>setImportar(true)}><Icon name="subir" size={16}/>Importar CSV</button><button className="btn btn-primary" onClick={() => setForm({})}><Icon name="mas" size={16} stroke={2.2} />Nuevo movimiento</button></>}
       />
 
       {movimientos.some(m=>m.fecha>hoy)&&<div className="finance-notice">Hay registros antiguos con fecha futura. No cuentan en saldos ni resúmenes; abre cada uno para corregir su fecha.</div>}
@@ -129,6 +131,7 @@ export function Movimientos() {
         )}
       </div>
 
+      {importar&&<ImportCSV cerrar={()=>setImportar(false)}/>}
       {form && <MovimientoForm movimiento={form.movimiento} onClose={() => setForm(null)} />}
     </>
   );

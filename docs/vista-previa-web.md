@@ -96,8 +96,10 @@ exceso son visibles dentro de la app. El gráfico acumula gastos diarios, con un
 referencia horizontal al límite y sin trazar días futuros; admite selección por
 teclado y táctil. El detalle de cada categoría permite editar sus movimientos.
 
-Cada mes conserva sus límites. Copiar el anterior solo añade categorías que
-faltan, sin sobrescribir límites existentes ni copiar gastos. Eliminar un límite
+Cada mes conserva sus límites y repite automáticamente el último plan conocido
+al abrirlo. La inicialización es única: no sobrescribe límites existentes ni
+recrea los eliminados. La acción manual de copiar el anterior solo añade las
+categorías que faltan y nunca copia gastos. Eliminar un límite
 conserva los movimientos. Al borrar una categoría desde Ajustes, sus límites se
 trasladan a la categoría de destino y se suman por mes, junto con sus movimientos.
 Esta operación y las copias entre meses son transaccionales.
@@ -295,7 +297,7 @@ con teclado y devuelve el foco a la tarjeta al cerrar el detalle.
 ## Una cuenta general de ahorro
 
 Cuentas muestra una sola cuenta personal de ahorro, con la suma del ahorro libre
-y el dinero disponible en todas las metas. «Ver metas» abre el desglose por
+y el dinero disponible en todas las metas. Todo el ahorro pertenece a una meta. «Ver metas» abre el desglose por
 objetivos. Crear más metas no añade tarjetas a Cuentas ni opciones a los
 selectores de cuentas. Las cuentas bancarias, el efectivo y el negocio se
 conservan por separado. Inicio cuenta las cuentas visibles y suma cada importe
@@ -310,13 +312,14 @@ Las copias v9 guardan esta relación y las antiguas se agrupan al restaurarse.
 El historial filtrado por Ahorro incluye los movimientos de sus metas.
 
 Aportar desde una cuenta de uso aumenta el ahorro general y reserva el importe
-para la meta elegida. Aportar desde el propio ahorro general solo utiliza
-dinero sin asignar: no toma las reservas de otros objetivos. Gastar o repartir
+para la meta elegida. El dinero anterior de la cuenta general se incorpora a la meta Ahorro general
+mediante transferencias internas, sin cambiar el patrimonio. No se presenta
+un apartado de ahorro sin asignar ni se toman reservas de otros objetivos. Gastar o repartir
 desde una meta comprueba únicamente el saldo de esa meta. Borrar la meta libera
-su saldo en el ahorro general sin cambiar el patrimonio ni generar ingresos o
-gastos. Borrar la cuenta general elimina su saldo del total y pausa sus metas.
-El editor de la cuenta distingue el saldo inicial sin asignar de la suma
-automática de las metas, e impide crear una segunda cuenta general por alta o
+su saldo en el ahorro general, que se asigna a la meta Ahorro general sin
+cambiar el patrimonio ni generar ingresos o gastos. Borrar la cuenta general elimina su saldo del total y pausa sus metas.
+El editor de la cuenta distingue el saldo inicial, incluido en la meta Ahorro
+general, de la suma automática de las demás metas, e impide crear una segunda cuenta general por alta o
 cambio de tipo.
 
 Validación de esta revisión: 122 pruebas de datos, compilación para Pages y
@@ -325,3 +328,76 @@ cuentas, aportaciones, gastos, reparto, creación de metas, protección contra
 duplicados y navegación en dos pasos. Revisadas anchuras de 1440, 1024, 768,
 390 y 320 px; pruebas de actualización real de una base v7 y conservación de
 historial, saldos y copias.
+
+
+## Finanzas cotidianas: disponible, movimientos y avisos
+
+Inicio ofrece gasto, ingreso y transferencia con el tipo ya seleccionado.
+«Ver cómo se calcula» desglosa el disponible en cuentas de uso, el ahorro por
+metas y el margen del presupuesto. Los tres conceptos se explican por separado;
+los recordatorios pendientes no modifican saldos. El formulario recuerda la
+última cuenta válida y prioriza las seis categorías más frecuentes, con acceso
+a todas. El ahorro se gestiona desde Metas para identificar siempre el destino.
+
+Un pago dividido es un único movimiento con un reparto de céntimos que debe
+sumar exactamente su importe. Los saldos usan el total una vez; categorías y
+presupuestos usan sus partes. El filtro de categoría y la búsqueda incluyen
+el reparto. Eliminar una categoría combina sus partes en la categoría elegida.
+
+Desde un gasto se registra una devolución parcial o completa, vinculada al
+original, hasta el importe pendiente y con fecha real hasta hoy. Devuelve saldo
+a la cuenta elegida y reduce gastos en las categorías originales, sin añadir
+ingresos. Los céntimos se reparten proporcionalmente con enteros. Si corresponde
+a otro mes, se aplica en el mes real de la devolución: los gráficos admiten
+gastos netos negativos y el anillo muestra aparte las categorías con saldo a
+favor. Las devoluciones de viajes actualizan también sus conceptos y progreso.
+Para corregir un gasto con devoluciones hay que anularlas primero.
+
+La base v9 añade planesMes y las copias v10 preservan inicialización y revisión
+mensual, repartos, devoluciones y periodos omitidos. Se siguen admitiendo copias
+anteriores. Al abrir un mes se repiten límites y colores del plan anterior
+conocido, conservando los ajustes que ya existan. Un plan vacío queda registrado
+como tal para no resucitar límites borrados. Inicio y Presupuestos ofrecen la
+revisión del mes de origen; mantener o ajustar el plan es opcional y no mueve
+dinero. El ahorro mensual de metas conserva sus propias reglas.
+
+Las fichas activas con referencia de hoy o anterior aparecen en Inicio, con
+marca, importe y Pagado/Cobrado. Se actualizan al abrir la app, recuperar el foco
+o cambiar el día con la app abierta. La fecha es un recordatorio: la aplicación
+no detecta cargos bancarios ni envía notificaciones con el navegador cerrado.
+El formulario permite confirmar el importe real o indicar que ese periodo no
+se realizará. Omitir avanza la ficha sin movimiento; pausar la retira de avisos.
+El historial permite deshacer una confirmación, eliminando su movimiento y
+reabriendo el periodo. Los periodos posteriores ya pagados u omitidos no vuelven
+a solicitarse al confirmar de nuevo el anterior. Editar una ficha conserva los
+periodos omitidos.
+
+## Importación bancaria y copias
+
+Movimientos → Importar CSV lee archivos locales en euros con cabecera, hasta
+5 MB y 5.000 filas. Admite coma, punto y coma y tabulador, comillas escapadas,
+fechas ISO o día/mes/año e importes españoles. Permite asignar columnas, elegir
+cuenta, interpretar el signo, revisar categorías y seleccionar filas. Fechas
+futuras e importes no válidos se excluyen. Los posibles duplicados se comparan
+por cuenta, fecha, tipo, importe y concepto, contando las ocurrencias para
+conservar pagos idénticos legítimos. Se omiten por defecto; incluirlos requiere
+selección explícita. La importación vuelve a comprobarlos en una transacción
+y evita repetir una misma operación de importación. Los traspasos deben
+excluirse del CSV y registrarse como transferencias.
+
+La opción inicial «Conservar el saldo actual» ajusta el saldo inicial con el
+neto importado, para que un extracto histórico no vuelva a sumar dinero que ya
+consta en el saldo. Se puede desmarcar para añadir movimientos que aún faltan.
+La vista previa muestra saldo actual, efecto del extracto y saldo posterior.
+Ninguna fila se guarda antes de confirmar.
+
+Ajustes muestra la fecha de la última copia guardada o restaurada. Inicio ofrece
+un recordatorio si hay movimientos y nunca se guardó copia o han pasado treinta
+días; puede ocultarse durante esa visita. El archivo incluye las tablas nuevas
+y los datos siguen guardándose localmente en el navegador.
+
+Verificación de este bloque: 137 pruebas de datos y compilación para Pages, más
+recorrido en Chromium a 1440, 1024, 768, 390 y 320 px. Comprobados avisos de
+pago/cobro en Inicio, omisión y anulación, pago dividido y devolución vinculada,
+repetición y revisión mensual, importación y duplicados CSV, copia descargada,
+ahorro siempre asignado y gráficos con devoluciones de un mes anterior.
