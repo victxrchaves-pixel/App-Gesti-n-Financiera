@@ -1,5 +1,6 @@
 import type { Inversion } from '../db/types';
 import { config } from '../config/neto.config';
+import { esEscritorio } from './platform';
 export interface Cotizacion {
   id: string;
   nombre: string;
@@ -10,14 +11,43 @@ export interface Cotizacion {
   fuente: string;
   historial?: { fecha: string; precioEUR: number }[];
 }
-export async function cargarCotizaciones(signal?: AbortSignal): Promise<Cotizacion[]> {
+/**
+ * De dónde se leen las cotizaciones. La web publicada sirve su propio catálogo, que GitHub
+ * Actions renueva cada 6 horas. La app de escritorio lleva dentro el catálogo del día en que
+ * se creó el instalador, así que primero pide el de la web y usa el suyo como respaldo.
+ */
+export function fuentesCotizaciones(escritorio = esEscritorio()): string[] {
+  const incluido = `${import.meta.env.BASE_URL}data/quotes.json`;
+  return escritorio ? [config.inversiones.cotizacionesUrl, incluido] : [incluido];
+}
+
+/** Junta varios catálogos y se queda, para cada activo, con la cotización más reciente. */
+export function combinarCatalogos(catalogos: Cotizacion[][]): Cotizacion[] {
+  const mejor = new Map<string, Cotizacion>();
+  for (const lista of catalogos)
+    for (const q of lista) {
+      const actual = mejor.get(q.id);
+      if (!actual || Date.parse(q.fecha) > Date.parse(actual.fecha)) mejor.set(q.id, q);
+    }
+  return [...mejor.values()];
+}
+
+export async function cargarCotizaciones(signal?: AbortSignal, fuentes = fuentesCotizaciones()): Promise<Cotizacion[]> {
+  const resultados = await Promise.allSettled(fuentes.map((url) => descargarCatalogo(url, signal)));
+  if (signal?.aborted) throw new DOMException('Consulta cancelada', 'AbortError');
+  const validos = resultados.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
+  if (validos.length) return combinarCatalogos(validos);
+  throw (resultados[0] as PromiseRejectedResult).reason;
+}
+
+async function descargarCatalogo(url: string, signal?: AbortSignal): Promise<Cotizacion[]> {
   const controller = new AbortController();
   const abort = () => controller.abort();
   if (signal?.aborted) abort();
   signal?.addEventListener('abort', abort, { once: true });
   const timer = setTimeout(abort, 12000);
   try {
-    const response = await fetch(`${import.meta.env.BASE_URL}data/quotes.json`, {
+    const response = await fetch(url, {
       cache: 'no-cache',
       signal: controller.signal,
     });

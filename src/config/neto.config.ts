@@ -92,6 +92,12 @@ export const config = {
       { id: 'otra', nombre: 'Otra inversión' },
     ],
     antiguedadAvisoHoras: 48,
+    /**
+     * Catálogo público de cotizaciones que GitHub Actions actualiza cada 6 horas en la web.
+     * La app de escritorio lo descarga de aquí; si no hay conexión, usa el que lleva dentro
+     * el instalador. Si cambias esta dirección, cámbiala también en el CSP de tauri.conf.json.
+     */
+    cotizacionesUrl: 'https://victxrchaves-pixel.github.io/App-Gesti-n-Financiera/data/quotes.json',
   },
 
   presupuestos: {
