@@ -6959,11 +6959,58 @@ input[type='checkbox'] {
   background: #fff;
   color: var(--text);
 }
+.overview-grid > .wallet-stack > .patrimony-card {
+  justify-content: flex-start;
+  gap: 0;
+  padding: 24px;
+}
 .patrimony-card .mid-number {
-  font-size: clamp(30px, 2.9vw, 42px);
-  margin: 24px 0;
+  font-size: clamp(28px, 2.6vw, 36px);
+  margin: 10px 0 14px;
   font-weight: 600;
   letter-spacing: -0.045em;
+}
+/* Lista compacta de las cuentas que forman el patrimonio. */
+.patrimony-accounts {
+  list-style: none;
+  margin: 0 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.patrimony-accounts li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+.patrimony-account-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--card-sunken);
+  color: var(--text-2);
+}
+.patrimony-account-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-2);
+}
+.patrimony-account-amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.patrimony-card .card-link {
+  margin-top: 14px;
 }
 .patrimony-card .glass-icon {
   border-color: var(--line);
@@ -7011,4 +7058,30 @@ input[type='checkbox'] {
 .portfolio-overview.hero-dark .expense-text small {
   color: #ff9a9a !important;
   background: rgba(255, 154, 154, 0.14);
+}
+
+/* Barra fina que reparte el patrimonio entre las cuentas, en grises. */
+.patrimony-split {
+  display: flex;
+  gap: 3px;
+  height: 8px;
+  margin-bottom: 12px;
+}
+.patrimony-split span {
+  flex-basis: 0;
+  min-width: 6px;
+  border-radius: 999px;
+}
+.patrimony-account-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+}
+.patrimony-account-pct {
+  font-size: 12px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  min-width: 36px;
+  text-align: right;
 }

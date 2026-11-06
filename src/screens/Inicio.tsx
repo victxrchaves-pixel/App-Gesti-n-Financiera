@@ -3,7 +3,7 @@ import { BudgetReview } from '../ui/BudgetReview';
 import { useMemo, useState } from 'react';
 import { colorCategoria, config } from '../config/neto.config';
 import { useAjustes, useCuentas, useMapaCategorias, useMovimientos, useHoy } from '../db/hooks';
-import { patrimonio, dineroDisponible, esRepartoInterno } from '../lib/balances';
+import { patrimonio, dineroDisponible, esRepartoInterno, saldosPorCuenta } from '../lib/balances';
 import { greeting, longDate, monthKey, monthLabel, monthShortLabel } from '../lib/dates';
 import { formatMoney } from '../lib/money';
 import { gastoPorCategoria, ordenarMovimientos, resumenMes, ultimosMeses } from '../lib/stats';
@@ -68,6 +68,13 @@ export function Inicio() {
   const cuentasPersonales = cuentas.filter(
     (c) => c.ambito === 'personal' && !c.eliminada && !c.archivada && !c.cuentaPadreId,
   );
+  // Las cuentas que forman el patrimonio, de más a menos saldo, para la tarjeta de Inicio.
+  const saldos = saldosPorCuenta(cuentas, movimientos);
+  const cuentasOrdenadas = [...cuentasPersonales].sort((a, b) => (saldos.get(b.id) ?? 0) - (saldos.get(a.id) ?? 0));
+  const MAX_CUENTAS_INICIO = 3;
+  // Tonos de gris para la barra de reparto: del más oscuro (la cuenta con más saldo) al más claro.
+  const GRISES_REPARTO = ['#1a1a1a', '#6f6f6f', '#b3b3b3', '#d9d9d9'];
+  const positivo = cuentasOrdenadas.reduce((t, c) => t + Math.max(0, saldos.get(c.id) ?? 0), 0);
   const nombre = ajustes?.nombre ? `, ${ajustes.nombre}` : '';
   const fechaTexto = longDate(hoy);
 
@@ -151,9 +158,44 @@ export function Inicio() {
                   </span>
                 </div>
                 <div className="mid-number">{formatMoney(total)}</div>
+                {positivo > 0 && (
+                  <div className="patrimony-split" aria-hidden="true">
+                    {cuentasOrdenadas.map((c, i) =>
+                      (saldos.get(c.id) ?? 0) > 0 ? (
+                        <span
+                          key={c.id}
+                          style={{
+                            flexGrow: saldos.get(c.id),
+                            background: GRISES_REPARTO[Math.min(i, GRISES_REPARTO.length - 1)],
+                          }}
+                        />
+                      ) : null,
+                    )}
+                  </div>
+                )}
+                <ul className="patrimony-accounts">
+                  {cuentasOrdenadas.slice(0, MAX_CUENTAS_INICIO).map((c, i) => (
+                    <li key={c.id}>
+                      <span
+                        className="patrimony-account-dot"
+                        style={{ background: GRISES_REPARTO[Math.min(i, GRISES_REPARTO.length - 1)] }}
+                      />
+                      <span className="patrimony-account-icon">
+                        <Icon name={c.ahorroGeneral ? 'ahorro' : c.tipo} size={16} />
+                      </span>
+                      <span className="patrimony-account-name">{c.nombre}</span>
+                      <span className="patrimony-account-pct">
+                        {positivo > 0 ? `${Math.round((Math.max(0, saldos.get(c.id) ?? 0) / positivo) * 100)} %` : ''}
+                      </span>
+                      <span className="patrimony-account-amount">{formatMoney(saldos.get(c.id) ?? 0)}</span>
+                    </li>
+                  ))}
+                </ul>
                 <div className="muted card-link">
                   <span>
-                    {cuentasPersonales.length} cuenta{cuentasPersonales.length === 1 ? '' : 's'} · Ver cuentas
+                    {cuentasPersonales.length > MAX_CUENTAS_INICIO
+                      ? `Y ${cuentasPersonales.length - MAX_CUENTAS_INICIO} más · Ver todas`
+                      : `${cuentasPersonales.length} cuenta${cuentasPersonales.length === 1 ? '' : 's'} · Ver cuentas`}
                   </span>
                   <span className="glass-icon">
                     <Icon name="flecha" size={18} />
