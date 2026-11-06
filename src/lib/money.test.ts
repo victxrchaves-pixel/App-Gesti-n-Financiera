@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { centsToInput, formatEuros, formatMoney, parseMoney, porcentaje, sumCents } from './money';
+import { centsToInput, formatEuros, formatMoney, formatPrecio, parseMoney, porcentaje, sumCents } from './money';
 
 const E = ' €';
 
@@ -82,5 +82,13 @@ describe('formatEuros (precios con decimales)', () => {
     expect(formatEuros(0.000012345, 6)).toBe(`0,000012${E}`);
     expect(formatEuros(0.92, 6)).toBe(`0,92${E}`);
     expect(formatEuros(1234.5, 6)).toBe(`1.234,50${E}`);
+  });
+});
+
+describe('formatPrecio', () => {
+  it('usa menos decimales cuanto mayor es el precio', () => {
+    expect(formatPrecio(56298.95787)).toBe(`56.298,96${E}`);
+    expect(formatPrecio(1.23456789)).toBe(`1,2346${E}`);
+    expect(formatPrecio(0.887548)).toBe(`0,887548${E}`);
   });
 });

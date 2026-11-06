@@ -92,6 +92,15 @@ export const config = {
       { id: 'otra', nombre: 'Otra inversión' },
     ],
     antiguedadAvisoHoras: 48,
+    /** Periodos del gráfico de mercado de cada inversión. */
+    rangos: [
+      { id: '1S', dias: 7, texto: 'en la última semana' },
+      { id: '1M', dias: 30, texto: 'en el último mes' },
+      { id: '3M', dias: 90, texto: 'en los últimos 3 meses' },
+      { id: '1A', dias: 365, texto: 'en el último año' },
+    ],
+    /** Días que muestra la mini gráfica de cada inversión en la lista. */
+    diasMiniGrafica: 30,
     /**
      * Catálogo público de cotizaciones que GitHub Actions actualiza cada 6 horas en la web.
      * La app de escritorio lo descarga de aquí; si no hay conexión, usa el que lleva dentro

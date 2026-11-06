@@ -6,12 +6,15 @@ import { useHistorialCartera, useInversiones } from '../db/hooks';
 import { aplicarCotizaciones, borrarInversion, guardarInversion } from '../db/finance';
 import type { Inversion } from '../db/types';
 import { todayISO, isISODate } from '../lib/dates';
-import { formatEuros, formatMoney } from '../lib/money';
+import { formatMoney, formatPrecio } from '../lib/money';
 import { parseDecimal, valorInversion } from '../lib/investments';
 import { cargarCotizaciones, fechaPrecio, precioAntiguo, type Cotizacion } from '../lib/quotes';
 import { PageHeader } from '../layout/Shell';
 import { Icon } from '../ui/Icon';
 import { CategoryIcon } from '../ui/CategoryIcon';
+import { InversionDetalle } from '../ui/InversionDetalle';
+import { Sparkline } from '../ui/Sparkline';
+import { historialEnRango } from '../lib/mercado';
 
 /** Icono de cada tipo de inversión (nombres de src/lib/iconos.ts). */
 const ICONO_TIPO: Record<string, string> = {
@@ -294,6 +297,7 @@ export function Inversiones() {
   const [form, setForm] = useState<{ actual?: Inversion } | null>(null);
   const [seleccion, setSeleccion] = useState('');
   const [filtro, setFiltro] = useState('');
+  const [detalle, setDetalle] = useState<string | null>(null);
   const avisar = useToast();
   const actualizar = useCallback(
     async (signal?: AbortSignal, manual = false) => {
@@ -320,6 +324,11 @@ export function Inversiones() {
     void actualizar(controller.signal);
     return () => controller.abort();
   }, [actualizar]);
+  // Valor por unidad que Neto ha guardado cada día, para inversiones sin cotización de mercado.
+  const historialUnidad = (i: Inversion) =>
+    historial
+      .filter((h) => h.valores[i.id] !== undefined && i.cantidad > 0)
+      .map((h) => ({ fecha: h.fecha.slice(0, 10), precioEUR: h.valores[i.id] / 100 / i.cantidad }));
   const total = inversiones.reduce((s, i) => s + valorInversion(i), 0);
   const coste = inversiones.reduce((s, i) => s + i.coste, 0);
   const elegido = inversiones.find((i) => i.id === seleccion);
@@ -467,23 +476,28 @@ export function Inversiones() {
                     <div key={i.id} className="investment-row">
                       <button
                         className="finance-row-main"
-                        onClick={() => {
-                          setSeleccion(i.id);
-                          setModo('valor');
-                          document.querySelector('.value-chart')?.scrollIntoView({ block: 'center' });
-                        }}
+                        aria-label={`Ver el detalle de ${i.nombre}`}
+                        onClick={() => setDetalle(i.id)}
                       >
                         <CategoryIcon icono={ICONO_TIPO[i.tipo] ?? 'inversion'} color={COLORES_INVERSION[i.tipo]} />
                         <span>
                           <strong>{i.nombre}</strong>
                           <span className="row-sub">
                             {i.cantidad.toLocaleString('es-ES', { maximumFractionDigits: 12 })} unidades ×{' '}
-                            {formatEuros(i.precioEUR, 6)} · {i.activoId ? 'Cotización periódica' : 'Manual'}
+                            {formatPrecio(i.precioEUR)} · {i.activoId ? 'Cotización periódica' : 'Manual'}
                           </span>
                           <span className="quote-source">
                             {fechaPrecio(i.precioFecha)} · {i.fuente}
                           </span>
                         </span>
+                        <Sparkline
+                          puntos={historialEnRango(
+                            cotizaciones.find((q) => q.id === i.activoId)?.historial ?? historialUnidad(i),
+                            config.inversiones.diasMiniGrafica,
+                            todayISO(),
+                          )}
+                          dias={config.inversiones.diasMiniGrafica}
+                        />
                         <span className="holding-numbers">
                           <span>
                             <small>Pagaste</small>
@@ -603,6 +617,25 @@ export function Inversiones() {
           manuales se actualizan al editar su valoración. No se envían tus posiciones a los proveedores.
         </p>
       </div>
+      {detalle &&
+        (() => {
+          const i = inversiones.find((x) => x.id === detalle);
+          if (!i) return null;
+          return (
+            <InversionDetalle
+              inversion={i}
+              cotizacion={cotizaciones.find((q) => q.id === i.activoId)}
+              historialPropio={historialUnidad(i)}
+              icono={ICONO_TIPO[i.tipo] ?? 'inversion'}
+              color={COLORES_INVERSION[i.tipo]}
+              onEditar={() => {
+                setDetalle(null);
+                setForm({ actual: i });
+              }}
+              onClose={() => setDetalle(null)}
+            />
+          );
+        })()}
       {form && <Formulario actual={form.actual} cotizaciones={cotizaciones} cerrar={() => setForm(null)} />}
     </>
   );

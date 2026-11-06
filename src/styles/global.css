@@ -7366,3 +7366,107 @@ input[type='checkbox'] {
 .value-chart-single .field-hint {
   max-width: 60ch;
 }
+
+/* Mini gráfica de cada inversión en la lista. */
+.sparkline {
+  flex: none;
+  overflow: visible;
+}
+.sparkline-empty {
+  display: inline-block;
+  width: 96px;
+}
+.sparkline-line {
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sparkline.is-up .sparkline-line {
+  stroke: var(--positive);
+}
+.sparkline.is-down .sparkline-line {
+  stroke: var(--danger);
+}
+.sparkline-area {
+  opacity: 0.1;
+}
+.sparkline.is-up .sparkline-area {
+  fill: var(--positive);
+}
+.sparkline.is-down .sparkline-area {
+  fill: var(--danger);
+}
+@media (max-width: 650px) {
+  .finance-row-main .sparkline,
+  .finance-row-main .sparkline-empty {
+    display: none;
+  }
+}
+
+/* Detalle de una inversión. */
+.inv-detail-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+.inv-detail-head .muted {
+  font-size: 13px;
+}
+.inv-detail-price {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.inv-detail .gain-chip {
+  margin-left: 6px;
+}
+.inv-detail .value-chart .mid-number {
+  font-size: 20px;
+}
+.inv-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 4px 16px;
+}
+.inv-detail-grid > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+.inv-detail-grid > div:nth-child(-n + 2) {
+  border-top: 0;
+}
+.inv-detail-grid > div:last-child {
+  grid-column: 1 / -1;
+}
+.inv-detail-grid span {
+  color: var(--text-2);
+}
+.inv-detail-grid b {
+  display: inline-flex;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 520px) {
+  .inv-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .inv-detail-grid > div:nth-child(2) {
+    border-top: 1px solid var(--line);
+  }
+}
+/* En el detalle, el precio ya está arriba: el gráfico solo muestra la fecha del punto elegido. */
+.inv-detail .value-chart > .mid-number {
+  display: none;
+}

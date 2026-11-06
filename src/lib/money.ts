@@ -155,3 +155,9 @@ export function formatEuros(valor: number, maxDecimales = 2): string {
   const conMiles = entera.replace(/\B(?=(\d{3})+(?!\d))/g, config.moneda.separadorMiles);
   return `${negativo ? '−' : ''}${conMiles}${config.moneda.separadorDecimales}${decimales} ${config.moneda.simbolo}`;
 }
+
+/** Precio por unidad con los decimales que tienen sentido: 2 desde 100 €, 4 desde 1 € y 6 por debajo. */
+export function formatPrecio(valor: number): string {
+  const abs = Math.abs(valor);
+  return formatEuros(valor, abs >= 100 ? 2 : abs >= 1 ? 4 : 6);
+}

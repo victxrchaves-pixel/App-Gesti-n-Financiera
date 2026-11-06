@@ -1,4 +1,4 @@
-import { formatEuros } from '../lib/money';
+import { formatEuros, formatPrecio } from '../lib/money';
 import { dayHeader, shortDate, todayISO } from '../lib/dates';
 import { curva } from '../lib/chartPath';
 import { useId, useState } from 'react';
@@ -11,10 +11,13 @@ export function ValueChart({
   datos,
   etiqueta,
   precio = false,
+  referencia,
 }: {
   datos: ValorGrafico[];
   etiqueta: string;
   precio?: boolean;
+  /** Línea horizontal de referencia, p. ej. el precio medio al que compraste. */
+  referencia?: { valor: number; etiqueta: string } | null;
 }) {
   const [ref, width] = useWidth<HTMLDivElement>();
   const id = useId();
@@ -34,8 +37,9 @@ export function ValueChart({
   const h = 240;
   const left = 14;
   const right = Math.max(left + 1, width - 14);
-  const max = Math.max(...puntos.map((p) => p.valor));
-  const min = Math.min(...puntos.map((p) => p.valor));
+  const valores = [...puntos.map((p) => p.valor), ...(referencia ? [referencia.valor] : [])];
+  const max = Math.max(...valores);
+  const min = Math.min(...valores);
   const pad = Math.max((max - min) * 0.15, max * 0.005, 0.000001);
   const low = Math.max(0, min - pad);
   const high = max + pad;
@@ -53,7 +57,7 @@ export function ValueChart({
     setSeleccion(cercano);
   };
   // Intl con es-ES no agrupa los miles de 4 cifras («3574,20 €»); formatEuros sí.
-  const money = (value: number) => formatEuros(value, precio ? 6 : 2);
+  const money = (value: number) => (precio ? formatPrecio(value) : formatEuros(value, 2));
   const fecha = dayHeader(selected.fecha.slice(0, 10), todayISO());
   if (puntos.length < 2)
     return (
@@ -92,6 +96,22 @@ export function ValueChart({
           {[68, (h + 52) / 2, h - 16].map((v) => (
             <line key={v} x1={left} x2={right} y1={v} y2={v} stroke="var(--line)" strokeDasharray="3 6" />
           ))}
+          {referencia && (
+            <g className="chart-reference">
+              <line
+                x1={left}
+                x2={right}
+                y1={y(referencia.valor)}
+                y2={y(referencia.valor)}
+                stroke="var(--text-2)"
+                strokeDasharray="6 5"
+                strokeWidth="1.5"
+              />
+              <text x={left + 4} y={y(referencia.valor) - 7} fontSize="12" fill="var(--text-2)">
+                {referencia.etiqueta} · {money(referencia.valor)}
+              </text>
+            </g>
+          )}
           {puntos.length > 1 && (
             <path
               d={`${path} L${x(puntos[puntos.length - 1])},${h - 16} L${x(puntos[0])},${h - 16} Z`}

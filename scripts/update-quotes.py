@@ -50,7 +50,9 @@ except Exception:
     pass
 
 errors = []
-start = (dt.date.today() - dt.timedelta(days=32)).isoformat()
+# Historial diario de un año para los gráficos de mercado (1S, 1M, 3M, 1A).
+HISTORY_DAYS = 365
+start = (dt.date.today() - dt.timedelta(days=HISTORY_DAYS + 5)).isoformat()
 try:
     fx_history = fetch('https://api.frankfurter.app/' + start + '..' + dt.date.today().isoformat() + '?from=EUR&to=USD,GBP,CHF,JPY')['rates']
 except Exception:
@@ -73,7 +75,7 @@ def quote(item):
         if provider == 'coingecko':
             p = price(crypto[key]['eur']); date = iso(crypto[key]['last_updated_at']); source = 'CoinGecko'
             try:
-                market = fetch('https://api.coingecko.com/api/v3/coins/' + key + '/market_chart?vs_currency=eur&days=30')
+                market = fetch('https://api.coingecko.com/api/v3/coins/' + key + '/market_chart?vs_currency=eur&days=' + str(HISTORY_DAYS) + '&interval=daily')
                 daily = {iso(t / 1000)[:10]: price(v) for t, v in market['prices']}
                 history = [{'fecha': day, 'precioEUR': value} for day, value in sorted(daily.items())]
             except Exception:
@@ -82,7 +84,7 @@ def quote(item):
             p = 1 / price(fx['rates'][key]); date = fx['date']; source = 'Frankfurter / BCE'
             history = [{'fecha': day, 'precioEUR': 1 / price(rates[key])} for day, rates in sorted(fx_history.items()) if key in rates]
         else:
-            data = fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + key + '?range=1mo&interval=1d')
+            data = fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + key + '?range=1y&interval=1d')
             result = data['chart']['result'][0]
             meta = result['meta']
             currency = meta['currency']
@@ -100,6 +102,8 @@ def quote(item):
                 rate = 1 if currency == 'EUR' else fx_history[max(available)].get(currency) if available else None
                 if rate:
                     history.append({'fecha': day, 'precioEUR': price(close) / price(rate)})
+        # Precios con 8 cifras significativas: suficiente para cripto y divisas y el archivo pesa menos.
+        history = [{'fecha': h['fecha'], 'precioEUR': float('%.8g' % h['precioEUR'])} for h in history]
         return {'id': key, 'nombre': name, 'simbolo': symbol, 'tipo': kind, 'precioEUR': price(p), 'fecha': date, 'fuente': source, 'historial': history}
     except Exception as exc:
         errors.append(key + ': ' + str(exc))
@@ -111,7 +115,7 @@ if not quotes:
     raise SystemExit('No usable prices available; retaining the previous deployment.')
 result = {'generadoEn': dt.datetime.now(dt.timezone.utc).isoformat(), 'activos': quotes}
 TARGET.parent.mkdir(parents=True, exist_ok=True)
-TARGET.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n')
+TARGET.write_text(json.dumps(result, ensure_ascii=False, separators=(',', ':')) + '\n')
 print(f'Prepared {len(quotes)} market quotes. Individual source timestamps are retained.')
 for error in errors:
     print('Provider warning: ' + error)
