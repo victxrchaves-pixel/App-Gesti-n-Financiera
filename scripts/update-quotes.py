@@ -55,8 +55,9 @@ HISTORY_DAYS = 365
 start = (dt.date.today() - dt.timedelta(days=HISTORY_DAYS + 5)).isoformat()
 try:
     fx_history = fetch('https://api.frankfurter.app/' + start + '..' + dt.date.today().isoformat() + '?from=EUR&to=USD,GBP,CHF,JPY')['rates']
-except Exception:
+except Exception as exc:
     fx_history = {}
+    errors.append('Frankfurter (historial): ' + str(exc))
 try:
     fx = fetch('https://api.frankfurter.app/latest?from=EUR')
 except Exception as exc:
@@ -78,7 +79,8 @@ def quote(item):
                 market = fetch('https://api.coingecko.com/api/v3/coins/' + key + '/market_chart?vs_currency=eur&days=' + str(HISTORY_DAYS) + '&interval=daily')
                 daily = {iso(t / 1000)[:10]: price(v) for t, v in market['prices']}
                 history = [{'fecha': day, 'precioEUR': value} for day, value in sorted(daily.items())]
-            except Exception:
+            except Exception as exc:
+                errors.append(key + ' (historial): ' + str(exc) + ' · se conserva el anterior')
                 history = previous.get(key, {}).get('historial', [])
         elif provider == 'frankfurter':
             p = 1 / price(fx['rates'][key]); date = fx['date']; source = 'Frankfurter / BCE'
@@ -117,5 +119,8 @@ result = {'generadoEn': dt.datetime.now(dt.timezone.utc).isoformat(), 'activos':
 TARGET.parent.mkdir(parents=True, exist_ok=True)
 TARGET.write_text(json.dumps(result, ensure_ascii=False, separators=(',', ':')) + '\n')
 print(f'Prepared {len(quotes)} market quotes. Individual source timestamps are retained.')
+for q in quotes:
+    h = q.get('historial') or []
+    print(f"  {q['id']}: {len(h)} días de historial" + (f" ({h[0]['fecha']} → {h[-1]['fecha']})" if h else ''))
 for error in errors:
     print('Provider warning: ' + error)
