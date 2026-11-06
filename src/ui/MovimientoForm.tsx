@@ -66,10 +66,13 @@ function OpcionesCuentas({ cuentas, autonomo }: { cuentas: Cuenta[]; autonomo: b
 export function MovimientoForm({
   movimiento,
   tipoInicial,
+  cuentaPreferida,
   onClose,
 }: {
   movimiento?: Movimiento;
   tipoInicial?: TipoMovimiento;
+  /** Cuenta ya elegida al abrir el formulario (por ejemplo, desde la ficha de una cuenta). */
+  cuentaPreferida?: string;
   onClose: () => void;
 }) {
   const ajustes = useAjustes();
@@ -93,7 +96,7 @@ export function MovimientoForm({
   const [tipo, setTipo] = useState<TipoMovimiento>(movimiento?.tipo ?? tipoInicial ?? 'gasto');
   const importe = useAmountField(movimiento?.importe);
   const [fecha, setFecha] = useState(movimiento?.fecha ?? todayISO());
-  const ultima = leerUltimaCuenta();
+  const ultima = cuentaPreferida ?? leerUltimaCuenta();
   const cuentaInicial =
     movimiento?.cuentaId ?? (cuentas.some((c) => c.id === ultima) ? ultima! : (cuentas[0]?.id ?? ''));
   const [cuentaId, setCuentaId] = useState(cuentaInicial);

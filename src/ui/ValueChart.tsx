@@ -12,12 +12,15 @@ export function ValueChart({
   etiqueta,
   precio = false,
   referencia,
+  etiquetaValor = 'Valor de tu inversión',
 }: {
   datos: ValorGrafico[];
   etiqueta: string;
   precio?: boolean;
   /** Línea horizontal de referencia, p. ej. el precio medio al que compraste. */
   referencia?: { valor: number; etiqueta: string } | null;
+  /** Texto de la etiqueta flotante cuando no es un precio por unidad. */
+  etiquetaValor?: string;
 }) {
   const [ref, width] = useWidth<HTMLDivElement>();
   const id = useId();
@@ -148,7 +151,7 @@ export function ValueChart({
           className="chart-floating-value investment-floating-value"
           style={{ left: Math.max(8, Math.min(width - 168, x(selected) - 80)) }}
         >
-          <span>{precio ? 'Precio por unidad' : 'Valor de tu inversión'}</span>
+          <span>{precio ? 'Precio por unidad' : etiquetaValor}</span>
           <strong>{money(selected.valor)}</strong>
         </div>
       </div>
