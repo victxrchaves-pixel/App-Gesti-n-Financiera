@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { config } from '../config/neto.config';
-import { useAjustes, useCuentas, useMapaCategorias, useMetas, useMovimientos, useSaldos } from '../db/hooks';
+import { useCuentas, useMapaCategorias, useMetas, useMovimientos, useSaldos } from '../db/hooks';
+import { useEspacio } from '../ui/Espacio';
 import type { Ambito, Categoria, Cuenta, Movimiento } from '../db/types';
 import { patrimonio } from '../lib/balances';
 import {
@@ -130,7 +131,7 @@ function Tarjeta({
 }
 
 export function Cuentas() {
-  const ajustes = useAjustes();
+  const espacio = useEspacio();
   const cuentas = useCuentas().filter((c) => !c.eliminada);
   const movimientos = useMovimientos();
   const saldos = useSaldos();
@@ -164,36 +165,32 @@ export function Cuentas() {
     return out;
   }, [visibles, cuentas, movimientos, mes, hoy]);
   const evolucion = useMemo(
-    () => patrimonioMensual(cuentas, movimientos, mes, MESES_EVOLUCION, hoy),
-    [cuentas, movimientos, mes, hoy],
+    () => patrimonioMensual(cuentas, movimientos, mes, MESES_EVOLUCION, hoy, espacio),
+    [cuentas, movimientos, mes, hoy, espacio],
   );
   const cambioMes =
     evolucion.length > 1 ? evolucion[evolucion.length - 1].valor - evolucion[evolucion.length - 2].valor : 0;
   const reparto = useMemo(() => {
     const r = { uso: 0, ahorro: 0, efectivo: 0 };
-    for (const c of cuentasPatrimonio(cuentas)) {
+    for (const c of cuentasPatrimonio(cuentas, espacio)) {
       const saldo = saldos.get(c.id) ?? 0;
       if (c.tipo === 'ahorro') r.ahorro += saldo;
       else if (c.tipo === 'efectivo') r.efectivo += saldo;
       else r.uso += saldo;
     }
     return r;
-  }, [cuentas, saldos]);
+  }, [cuentas, saldos, espacio]);
   const cuentaDetalle = detalle ? cuentas.find((c) => c.id === detalle) : undefined;
 
-  const autonomo = ajustes?.autonomo ?? false;
-
-  const ambitos: Ambito[] = autonomo ? ['personal', 'negocio'] : ['personal'];
-
-  const totalPersonal = useMemo(() => patrimonio(cuentas, movimientos, 'personal'), [cuentas, movimientos]);
-  const totalNegocio = useMemo(() => patrimonio(cuentas, movimientos, 'negocio'), [cuentas, movimientos]);
+  const negocio = espacio === 'negocio';
+  const total = useMemo(() => patrimonio(cuentas, movimientos, espacio), [cuentas, movimientos, espacio]);
 
   return (
     <>
       <PageHeader
         titulo="Cuentas"
         acciones={
-          <button className="btn btn-primary" onClick={() => setForm({})}>
+          <button className="btn btn-primary" onClick={() => setForm({ ambito: espacio })}>
             <Icon name="mas" size={16} stroke={2.2} />
             Nueva cuenta
           </button>
@@ -203,8 +200,8 @@ export function Cuentas() {
       <div className="stack">
         <section className="card hero-dark accounts-hero">
           <div className="accounts-hero-main">
-            <div className="eyebrow">{autonomo ? 'Patrimonio personal' : 'Patrimonio'}</div>
-            <div className="big-number">{formatMoney(totalPersonal)}</div>
+            <div className="eyebrow">{negocio ? 'Dinero del negocio' : 'Patrimonio'}</div>
+            <div className="big-number">{formatMoney(total)}</div>
             <span className={`gain-chip ${cambioMes >= 0 ? 'is-up' : 'is-down'}`}>
               {cambioMes >= 0 ? '+' : '−'}
               {formatMoney(Math.abs(cambioMes))} este mes
@@ -214,18 +211,16 @@ export function Cuentas() {
                 <span>Uso diario</span>
                 <b>{formatMoney(reparto.uso)}</b>
               </div>
-              <div>
-                <span>Ahorro</span>
-                <b>{formatMoney(reparto.ahorro)}</b>
-              </div>
-              <div>
-                <span>Efectivo</span>
-                <b>{formatMoney(reparto.efectivo)}</b>
-              </div>
-              {autonomo && (
+              {(!negocio || reparto.ahorro !== 0) && (
                 <div>
-                  <span>Negocio</span>
-                  <b>{formatMoney(totalNegocio)}</b>
+                  <span>Ahorro</span>
+                  <b>{formatMoney(reparto.ahorro)}</b>
+                </div>
+              )}
+              {(!negocio || reparto.efectivo !== 0) && (
+                <div>
+                  <span>Efectivo</span>
+                  <b>{formatMoney(reparto.efectivo)}</b>
                 </div>
               )}
             </div>
@@ -234,57 +229,46 @@ export function Cuentas() {
             <span className="eyebrow">Últimos {MESES_EVOLUCION} meses</span>
             <TrendChart
               puntos={evolucion.map((e) => ({ etiqueta: monthShortLabel(e.mes), valor: e.valor }))}
-              titulo={`Evolución del patrimonio en los últimos ${MESES_EVOLUCION} meses`}
+              titulo={`Evolución ${negocio ? 'del dinero del negocio' : 'del patrimonio'} en los últimos ${MESES_EVOLUCION} meses`}
             />
           </div>
         </section>
 
-        {ambitos.map((ambito) => {
-          const lista = cuentas.filter((c) => c.ambito === ambito && !c.archivada && !c.cuentaPadreId);
-          return (
-            <section key={ambito}>
-              {autonomo && (
-                <h2 className="card-title" style={{ margin: '8px 4px 14px' }}>
-                  {ambito === 'personal' ? 'Personales' : 'Del negocio'}
-                </h2>
-              )}
-              {lista.length === 0 ? (
-                <div className="card">
-                  <div className="empty">
-                    <div className="empty-title">
-                      {ambito === 'personal' ? 'Aún no tienes cuentas' : 'Sin cuentas del negocio'}
-                    </div>
-                    <div>
-                      {ambito === 'personal'
-                        ? 'Añade tu banco, tu efectivo o tus ahorros con el saldo que tienen hoy.'
-                        : 'Añade la cuenta donde cobras tus facturas.'}
-                    </div>
-                    <button className="btn btn-secondary" onClick={() => setForm({ ambito })}>
-                      Añadir cuenta
-                    </button>
-                  </div>
+        {(() => {
+          const lista = cuentas.filter((c) => c.ambito === espacio && !c.archivada && !c.cuentaPadreId);
+          return lista.length === 0 ? (
+            <div className="card">
+              <div className="empty">
+                <div className="empty-title">
+                  {negocio ? 'Aún no tienes cuentas del negocio' : 'Aún no tienes cuentas'}
                 </div>
-              ) : (
-                <div className="grid grid-3">
-                  {lista.map((c) => (
-                    <Tarjeta
-                      key={c.id}
-                      c={c}
-                      saldo={saldos.get(c.id) ?? 0}
-                      onClick={() => setDetalle(c.id)}
-                      resumen={resumenes.get(c.id) ?? { serie: [], entradas: 0, salidas: 0 }}
-                      categorias={categorias}
-                      hoy={hoy}
-                      metasDentro={
-                        metas.filter((m) => m.activa && bolsillos.get(m.cuentaAhorroId ?? '') === c.id).length
-                      }
-                    />
-                  ))}
+                <div>
+                  {negocio
+                    ? 'Añade la cuenta donde cobras tus facturas y pagas los gastos del negocio.'
+                    : 'Añade tu banco, tu efectivo o tus ahorros con el saldo que tienen hoy.'}
                 </div>
-              )}
-            </section>
+                <button className="btn btn-secondary" onClick={() => setForm({ ambito: espacio })}>
+                  Añadir cuenta
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-3">
+              {lista.map((c) => (
+                <Tarjeta
+                  key={c.id}
+                  c={c}
+                  saldo={saldos.get(c.id) ?? 0}
+                  onClick={() => setDetalle(c.id)}
+                  resumen={resumenes.get(c.id) ?? { serie: [], entradas: 0, salidas: 0 }}
+                  categorias={categorias}
+                  hoy={hoy}
+                  metasDentro={metas.filter((m) => m.activa && bolsillos.get(m.cuentaAhorroId ?? '') === c.id).length}
+                />
+              ))}
+            </div>
           );
-        })}
+        })()}
       </div>
 
       {cuentaDetalle && (

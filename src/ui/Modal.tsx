@@ -24,7 +24,16 @@ export function Modal({
         '.modal-body input, .modal-body select, .modal-body button, .modal-footer button',
       );
     primero?.focus();
-    return () => dialog?.close();
+    return () => {
+      dialog?.close();
+      // Si el botón que abrió la ventana ya no existe, el foco iría al principio de la página
+      // (el enlace «Saltar al contenido»). Se deja en el contenido, donde estaba la persona.
+      requestAnimationFrame(() => {
+        const a = document.activeElement;
+        if (!a || a === document.body || a.classList.contains('skip-link'))
+          document.getElementById('contenido')?.focus({ preventScroll: true });
+      });
+    };
   }, []);
 
   return (

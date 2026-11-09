@@ -1,6 +1,7 @@
 import { Icon } from './Icon';
 import { iconoCategoria } from '../lib/iconos';
 import { colorCategoria } from '../config/neto.config';
+import { useEspacio } from './Espacio';
 import { useMemo, useState } from 'react';
 import { useAjustes, useCategorias, useCuentas, useMovimientos } from '../db/hooks';
 import {
@@ -67,12 +68,15 @@ export function MovimientoForm({
   movimiento,
   tipoInicial,
   cuentaPreferida,
+  destinoPreferido,
   onClose,
 }: {
   movimiento?: Movimiento;
   tipoInicial?: TipoMovimiento;
   /** Cuenta ya elegida al abrir el formulario (por ejemplo, desde la ficha de una cuenta). */
   cuentaPreferida?: string;
+  /** Destino ya elegido para una transferencia (por ejemplo, «Me pago a mí»). */
+  destinoPreferido?: string;
   onClose: () => void;
 }) {
   const ajustes = useAjustes();
@@ -88,6 +92,13 @@ export function MovimientoForm({
       ),
     [todasCuentas, movimiento],
   );
+  const espacio = useEspacio();
+  // La cuenta de origen es siempre del espacio en el que estás; el destino de una transferencia
+  // puede ser del otro (por ejemplo, pasarte dinero del negocio a lo personal).
+  const cuentasEspacio = useMemo(
+    () => cuentas.filter((c) => c.ambito === espacio || c.id === movimiento?.cuentaId),
+    [cuentas, espacio, movimiento?.cuentaId],
+  );
   const categorias = useCategorias();
   const movimientos = useMovimientos();
   const confirmar = useConfirm();
@@ -97,12 +108,17 @@ export function MovimientoForm({
   const importe = useAmountField(movimiento?.importe);
   const [fecha, setFecha] = useState(movimiento?.fecha ?? todayISO());
   const ultima = cuentaPreferida ?? leerUltimaCuenta();
-  const cuentaInicial =
-    movimiento?.cuentaId ?? (cuentas.some((c) => c.id === ultima) ? ultima! : (cuentas[0]?.id ?? ''));
-  const [cuentaId, setCuentaId] = useState(cuentaInicial);
-  const [destinoId, setDestinoId] = useState(
-    movimiento?.cuentaDestinoId ?? cuentas.find((c) => c.id !== cuentaInicial)?.id ?? '',
-  );
+  // Hasta que la persona elija, se proponen cuentas con los datos ya cargados (las cuentas llegan
+  // un instante después de abrir el formulario).
+  const [cuentaElegida, setCuentaId] = useState<string | null>(movimiento?.cuentaId ?? null);
+  const [destinoElegido, setDestinoId] = useState<string | null>(movimiento?.cuentaDestinoId ?? null);
+  const cuentaId =
+    cuentaElegida ?? (cuentasEspacio.some((c) => c.id === ultima) ? ultima! : (cuentasEspacio[0]?.id ?? ''));
+  const destinoId =
+    destinoElegido ??
+    (destinoPreferido && cuentas.some((c) => c.id === destinoPreferido && c.id !== cuentaId)
+      ? destinoPreferido
+      : (cuentasEspacio.find((c) => c.id !== cuentaId)?.id ?? ''));
   const [categoriaId, setCategoriaId] = useState<string | undefined>(movimiento?.categoriaId);
   const [nota, setNota] = useState(movimiento?.nota ?? '');
   const [busy, setBusy] = useState(false);
@@ -291,7 +307,7 @@ export function MovimientoForm({
               {tipo === 'transferencia' ? 'Desde' : 'Cuenta'}
             </label>
             <select id="mf-cuenta" className="select" value={cuentaId} onChange={(e) => setCuentaId(e.target.value)}>
-              <OpcionesCuentas cuentas={cuentas} autonomo={autonomo} />
+              <OpcionesCuentas cuentas={cuentasEspacio} autonomo={false} />
             </select>
           </div>
         </div>
@@ -307,7 +323,13 @@ export function MovimientoForm({
               </option>
               <OpcionesCuentas cuentas={cuentas.filter((c) => c.id !== cuentaId)} autonomo={autonomo} />
             </select>
-            <span className="field-hint">Mover dinero entre tus cuentas no cuenta como gasto ni como ingreso.</span>
+            <span className="field-hint">
+              {autonomo && cuentas.find((c) => c.id === destinoId)?.ambito !== espacio
+                ? espacio === 'negocio'
+                  ? 'Te pasas dinero del negocio a lo personal: en Personal cuenta como ingreso.'
+                  : 'Pasas dinero de lo personal al negocio.'
+                : 'Mover dinero entre tus cuentas no cuenta como gasto ni como ingreso.'}
+            </span>
           </div>
         ) : (
           <div className="field">

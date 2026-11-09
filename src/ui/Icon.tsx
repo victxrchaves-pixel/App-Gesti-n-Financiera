@@ -143,6 +143,10 @@ const paths: Record<string, string> = {
 const LUCIDE: Record<string, LucideIcon> = {
   // Secciones y acciones
   inicio: House,
+  negocio: BriefcaseBusiness,
+  personal: House,
+  'negocio-movimientos': ArrowLeftRight,
+  'negocio-cuentas': Wallet,
   movimientos: ArrowLeftRight,
   presupuestos: ChartPie,
   metas: Target,

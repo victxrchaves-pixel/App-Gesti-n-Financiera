@@ -6,6 +6,7 @@ import type { Ambito, Cuenta, TipoCuenta } from '../db/types';
 import { AmountInput, useAmountField } from './AmountInput';
 import { Modal, useConfirm, useToast } from './Modal';
 import { Segmented } from './Segmented';
+import { useEspacio } from './Espacio';
 
 const TIPOS = config.tiposCuenta.map((t) => ({ valor: t.id as TipoCuenta, texto: t.nombre }));
 const AMBITOS = [
@@ -16,7 +17,7 @@ const AMBITOS = [
 export function CuentaForm({
   cuenta,
   onClose,
-  ambitoInicial = 'personal',
+  ambitoInicial,
 }: {
   cuenta?: Cuenta;
   onClose: () => void;
@@ -27,7 +28,8 @@ export function CuentaForm({
   const avisar = useToast();
   const [nombre, setNombre] = useState(cuenta?.nombre ?? '');
   const [tipo, setTipo] = useState<TipoCuenta>(cuenta?.tipo ?? 'banco');
-  const [ambito, setAmbito] = useState<Ambito>(cuenta?.ambito ?? ambitoInicial);
+  const espacio = useEspacio();
+  const [ambito, setAmbito] = useState<Ambito>(cuenta?.ambito ?? ambitoInicial ?? espacio);
   const saldo = useAmountField(cuenta?.saldoInicial ?? undefined);
   const [error, setError] = useState<string | null>(null);
 

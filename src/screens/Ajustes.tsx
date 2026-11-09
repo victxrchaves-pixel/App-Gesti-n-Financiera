@@ -326,8 +326,8 @@ export function Ajustes() {
             <div className="setting-text">
               <div className="setting-title">Modo autónomo</div>
               <div className="setting-desc">
-                Añade el apartado Negocio: facturas, gastos del negocio e impuestos trimestrales, con cuentas separadas
-                de las personales.
+                Añade un espacio Negocio, separado del personal: su inicio, sus cuentas, facturas, gastos e impuestos.
+                Cambias de uno a otro con el selector de arriba del menú.
               </div>
             </div>
             <Switch activo={ajustes.autonomo} onChange={(v) => void cambiarAutonomo(v)} etiqueta="Modo autónomo" />

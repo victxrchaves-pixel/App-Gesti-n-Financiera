@@ -14,6 +14,9 @@ export type Ruta =
   | 'facturas'
   | 'gastos'
   | 'impuestos'
+  | 'negocio'
+  | 'negocio-movimientos'
+  | 'negocio-cuentas'
   | 'ajustes';
 
 const RUTAS: Ruta[] = [
@@ -29,6 +32,9 @@ const RUTAS: Ruta[] = [
   'facturas',
   'gastos',
   'impuestos',
+  'negocio',
+  'negocio-movimientos',
+  'negocio-cuentas',
   'ajustes',
 ];
 

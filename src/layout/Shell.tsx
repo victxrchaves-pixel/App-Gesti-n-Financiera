@@ -1,25 +1,74 @@
 import { useRef, type ReactNode } from 'react';
 import { useAjustes } from '../db/hooks';
 import { esEscritorio, esMac } from '../lib/platform';
-import { useRuta, type Ruta } from '../router';
+import { ir, useRuta, type Ruta } from '../router';
+import { rutaAlCambiar, type Espacio } from '../lib/espacio';
 import { BrandMark, Icon } from '../ui/Icon';
 
-const PERSONAL: { ruta: Ruta; texto: string }[] = [
-  { ruta: 'inicio', texto: 'Inicio' },
-  { ruta: 'movimientos', texto: 'Movimientos' },
-  { ruta: 'presupuestos', texto: 'Presupuestos' },
-  { ruta: 'metas', texto: 'Metas' },
-  { ruta: 'recurrentes', texto: 'Recurrentes' },
-  { ruta: 'inversion', texto: 'Inversión' },
-  { ruta: 'cuentas', texto: 'Cuentas' },
-];
+type Seccion = { ruta: Ruta; texto: string };
 
-const NEGOCIO: { ruta: Ruta; texto: string }[] = [
-  { ruta: 'suscripciones-negocio', texto: 'Suscripciones' },
-  { ruta: 'facturas', texto: 'Facturas' },
-  { ruta: 'gastos', texto: 'Gastos' },
-  { ruta: 'impuestos', texto: 'Impuestos' },
-];
+/** Menú de cada espacio. Personal y Negocio no comparten pantallas (salvo Ajustes). */
+const MENU: Record<Espacio, Seccion[]> = {
+  personal: [
+    { ruta: 'inicio', texto: 'Inicio' },
+    { ruta: 'movimientos', texto: 'Movimientos' },
+    { ruta: 'presupuestos', texto: 'Presupuestos' },
+    { ruta: 'metas', texto: 'Metas' },
+    { ruta: 'recurrentes', texto: 'Recurrentes' },
+    { ruta: 'inversion', texto: 'Inversión' },
+    { ruta: 'cuentas', texto: 'Cuentas' },
+  ],
+  negocio: [
+    { ruta: 'negocio', texto: 'Inicio' },
+    { ruta: 'facturas', texto: 'Facturas' },
+    { ruta: 'gastos', texto: 'Gastos' },
+    { ruta: 'impuestos', texto: 'Impuestos' },
+    { ruta: 'negocio-movimientos', texto: 'Movimientos' },
+    { ruta: 'suscripciones-negocio', texto: 'Suscripciones' },
+    { ruta: 'negocio-cuentas', texto: 'Cuentas' },
+  ],
+};
+
+/** En el móvil, cuatro accesos fijos abajo; el resto va en «Más». */
+const DOCK: Record<Espacio, Seccion[]> = {
+  personal: [
+    { ruta: 'inicio', texto: 'Inicio' },
+    { ruta: 'movimientos', texto: 'Actividad' },
+    { ruta: 'cuentas', texto: 'Cuentas' },
+    { ruta: 'ajustes', texto: 'Ajustes' },
+  ],
+  negocio: [
+    { ruta: 'negocio', texto: 'Inicio' },
+    { ruta: 'facturas', texto: 'Facturas' },
+    { ruta: 'negocio-movimientos', texto: 'Actividad' },
+    { ruta: 'ajustes', texto: 'Ajustes' },
+  ],
+};
+
+const activa = (e: Seccion, ruta: Ruta) => ruta === e.ruta || (e.ruta === 'recurrentes' && ruta === 'suscripciones');
+
+/** Selector Personal / Negocio. Cambia de espacio llevando a la pantalla equivalente. */
+function SelectorEspacio({ ruta, espacio, compacto = false }: { ruta: Ruta; espacio: Espacio; compacto?: boolean }) {
+  const opciones: { valor: Espacio; texto: string }[] = [
+    { valor: 'personal', texto: 'Personal' },
+    { valor: 'negocio', texto: 'Negocio' },
+  ];
+  return (
+    <div className={`space-switch${compacto ? ' is-compact' : ''}`} role="group" aria-label="Espacio">
+      {opciones.map((o) => (
+        <button
+          key={o.valor}
+          type="button"
+          aria-pressed={espacio === o.valor}
+          onClick={() => espacio !== o.valor && ir(rutaAlCambiar(ruta, o.valor))}
+        >
+          <Icon name={o.valor} size={compacto ? 15 : 16} />
+          <span>{o.texto}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function Enlace({ ruta, texto, activa }: { ruta: Ruta; texto: string; activa: boolean }) {
   return (
@@ -35,12 +84,15 @@ function Enlace({ ruta, texto, activa }: { ruta: Ruta; texto: string; activa: bo
   );
 }
 
-export function Shell({ ruta, children }: { ruta: Ruta; children: ReactNode }) {
+export function Shell({ ruta, espacio, children }: { ruta: Ruta; espacio: Espacio; children: ReactNode }) {
   const ajustes = useAjustes();
+  const autonomo = ajustes?.autonomo ?? false;
   const menu = useRef<HTMLDialogElement>(null);
-  const masActiva = !['inicio', 'movimientos', 'cuentas', 'ajustes'].includes(ruta);
+  const dock = DOCK[espacio];
+  const resto = MENU[espacio].filter((e) => !dock.some((d) => d.ruta === e.ruta));
+  const masActiva = !dock.some((d) => activa(d, ruta));
   return (
-    <div className="shell">
+    <div className="shell" data-espacio={espacio}>
       <a
         className="skip-link"
         href="#contenido"
@@ -59,23 +111,10 @@ export function Shell({ ruta, children }: { ruta: Ruta; children: ReactNode }) {
           </span>
           <span>Neto</span>
         </div>
-        <div className="nav-section">Personal</div>
-        {PERSONAL.map((e) => (
-          <Enlace
-            key={e.ruta}
-            {...e}
-            activa={ruta === e.ruta || (e.ruta === 'recurrentes' && ruta === 'suscripciones')}
-          />
+        {autonomo && <SelectorEspacio ruta={ruta} espacio={espacio} />}
+        {MENU[espacio].map((e) => (
+          <Enlace key={e.ruta} {...e} activa={activa(e, ruta)} />
         ))}
-        {ajustes?.autonomo && (
-          <>
-            <div className="nav-section">Negocio</div>
-            <div className="nav-section-rule" />
-            {NEGOCIO.map((e) => (
-              <Enlace key={e.ruta} {...e} activa={ruta === e.ruta} />
-            ))}
-          </>
-        )}
         <div className="sidebar-spacer" />
         <Enlace ruta="ajustes" texto="Ajustes" activa={ruta === 'ajustes'} />
       </nav>
@@ -85,15 +124,18 @@ export function Shell({ ruta, children }: { ruta: Ruta; children: ReactNode }) {
             <BrandMark />
           </span>
           <span>Neto</span>
-          <span className="mobile-context">Tu dinero, en orden.</span>
+          {autonomo ? (
+            <SelectorEspacio ruta={ruta} espacio={espacio} compacto />
+          ) : (
+            <span className="mobile-context">Tu dinero, en orden.</span>
+          )}
         </div>
         <div className="page">{children}</div>
       </main>
       <nav className="mobile-dock" aria-label="Navegación principal">
-        <Enlace ruta="inicio" texto="Inicio" activa={ruta === 'inicio'} />
-        <Enlace ruta="movimientos" texto="Actividad" activa={ruta === 'movimientos'} />
-        <Enlace ruta="cuentas" texto="Cuentas" activa={ruta === 'cuentas'} />
-        <Enlace ruta="ajustes" texto="Ajustes" activa={ruta === 'ajustes'} />
+        {dock.map((e) => (
+          <Enlace key={e.ruta} {...e} activa={activa(e, ruta)} />
+        ))}
         <button
           type="button"
           className={`nav-link${masActiva ? ' active' : ''}`}
@@ -114,7 +156,7 @@ export function Shell({ ruta, children }: { ruta: Ruta; children: ReactNode }) {
       >
         <div className="card-header">
           <h2 id="menu-title" className="card-title">
-            Explora Neto
+            {espacio === 'negocio' ? 'Más del negocio' : 'Explora Neto'}
           </h2>
           <button
             type="button"
@@ -131,18 +173,9 @@ export function Shell({ ruta, children }: { ruta: Ruta; children: ReactNode }) {
             if ((e.target as HTMLElement).closest('a')) menu.current?.close();
           }}
         >
-          <Enlace ruta="recurrentes" texto="Recurrentes" activa={ruta === 'recurrentes' || ruta === 'suscripciones'} />
-          <Enlace ruta="inversion" texto="Inversión" activa={ruta === 'inversion'} />
-          <Enlace ruta="presupuestos" texto="Presupuestos" activa={ruta === 'presupuestos'} />
-          <Enlace ruta="metas" texto="Metas" activa={ruta === 'metas'} />
-          {ajustes?.autonomo && (
-            <>
-              <div className="nav-section">Negocio</div>
-              {NEGOCIO.map((e) => (
-                <Enlace key={e.ruta} {...e} activa={ruta === e.ruta} />
-              ))}
-            </>
-          )}
+          {resto.map((e) => (
+            <Enlace key={e.ruta} {...e} activa={activa(e, ruta)} />
+          ))}
         </nav>
       </dialog>
     </div>

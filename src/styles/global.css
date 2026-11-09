@@ -3337,7 +3337,8 @@ body {
   border-radius: 12px;
 }
 
-.skip-link:focus {
+/* Solo aparece al llegar con el teclado, no cuando el navegador devuelve el foco al cerrar una ventana. */
+.skip-link:focus-visible {
   top: 12px;
 }
 
@@ -8523,4 +8524,172 @@ select {
   .client-count {
     display: none;
   }
+}
+
+/* ── Espacios: Personal y Negocio ───────────────────────────────────────── */
+/* El selector manda en todo: el menú, el inicio y los datos cambian con él. */
+.space-switch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2px;
+  padding: 3px;
+  margin: 0 0 18px;
+  border-radius: 14px;
+  background: #e9ebee;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.space-switch > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  height: 36px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--text-2);
+  font-weight: 550;
+  font-size: 13.5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.space-switch > button > svg {
+  flex-shrink: 0;
+}
+.space-switch > button[aria-pressed='true'] {
+  background: #fff;
+  color: var(--text);
+  font-weight: 650;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+}
+@media (hover: hover) and (pointer: fine) {
+  .space-switch > button[aria-pressed='false']:hover {
+    color: var(--text);
+  }
+}
+.space-switch > button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+.space-switch.is-compact {
+  margin: 0 0 0 auto;
+  border-radius: 12px;
+}
+.space-switch.is-compact > button {
+  height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
+  gap: 5px;
+  border-radius: 9px;
+}
+
+/* Inicio del negocio. */
+.business-start {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+.business-start > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.business-start .card-title {
+  margin: 0 0 4px;
+}
+.business-start .muted {
+  margin: 0;
+}
+.business-start-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--card-sunken);
+}
+.business-start > .btn {
+  flex-shrink: 0;
+}
+@media (max-width: 640px) {
+  .business-start {
+    flex-wrap: wrap;
+  }
+  .business-start > .btn {
+    flex-basis: 100%;
+  }
+}
+
+.business-hero .quick-movement:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.business-deadline {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.business-deadline .glass-icon {
+  border-color: var(--line);
+  background: var(--card-sunken);
+  color: var(--text);
+}
+.business-deadline .eyebrow {
+  color: var(--text-2);
+}
+.business-deadline-date {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.business-deadline-date > strong {
+  font-size: clamp(22px, 2.2vw, 28px);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+.business-deadline-left {
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--card-sunken);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+.business-deadline-left.is-soon {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.business-deadline .muted {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.business-deadline-link {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 550;
+}
+
+.business-lists .card-header {
+  margin-bottom: 8px;
+}
+.business-lists .invoice-row-main {
+  text-decoration: none;
+}
+.business-lists .invoice-row-text {
+  gap: 4px;
 }

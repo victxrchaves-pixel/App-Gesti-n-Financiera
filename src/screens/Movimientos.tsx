@@ -1,6 +1,7 @@
 import { ImportCSV } from '../ui/ImportCSV';
 import { useMemo, useState } from 'react';
-import { useAjustes, useCategorias, useCuentas, useMapaCategorias, useMovimientos } from '../db/hooks';
+import { useCategorias, useCuentas, useMapaCategorias, useMovimientos } from '../db/hooks';
+import { useEspacio } from '../ui/Espacio';
 import type { Movimiento, TipoMovimiento } from '../db/types';
 import { addMonths, dayHeader, monthKey, monthLabel, todayISO } from '../lib/dates';
 import { formatMoney } from '../lib/money';
@@ -27,11 +28,13 @@ const normalizar = (s: string) =>
     .toLowerCase();
 
 export function Movimientos() {
-  const ajustes = useAjustes();
-  const cuentas = useCuentas();
+  const espacio = useEspacio();
+  const todasCuentas = useCuentas();
+  // Solo las cuentas de este espacio: lo personal y lo del negocio no se mezclan.
+  const cuentas = useMemo(() => todasCuentas.filter((c) => c.ambito === espacio), [todasCuentas, espacio]);
+  const todosMovimientos = useMovimientos();
   const categoriasLista = useCategorias();
   const categorias = useMapaCategorias();
-  const movimientos = useMovimientos();
   const hoy = todayISO();
   const [importar, setImportar] = useState(false);
   const [verInternos, setVerInternos] = useState(false);
@@ -43,7 +46,15 @@ export function Movimientos() {
   const [busqueda, setBusqueda] = useState('');
   const [form, setForm] = useState<{ movimiento?: Movimiento } | null>(null);
 
-  const mapaCuentas = useMemo(() => new Map(cuentas.map((c) => [c.id, c])), [cuentas]);
+  const mapaCuentas = useMemo(() => new Map(todasCuentas.map((c) => [c.id, c])), [todasCuentas]);
+  // Un movimiento es de este espacio si toca alguna de sus cuentas (un «Me pago a mí» sale en los dos).
+  const movimientos = useMemo(
+    () =>
+      todosMovimientos.filter((m) =>
+        [m.cuentaId, m.cuentaDestinoId].some((id) => id && mapaCuentas.get(id)?.ambito === espacio),
+      ),
+    [todosMovimientos, mapaCuentas, espacio],
+  );
   const ambitoDe = (id: string | undefined) => (id ? mapaCuentas.get(id)?.ambito : undefined);
 
   const visibles = useMemo(() => {
@@ -84,8 +95,7 @@ export function Movimientos() {
     let ingresos = 0;
     let gastos = 0;
     for (const m of filtrados.filter((m) => m.fecha <= hoy)) {
-      const ambito = ambitoDe(m.cuentaId) ?? 'personal';
-      const c = clasificar(m, ambitoDe, ambito);
+      const c = clasificar(m, ambitoDe, espacio);
       ingresos += c.ingreso;
       gastos += c.gasto;
     }
@@ -104,12 +114,15 @@ export function Movimientos() {
     <>
       <PageHeader
         titulo="Movimientos"
+        subtitulo={espacio === 'negocio' ? 'Lo que entra y sale de las cuentas del negocio.' : undefined}
         acciones={
           <>
-            <button className="btn btn-secondary" onClick={() => setImportar(true)}>
-              <Icon name="subir" size={16} />
-              Importar CSV
-            </button>
+            {espacio === 'personal' && (
+              <button className="btn btn-secondary" onClick={() => setImportar(true)}>
+                <Icon name="subir" size={16} />
+                Importar CSV
+              </button>
+            )}
             <button className="btn btn-primary" onClick={() => setForm({})}>
               <Icon name="mas" size={16} stroke={2.2} />
               Nuevo movimiento
@@ -152,7 +165,6 @@ export function Movimientos() {
             .map((c) => (
               <option key={c.id} value={c.id}>
                 {c.nombre}
-                {ajustes?.autonomo && c.ambito === 'negocio' ? ' (negocio)' : ''}
               </option>
             ))}
         </select>

@@ -1,4 +1,4 @@
-import type { Cuenta, Movimiento } from '../db/types';
+import type { Ambito, Cuenta, Movimiento } from '../db/types';
 import { addDays, addMonths, lastMonths, monthKey } from './dates';
 import { efectoEnCuenta } from './balances';
 
@@ -47,9 +47,9 @@ export function serieSaldoDiaria(
   return puntos;
 }
 
-/** Cuentas personales visibles que suman en el patrimonio (sin bolsillos ni cuentas eliminadas). */
-export function cuentasPatrimonio(cuentas: Cuenta[]): Cuenta[] {
-  return cuentas.filter((c) => c.ambito === 'personal' && !c.eliminada && !c.archivada && !c.cuentaPadreId);
+/** Cuentas visibles de un espacio que suman en su patrimonio (sin bolsillos ni cuentas eliminadas). */
+export function cuentasPatrimonio(cuentas: Cuenta[], ambito: Ambito = 'personal'): Cuenta[] {
+  return cuentas.filter((c) => c.ambito === ambito && !c.eliminada && !c.archivada && !c.cuentaPadreId);
 }
 
 /** Patrimonio al cierre de cada uno de los `n` meses que terminan en `mesFinal` (el actual, hasta hoy). */
@@ -59,8 +59,9 @@ export function patrimonioMensual(
   mesFinal: string,
   n: number,
   hoy: string,
+  ambito: Ambito = 'personal',
 ) {
-  const ids = cuentasPatrimonio(cuentas).flatMap((c) => grupoCuenta(c.id, cuentas));
+  const ids = cuentasPatrimonio(cuentas, ambito).flatMap((c) => grupoCuenta(c.id, cuentas));
   return lastMonths(mesFinal, n).map((mes) => {
     const cierre = mes === monthKey(hoy) ? hoy : addDays(`${addMonths(mes, 1)}-01`, -1);
     return { mes, valor: saldoEnFecha(ids, cuentas, movimientos, cierre) };
