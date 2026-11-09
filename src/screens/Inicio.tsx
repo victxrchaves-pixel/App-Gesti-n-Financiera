@@ -13,6 +13,7 @@ import { LineChart } from '../ui/LineChart';
 import { Segmented } from '../ui/Segmented';
 import { Donut, type Porcion } from '../ui/Donut';
 import { Icon } from '../ui/Icon';
+import { AccionesRedondas, ImporteGrande, TarjetaLista } from '../ui/Panel';
 import { MovimientoForm } from '../ui/MovimientoForm';
 import { MovimientoRow } from '../ui/MovimientoRow';
 import type { Movimiento, TipoMovimiento } from '../db/types';
@@ -72,27 +73,19 @@ export function Inicio() {
   // Las cuentas que forman el patrimonio, de más a menos saldo, para la tarjeta de Inicio.
   const saldos = saldosPorCuenta(cuentas, movimientos);
   const cuentasOrdenadas = [...cuentasPersonales].sort((a, b) => (saldos.get(b.id) ?? 0) - (saldos.get(a.id) ?? 0));
-  const MAX_CUENTAS_INICIO = 3;
-  // Tonos de gris para la barra de reparto: del más oscuro (la cuenta con más saldo) al más claro.
-  const GRISES_REPARTO = ['#1a1a1a', '#6f6f6f', '#b3b3b3', '#d9d9d9'];
   const positivo = cuentasOrdenadas.reduce((t, c) => t + Math.max(0, saldos.get(c.id) ?? 0), 0);
   const nombre = ajustes?.nombre ? `, ${ajustes.nombre}` : '';
   const fechaTexto = longDate(hoy);
 
-  return (
-    <>
-      <PageHeader
-        titulo={`${greeting(ahora.getHours())}${nombre}`}
-        subtitulo={fechaTexto.charAt(0).toUpperCase() + fechaTexto.slice(1)}
-        acciones={
-          <button className="btn btn-primary" onClick={() => setForm({})}>
-            <Icon name="mas" size={16} stroke={2.2} />
-            Nuevo movimiento
-          </button>
-        }
-      />
+  const nombreCuenta = (t: string) => config.tiposCuenta.find((x) => x.id === t)?.nombre ?? t;
 
-      {cuentasPersonales.length === 0 ? (
+  if (cuentasPersonales.length === 0)
+    return (
+      <>
+        <PageHeader
+          titulo={`${greeting(ahora.getHours())}${nombre}`}
+          subtitulo={fechaTexto.charAt(0).toUpperCase() + fechaTexto.slice(1)}
+        />
         <div className="card">
           <div className="empty">
             <div className="empty-title">Empieza creando tu primera cuenta</div>
@@ -102,203 +95,42 @@ export function Inicio() {
             </a>
           </div>
         </div>
-      ) : (
-        <div className="stack">
-          <div className="overview-grid">
-            <section className="available-money hero-dark">
-              <div className="available-main">
-                <span className="eyebrow">Disponible para gastar</span>
-                <strong>{formatMoney(disponible.disponible)}</strong>
-                <small>Dinero actual en tus cuentas de uso.</small>
-                <button className="available-explain text-link" onClick={() => setVerDisponible(true)}>
-                  Ver cómo se calcula <Icon name="derecha" size={15} />
-                </button>
-              </div>
-              <div className="available-savings">
-                <span className="savings-symbol">
-                  <Icon name="ahorro" size={22} />
-                </span>
-                <span>Ahorro separado</span>
-                <b>{formatMoney(disponible.ahorro)}</b>
-                <small>Todo tu ahorro, repartido entre tus metas.</small>
-              </div>
-              <div className="quick-movements" aria-label="Registrar un movimiento">
-                <button className="quick-movement is-accent" onClick={() => setForm({ tipo: 'gasto' })}>
-                  <span className="expense-text">
-                    <Icon name="gasto" />
-                  </span>
-                  <strong>Gasto</strong>
-                  <Icon name="mas" size={18} />
-                </button>
-                <button className="quick-movement" onClick={() => setForm({ tipo: 'ingreso' })}>
-                  <span className="income-text">
-                    <Icon name="ingreso" />
-                  </span>
-                  <strong>Ingreso</strong>
-                  <Icon name="mas" size={18} />
-                </button>
-                <button className="quick-movement" onClick={() => setForm({ tipo: 'transferencia' })}>
-                  <span>
-                    <Icon name="transferencia" />
-                  </span>
-                  <strong>Transferir</strong>
-                  <Icon name="flecha" size={18} />
-                </button>
-              </div>
-              <p>
-                <Icon name="check" size={15} />
-                Solo dinero registrado. Sin anticipar pagos ni ingresos.
-              </p>
-            </section>
-            <div className="wallet-stack patrimony-stack">
-              <a className="card account-card patrimony-card" href="#/cuentas" style={{ textDecoration: 'none' }}>
-                <div className="hero-heading">
-                  <span className="eyebrow">Tu patrimonio en cuentas</span>
-                  <span className="glass-icon">
-                    <Icon name="cuentas" size={21} />
-                  </span>
-                </div>
-                <div className="mid-number">{formatMoney(total)}</div>
-                {positivo > 0 && (
-                  <div className="patrimony-split" aria-hidden="true">
-                    {cuentasOrdenadas.map((c, i) =>
-                      (saldos.get(c.id) ?? 0) > 0 ? (
-                        <span
-                          key={c.id}
-                          style={{
-                            flexGrow: saldos.get(c.id),
-                            background: GRISES_REPARTO[Math.min(i, GRISES_REPARTO.length - 1)],
-                          }}
-                        />
-                      ) : null,
-                    )}
-                  </div>
-                )}
-                <ul className="patrimony-accounts">
-                  {cuentasOrdenadas.slice(0, MAX_CUENTAS_INICIO).map((c, i) => (
-                    <li key={c.id}>
-                      <span
-                        className="patrimony-account-dot"
-                        style={{ background: GRISES_REPARTO[Math.min(i, GRISES_REPARTO.length - 1)] }}
-                      />
-                      <span className="patrimony-account-icon">
-                        <Icon name={c.ahorroGeneral ? 'ahorro' : c.tipo} size={16} />
-                      </span>
-                      <span className="patrimony-account-name">{c.nombre}</span>
-                      <span className="patrimony-account-pct">
-                        {positivo > 0 ? `${Math.round((Math.max(0, saldos.get(c.id) ?? 0) / positivo) * 100)} %` : ''}
-                      </span>
-                      <span className="patrimony-account-amount">{formatMoney(saldos.get(c.id) ?? 0)}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="muted card-link">
-                  <span>
-                    {cuentasPersonales.length > MAX_CUENTAS_INICIO
-                      ? `Y ${cuentasPersonales.length - MAX_CUENTAS_INICIO} más · Ver todas`
-                      : `${cuentasPersonales.length} cuenta${cuentasPersonales.length === 1 ? '' : 's'} · Ver cuentas`}
-                  </span>
-                  <span className="glass-icon">
-                    <Icon name="flecha" size={18} />
-                  </span>
-                </div>
-              </a>
-            </div>
-          </div>
+      </>
+    );
+
+  return (
+    <>
+      <h1 className="sr-only">Inicio</h1>
+      <section className="home-hero" aria-label="Tu patrimonio">
+        <span className="home-hero-label">
+          {greeting(ahora.getHours())}
+          {nombre} · Patrimonio
+        </span>
+        <ImporteGrande cents={total} />
+        <a className="pill-link" href="#/cuentas">
+          {cuentasPersonales.length === 1 ? '1 cuenta' : `${cuentasPersonales.length} cuentas`}
+          <Icon name="derecha" size={16} />
+        </a>
+        <AccionesRedondas
+          acciones={[
+            { icono: 'gasto', texto: 'Gasto', onClick: () => setForm({ tipo: 'gasto' }) },
+            { icono: 'ingreso', texto: 'Ingreso', onClick: () => setForm({ tipo: 'ingreso' }) },
+            { icono: 'transferencia', texto: 'Mover', onClick: () => setForm({ tipo: 'transferencia' }) },
+            { icono: 'presupuestos', texto: 'Presupuesto', href: '#/presupuestos' },
+          ]}
+        />
+      </section>
+
+      <div className="home-columns">
+        <div className="home-main">
           <HomeRecurring />
           <BudgetReview mes={mes} />
-          <HomeBudgets mes={mes} />
-          <section className="month-summary" aria-label="Resumen del mes">
-            <div>
-              <span className="eyebrow">Balance de {monthLabel(mes, false)}</span>
-              <strong>{formatMoney(resumen.neto)}</strong>
-              <small>Ingresos menos gastos</small>
-            </div>
-            <div>
-              <span className="summary-icon income-text">
-                <Icon name="ingreso" size={20} />
-              </span>
-              <span className="kpi-label">Ingresos del mes</span>
-              <strong className="income-text">{formatMoney(resumen.ingresos)}</strong>
-            </div>
-            <div>
-              <span className="summary-icon expense-text">
-                <Icon name="gasto" size={20} />
-              </span>
-              <span className="kpi-label">Gastos del mes</span>
-              <strong className="expense-text">{formatMoney(resumen.gastos)}</strong>
-            </div>
-          </section>
 
-          <div className="grid grid-insights">
-            <section className="card evolution-card">
-              <div className="card-header">
-                <div>
-                  <h2 className="card-title">Tu evolución</h2>
-                  <div className="card-sub">Ingresos y gastos, mes a mes</div>
-                </div>
-                <Segmented
-                  opciones={config.inicio.periodosGrafico}
-                  valor={periodo}
-                  onChange={setPeriodo}
-                  etiqueta="Periodo del gráfico"
-                />
-              </div>
-              <LineChart
-                key={periodo}
-                titulo={`Ingresos y gastos de los últimos ${meses} meses`}
-                datos={serie.map((s) => ({
-                  clave: s.mes,
-                  etiqueta: monthShortLabel(s.mes),
-                  nombre: monthLabel(s.mes),
-                  enCurso: s.mes === mes,
-                  ingresos: s.ingresos,
-                  gastos: s.gastos,
-                }))}
-              />
-            </section>
-            <section className="card category-card">
-              <div className="card-header">
-                <div>
-                  <h2 className="card-title">Dónde va tu dinero</h2>
-                  <div className="card-sub">Gastos de {monthLabel(mes, false)}</div>
-                </div>
-              </div>
-              {porciones.length === 0 ? (
-                <div className="empty">
-                  <div>Todavía no hay gastos este mes.</div>
-                </div>
-              ) : (
-                <Donut porciones={porciones} titulo={`Gasto por categoría en ${monthLabel(mes)}`} />
-              )}
-              {creditos.length > 0 && (
-                <div className="category-refunds">
-                  <p>Devoluciones que superan los gastos de su categoría este mes:</p>
-                  <dl className="finance-breakdown">
-                    {creditos.map((p) => (
-                      <div key={p.categoriaId}>
-                        <dt>{categorias.get(p.categoriaId ?? '')?.nombre ?? 'Sin categoría'}</dt>
-                        <dd>{formatMoney(-p.importe)}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                  <small>
-                    El anillo muestra las categorías con gasto neto positivo. Estas devoluciones se restan del gasto
-                    total del mes.
-                  </small>
-                </div>
-              )}
-            </section>
-          </div>
-
-          <BackupReminder />
-          <section className="card">
-            <div className="card-header">
-              <h2 className="card-title">Últimos movimientos</h2>
-              <a className="btn btn-ghost btn-sm" href="#/movimientos">
-                Ver todos
-              </a>
-            </div>
+          <TarjetaLista
+            className="home-movements"
+            titulo="Movimientos"
+            enlace={{ texto: 'Ver todos', href: '#/movimientos' }}
+          >
             {recientes.length === 0 ? (
               <div className="empty">
                 <div>Aún no has apuntado ningún movimiento.</div>
@@ -316,9 +148,124 @@ export function Inicio() {
                 ))}
               </div>
             )}
+          </TarjetaLista>
+
+          <TarjetaLista className="home-accounts" titulo="Cuentas" enlace={{ texto: 'Ver todas', href: '#/cuentas' }}>
+            <ul className="account-rows">
+              {cuentasOrdenadas.map((c) => (
+                <li key={c.id}>
+                  <a href="#/cuentas">
+                    <span className="account-row-icon" aria-hidden="true">
+                      <Icon name={c.ahorroGeneral ? 'ahorro' : c.tipo} size={20} />
+                    </span>
+                    <span className="account-row-text">
+                      <strong>{c.nombre}</strong>
+                      <small>
+                        {c.ahorroGeneral ? 'Ahorro y metas' : nombreCuenta(c.tipo)}
+                        {positivo > 0 && (saldos.get(c.id) ?? 0) > 0
+                          ? ` · ${Math.round(((saldos.get(c.id) ?? 0) / positivo) * 100)} %`
+                          : ''}
+                      </small>
+                    </span>
+                    <span className={`account-row-amount${(saldos.get(c.id) ?? 0) < 0 ? ' expense-text' : ''}`}>
+                      {formatMoney(saldos.get(c.id) ?? 0)}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </TarjetaLista>
+
+          <section className="card evolution-card">
+            <div className="card-header">
+              <div>
+                <h2 className="card-title">Tu evolución</h2>
+                <div className="card-sub">Ingresos y gastos, mes a mes</div>
+              </div>
+              <Segmented
+                opciones={config.inicio.periodosGrafico}
+                valor={periodo}
+                onChange={setPeriodo}
+                etiqueta="Periodo del gráfico"
+              />
+            </div>
+            <LineChart
+              key={periodo}
+              titulo={`Ingresos y gastos de los últimos ${meses} meses`}
+              datos={serie.map((s) => ({
+                clave: s.mes,
+                etiqueta: monthShortLabel(s.mes),
+                nombre: monthLabel(s.mes),
+                enCurso: s.mes === mes,
+                ingresos: s.ingresos,
+                gastos: s.gastos,
+              }))}
+            />
           </section>
         </div>
-      )}
+
+        <aside className="home-side" aria-label="Resumen">
+          <div className="widget-grid">
+            <button type="button" className="widget" onClick={() => setVerDisponible(true)}>
+              <span className="widget-label">Disponible</span>
+              <strong>{formatMoney(disponible.disponible)}</strong>
+              <small>Para gastar · Ver cómo</small>
+            </button>
+            <a className="widget" href="#/movimientos">
+              <span className="widget-label">Gastado en {monthLabel(mes, false)}</span>
+              <strong>{formatMoney(resumen.gastos)}</strong>
+              <small className="income-text">+{formatMoney(resumen.ingresos)} ingresos</small>
+            </a>
+            <a className="widget" href="#/metas">
+              <span className="widget-label">Ahorro</span>
+              <strong>{formatMoney(disponible.ahorro)}</strong>
+              <small>Repartido en tus metas</small>
+            </a>
+            <div className="widget">
+              <span className="widget-label">Balance del mes</span>
+              <strong className={resumen.neto < 0 ? 'expense-text' : undefined}>{formatMoney(resumen.neto)}</strong>
+              <small>Ingresos menos gastos</small>
+            </div>
+          </div>
+
+          <HomeBudgets mes={mes} />
+
+          <section className="card category-card">
+            <div className="card-header">
+              <div>
+                <h2 className="card-title">Dónde va tu dinero</h2>
+                <div className="card-sub">Gastos de {monthLabel(mes, false)}</div>
+              </div>
+            </div>
+            {porciones.length === 0 ? (
+              <div className="empty">
+                <div>Todavía no hay gastos este mes.</div>
+              </div>
+            ) : (
+              <Donut porciones={porciones} titulo={`Gasto por categoría en ${monthLabel(mes)}`} />
+            )}
+            {creditos.length > 0 && (
+              <div className="category-refunds">
+                <p>Devoluciones que superan los gastos de su categoría este mes:</p>
+                <dl className="finance-breakdown">
+                  {creditos.map((p) => (
+                    <div key={p.categoriaId}>
+                      <dt>{categorias.get(p.categoriaId ?? '')?.nombre ?? 'Sin categoría'}</dt>
+                      <dd>{formatMoney(-p.importe)}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <small>
+                  El anillo muestra las categorías con gasto neto positivo. Estas devoluciones se restan del gasto total
+                  del mes.
+                </small>
+              </div>
+            )}
+          </section>
+
+          <BackupReminder />
+        </aside>
+      </div>
 
       {verDisponible && <AvailableDetails cerrar={() => setVerDisponible(false)} />}
       {form && <MovimientoForm tipoInicial={form.tipo} movimiento={form.movimiento} onClose={() => setForm(null)} />}
