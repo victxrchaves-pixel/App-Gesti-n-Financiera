@@ -9018,3 +9018,85 @@ select {
     align-self: stretch;
   }
 }
+
+/* ── Repaso ui-ux-pro-max: tacto, enlaces y letra mínima ─────────────────── */
+/* Los enlaces de texto heredan el color de su tarjeta (oscuro en las claras, blanco en las negras)
+   en vez del azul del navegador; el subrayado fino indica que se pueden pulsar. */
+a.text-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+}
+@media (hover: hover) and (pointer: fine) {
+  a.text-link:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+/* Etiquetas de cifras: nunca por debajo de 12 px. */
+.kpi-label {
+  font-size: max(12px, 1em);
+}
+
+/* En pantallas táctiles, todo lo que se pulsa ocupa al menos 44 × 44 px (Apple). Cuando el diseño
+   no puede crecer, se amplía la zona que se puede tocar sin mover nada. */
+@media (pointer: coarse) {
+  .segmented button,
+  .space-switch:not(.is-compact) > button,
+  .btn-sm {
+    min-height: 44px;
+  }
+  .btn-icon,
+  .cat-row .btn-icon {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .cat-icon-btn,
+  .color-controls input[type='color'] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .space-switch.is-compact > button,
+  .switch,
+  a.text-link,
+  button.text-link,
+  .available-explain,
+  .business-deadline-link,
+  .wallet-footer a {
+    position: relative;
+  }
+  .space-switch.is-compact > button::before,
+  .switch::before,
+  a.text-link::before,
+  button.text-link::before,
+  .available-explain::before,
+  .business-deadline-link::before,
+  .wallet-footer a::before {
+    content: '';
+    position: absolute;
+    inset: -12px -4px;
+  }
+  .switch::before {
+    inset: -8px;
+  }
+  .segmented button {
+    min-width: 44px;
+  }
+  .recurring-tabs .btn {
+    min-height: 44px;
+  }
+  label:has(> input[type='checkbox']) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  input[type='checkbox'] {
+    width: 22px;
+    height: 22px;
+  }
+}
+.business-profile > .card-header {
+  margin-bottom: 0;
+}
