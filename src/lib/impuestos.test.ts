@@ -126,4 +126,13 @@ describe('modelo 130 (pago a cuenta del IRPF)', () => {
     expect(finTrimestre({ anio: 2028, t: 1 })).toBe('2028-03-31');
     expect(finTrimestre({ anio: 2026, t: 2 })).toBe('2026-06-30');
   });
+
+  it('un ordenador de 1.200 € cuenta repartido, no de golpe', () => {
+    const pc = { ...g('2026-07-01', 120000, 25200, 100, 100), amortizacion: 26 };
+    const sinGastos = { ...perfil, cuotaMensual: 0, regimenIRPF: 'normal' as const };
+    // 3T: ingresos 2.000 − 78,64 de amortización = 1.921,36
+    expect(modelo130([f('2026-08-01', 200000, 0)], [pc], { anio: 2026, t: 3 }, sinGastos).rendimiento).toBe(192136);
+    // El IVA sí se deduce entero al comprarlo
+    expect(modelo303([], [pc], { anio: 2026, t: 3 }, sinGastos).ivaDeducible).toBe(25200);
+  });
 });

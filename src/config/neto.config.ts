@@ -188,6 +188,12 @@ export const config = {
       { id: 'bancos', nombre: 'Comisiones del banco', icono: 'comisiones', iva: 0, irpf: 100, tipoIVA: 0 },
       { id: 'otros', nombre: 'Otros gastos del negocio', icono: 'otros', iva: 100, irpf: 100, tipoIVA: 21 },
     ],
+    /**
+     * Amortización: un gasto de estas categorías que pasa del umbral (base, en céntimos) no se deduce
+     * de golpe en el IRPF, sino repartido por días a este porcentaje anual hasta llegar al total.
+     * El IVA sí se deduce entero al comprarlo.
+     */
+    amortizacion: { umbral: 30000, porCategoria: { equipo: 26 } as Record<string, number> },
     /** Límites diarios de dietas de autónomos (céntimos), pagadas con tarjeta en hostelería. */
     dietas: { espana: 2667, espanaPernoctando: 5334, extranjero: 4808, extranjeroPernoctando: 9135 },
     /** Categoría de gasto donde se apuntan los pagos de gastos del negocio. Se crea sola la primera vez. */

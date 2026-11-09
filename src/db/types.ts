@@ -113,6 +113,8 @@ export interface GastoNegocio {
   /** Partes deducibles, en %. */
   deducibleIVA: number;
   deducibleIRPF: number;
+  /** Equipo caro: % anual con el que se reparte en el IRPF (null o ausente: se deduce de golpe). */
+  amortizacion?: number | null;
   /** Pago apuntado en una cuenta del negocio, o null si no se apuntó. */
   cuentaId: string | null;
   movimientoId: string | null;

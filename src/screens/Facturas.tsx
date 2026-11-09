@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import { PageHeader } from '../layout/Shell';
-import { useAjustes, useFacturas } from '../db/hooks';
+import { useAjustes, useClientes, useFacturas } from '../db/hooks';
+import { csvFacturas } from '../lib/exportar';
+import { guardarArchivo } from '../lib/platform';
+import { useToast } from '../ui/Modal';
 import type { Factura } from '../db/types';
 import { shortDate, todayISO } from '../lib/dates';
 import {
@@ -75,6 +78,8 @@ function FilaFactura({ f, hoy, abrir, cobrar }: { f: Factura; hoy: string; abrir
 
 export function Facturas() {
   const facturas = useFacturas();
+  const listaClientes = useClientes();
+  const avisar = useToast();
   const ajustes = useAjustes();
   const perfil = perfilNegocio(ajustes?.negocio);
   const hoy = todayISO();
@@ -96,6 +101,20 @@ export function Facturas() {
       ? resumirFacturas(facturas.filter((f) => f.cobradaEn && enTrimestre(f.cobradaEn, trimestre))).iva
       : resumen.iva;
 
+  const exportar = async () => {
+    const nifs = new Map(listaClientes.map((c) => [c.id, c.nif]));
+    const ok = await guardarArchivo(
+      `neto-facturas-${trimestre.anio}-T${trimestre.t}.csv`,
+      csvFacturas(delTrimestre, nifs),
+      {
+        descripcion: 'Hoja de cálculo (CSV)',
+        extension: 'csv',
+        tipoMime: 'text/csv;charset=utf-8',
+      },
+    );
+    if (ok) avisar(`${contar(delTrimestre.length, 'factura exportada', 'facturas exportadas')}`);
+  };
+
   const q = busqueda.trim().toLocaleLowerCase('es-ES');
   const buscando = q.length > 0;
   const lista = (buscando ? facturas : delTrimestre).filter((f) => {
@@ -114,6 +133,15 @@ export function Facturas() {
         subtitulo="Registra las facturas que haces con tu programa de facturación y sigue cuáles has cobrado."
         acciones={
           <>
+            <button
+              className="btn btn-secondary"
+              onClick={() => void exportar()}
+              disabled={delTrimestre.length === 0}
+              title={delTrimestre.length === 0 ? 'No hay facturas en este trimestre' : undefined}
+            >
+              <Icon name="descargar" size={16} />
+              Exportar
+            </button>
             <button className="btn btn-secondary" onClick={() => setClientes(true)}>
               <Icon name="clientes" size={16} />
               Clientes

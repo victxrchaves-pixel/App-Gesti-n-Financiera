@@ -69,6 +69,8 @@ export function MovimientoForm({
   tipoInicial,
   cuentaPreferida,
   destinoPreferido,
+  importeInicial,
+  notaInicial,
   onClose,
 }: {
   movimiento?: Movimiento;
@@ -77,6 +79,10 @@ export function MovimientoForm({
   cuentaPreferida?: string;
   /** Destino ya elegido para una transferencia (por ejemplo, «Me pago a mí»). */
   destinoPreferido?: string;
+  /** Importe ya escrito al abrir (céntimos), por ejemplo lo que Neto propone pasarte. */
+  importeInicial?: number;
+  /** Nota ya escrita al abrir. */
+  notaInicial?: string;
   onClose: () => void;
 }) {
   const ajustes = useAjustes();
@@ -105,7 +111,7 @@ export function MovimientoForm({
   const avisar = useToast();
 
   const [tipo, setTipo] = useState<TipoMovimiento>(movimiento?.tipo ?? tipoInicial ?? 'gasto');
-  const importe = useAmountField(movimiento?.importe);
+  const importe = useAmountField(movimiento?.importe ?? importeInicial);
   const [fecha, setFecha] = useState(movimiento?.fecha ?? todayISO());
   const ultima = cuentaPreferida ?? leerUltimaCuenta();
   // Hasta que la persona elija, se proponen cuentas con los datos ya cargados (las cuentas llegan
@@ -120,7 +126,7 @@ export function MovimientoForm({
       ? destinoPreferido
       : (cuentasEspacio.find((c) => c.id !== cuentaId)?.id ?? ''));
   const [categoriaId, setCategoriaId] = useState<string | undefined>(movimiento?.categoriaId);
-  const [nota, setNota] = useState(movimiento?.nota ?? '');
+  const [nota, setNota] = useState(movimiento?.nota ?? notaInicial ?? '');
   const [busy, setBusy] = useState(false);
   const [devolver, setDevolver] = useState(false);
   const [dividir, setDividir] = useState(!!movimiento?.reparto?.length);

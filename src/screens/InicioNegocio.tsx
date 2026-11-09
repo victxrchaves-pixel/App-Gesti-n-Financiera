@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { PageHeader } from '../layout/Shell';
 import { useAjustes, useCuentas, useFacturas, useGastosNegocio, useMapaCategorias, useMovimientos } from '../db/hooks';
-import { resumirGastos } from '../lib/gastosNegocio';
+import { gastoIRPFPeriodo, resumirGastos } from '../lib/gastosNegocio';
 import { GastoNegocioForm } from '../ui/GastoNegocioForm';
 import type { Factura, TipoMovimiento } from '../db/types';
 import { patrimonio, esRepartoInterno } from '../lib/balances';
@@ -17,7 +17,8 @@ import {
 } from '../lib/facturas';
 import { formatMoney } from '../lib/money';
 import { diasHasta, siguientePlazo } from '../lib/plazos';
-import { exentoDel130, modelo130, modelo303 } from '../lib/impuestos';
+import { beneficioReal } from '../lib/beneficio';
+import { exentoDel130, finTrimestre, inicioTrimestre, modelo130, modelo303 } from '../lib/impuestos';
 import { contar } from '../lib/plural';
 import { ordenarMovimientos } from '../lib/stats';
 import { CobroForm } from '../ui/CobroForm';
@@ -39,7 +40,12 @@ export function InicioNegocio() {
   const categorias = useMapaCategorias();
   const hoy = todayISO();
   const perfil = perfilNegocio(ajustes?.negocio);
-  const [form, setForm] = useState<{ tipo: TipoMovimiento; destino?: string } | null>(null);
+  const [form, setForm] = useState<{
+    tipo: TipoMovimiento;
+    destino?: string;
+    importe?: number;
+    nota?: string;
+  } | null>(null);
   const [factura, setFactura] = useState(false);
   const [cobro, setCobro] = useState<Factura | null>(null);
   const [nuevaCuenta, setNuevaCuenta] = useState(false);
@@ -62,13 +68,22 @@ export function InicioNegocio() {
     perfil.regimenIVA === 'caja'
       ? resumirFacturas(facturas.filter((f) => f.cobradaEn && enTrimestre(f.cobradaEn, trimestre))).iva
       : resumen.iva;
-  const gastosTrimestre = resumirGastos(gastos.filter((g) => enTrimestre(g.fecha, trimestre)));
+  const gastosTrimestre = {
+    ...resumirGastos(gastos.filter((g) => enTrimestre(g.fecha, trimestre))),
+    // El equipo caro cuenta repartido: lo que toca a este trimestre.
+    gastoIRPF: gastoIRPFPeriodo(gastos, inicioTrimestre(trimestre), finTrimestre(trimestre)),
+  };
   const pendientes = [...facturas.filter((f) => !f.cobradaEn)].sort((a, b) =>
     a.vencimiento.localeCompare(b.vencimiento),
   );
   const porCobrar = resumirFacturas(pendientes);
   const vencidas = pendientes.filter((f) => estadoFactura(f, hoy) === 'vencida').length;
 
+  const real = beneficioReal(
+    { facturas, gastos, cuentas: todasCuentas, movimientos, dineroNegocio: total },
+    perfil,
+    hoy,
+  );
   const plazo = siguientePlazo(hoy);
   const qPlazo = { anio: plazo.anio, t: plazo.trimestre };
   const aPagar =
@@ -164,7 +179,14 @@ export function InicioNegocio() {
               </button>
               <button
                 className="quick-movement"
-                onClick={() => setForm({ tipo: 'transferencia', destino: personales[0]?.id })}
+                onClick={() =>
+                  setForm({
+                    tipo: 'transferencia',
+                    destino: personales[0]?.id,
+                    importe: real.puedesPasarte || undefined,
+                    nota: 'Me pago a mí',
+                  })
+                }
                 disabled={!cuentas.length || !personales.length}
               >
                 <span>
@@ -210,6 +232,101 @@ export function InicioNegocio() {
             </a>
           </section>
         </div>
+
+        <section className="card pay-yourself" aria-labelledby="me-pago">
+          <div className="pay-yourself-steps">
+            <h2 className="card-title" id="me-pago">
+              Tu beneficio real en {hoy.slice(0, 4)}
+            </h2>
+            <p className="muted">Lo que de verdad te queda del negocio, del 1 de enero a hoy.</p>
+            <dl className="tax-steps">
+              <div className="tax-row">
+                <dt>
+                  <span>
+                    Lo que has facturado
+                    <small>Sin IVA: el IVA no es tuyo</small>
+                  </span>
+                </dt>
+                <dd>{formatMoney(real.ingresos)}</dd>
+              </div>
+              <div className="tax-row">
+                <dt>
+                  <span className="tax-sign">−</span>
+                  <span>Gastos del negocio</span>
+                </dt>
+                <dd>{formatMoney(real.gastos)}</dd>
+              </div>
+              <div className="tax-row">
+                <dt>
+                  <span className="tax-sign">−</span>
+                  <span>
+                    Cuota de autónomos
+                    {perfil.cuotaMensual === 0 && <small>Indícala en Ajustes › Tu negocio</small>}
+                  </span>
+                </dt>
+                <dd>{formatMoney(real.cuota)}</dd>
+              </div>
+              <div className="tax-row is-subtotal">
+                <dt>
+                  <span>Beneficio real</span>
+                </dt>
+                <dd className={real.beneficio < 0 ? 'expense-text' : undefined}>{formatMoney(real.beneficio)}</dd>
+              </div>
+              <div className="tax-row">
+                <dt>
+                  <span className="tax-sign">−</span>
+                  <span>
+                    Para el IRPF
+                    <small>
+                      El {perfil.reservaIRPF.toLocaleString('es-ES')} % del beneficio, menos lo que ya te retuvieron tus
+                      clientes
+                    </small>
+                  </span>
+                </dt>
+                <dd>{formatMoney(real.irpfReservar)}</dd>
+              </div>
+              <div className="tax-row">
+                <dt>
+                  <span className="tax-sign">−</span>
+                  <span>Ya te has pasado este año</span>
+                </dt>
+                <dd>{formatMoney(real.yaTePagaste)}</dd>
+              </div>
+            </dl>
+          </div>
+          <div className="pay-yourself-result">
+            <span className="eyebrow">Me pago a mí</span>
+            <strong>{formatMoney(real.puedesPasarte)}</strong>
+            <p>
+              {real.beneficio <= 0
+                ? 'Este año el negocio todavía no da beneficio: mejor no sacar dinero.'
+                : real.puedesPasarte === 0
+                  ? 'Ahora mismo no conviene sacar más: lo que hay ya está apartado para impuestos o ya te lo pasaste.'
+                  : real.limita === 'caja'
+                    ? `Por beneficio podrías pasarte ${formatMoney(real.porBeneficio)}, pero en la cuenta hay ${formatMoney(real.dineroNegocio)} y hay que apartar ${formatMoney(real.ivaPendiente + real.irpfReservar)} para impuestos.`
+                    : `Puedes pasártelo sin quedarte corto: en la cuenta quedan ${formatMoney(real.ivaPendiente + real.irpfReservar)} apartados para impuestos.`}
+            </p>
+            <button
+              className="btn btn-primary"
+              disabled={real.puedesPasarte <= 0 || !cuentas.length || !personales.length}
+              onClick={() =>
+                setForm({
+                  tipo: 'transferencia',
+                  destino: personales[0]?.id,
+                  importe: real.puedesPasarte,
+                  nota: 'Me pago a mí',
+                })
+              }
+            >
+              <Icon name="transferencia" size={16} />
+              Pasármelo
+            </button>
+            {!personales.length && (
+              <small className="muted">Para pasártelo, crea una cuenta en el espacio Personal.</small>
+            )}
+            <small className="muted">Cálculo orientativo: aparta de más antes que de menos.</small>
+          </div>
+        </section>
 
         <section className="recurring-summary invoice-summary" aria-label={`Resumen del ${nombreTrimestre(trimestre)}`}>
           <div>
@@ -327,6 +444,8 @@ export function InicioNegocio() {
         <MovimientoForm
           tipoInicial={form.tipo}
           destinoPreferido={form.destino}
+          importeInicial={form.importe}
+          notaInicial={form.nota}
           cuentaPreferida={cuentas.some((c) => c.id === form.destino) ? undefined : cuentas[0]?.id}
           onClose={() => setForm(null)}
         />

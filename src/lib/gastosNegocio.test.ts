@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   afectacionVivienda,
+  amortizacionSugerida,
+  gastoIRPFEnPeriodo,
   cifrasGasto,
   deduciblesSugeridos,
   desglosarTotal,
@@ -110,5 +112,40 @@ describe('validarGastoNegocio', () => {
     expect(validarGastoNegocio({ ...ok, base: 0 })).toMatch(/base/);
     expect(validarGastoNegocio({ ...ok, cuotaIVA: 400 })).toMatch(/no cuadra/);
     expect(validarGastoNegocio({ ...ok, deducibleIRPF: 120 })).toMatch(/0 a 100/);
+  });
+});
+
+describe('equipo de más de 300 €: se reparte en varios años', () => {
+  it('solo el equipo que pasa de 300 € de base', () => {
+    expect(amortizacionSugerida('equipo', 120000)).toBe(26);
+    expect(amortizacionSugerida('equipo', 30000)).toBeNull(); // 300 € justos: de golpe
+    expect(amortizacionSugerida('software', 120000)).toBeNull();
+  });
+
+  it('ordenador de 1.200 € comprado el 1 de julio: 26 % al año, por días', () => {
+    const pc = {
+      fecha: '2026-07-01',
+      base: 120000,
+      cuotaIVA: 25200,
+      deducibleIVA: 100,
+      deducibleIRPF: 100,
+      amortizacion: 26,
+    };
+    // 3.er trimestre: 92 días → 1.200 × 26 % × 92 / 365 = 78,64
+    expect(gastoIRPFEnPeriodo(pc, '2026-07-01', '2026-09-30')).toBe(7864);
+    // Todo 2026: 184 días → 157,28
+    expect(gastoIRPFEnPeriodo(pc, '2026-01-01', '2026-12-31')).toBe(15728);
+    // Un año entero: 312,00
+    expect(gastoIRPFEnPeriodo(pc, '2027-01-01', '2027-12-31')).toBe(31200);
+    // Nunca pasa del total: de la compra a 2035 suma 1.200,00 justos
+    expect(gastoIRPFEnPeriodo(pc, '2026-01-01', '2035-12-31')).toBe(120000);
+    // Antes de comprarlo no cuenta nada
+    expect(gastoIRPFEnPeriodo(pc, '2026-01-01', '2026-06-30')).toBe(0);
+  });
+
+  it('un gasto normal cuenta entero solo en su fecha', () => {
+    const g = { fecha: '2026-10-12', base: 4000, cuotaIVA: 840, deducibleIVA: 100, deducibleIRPF: 100 };
+    expect(gastoIRPFEnPeriodo(g, '2026-10-01', '2026-12-31')).toBe(4000);
+    expect(gastoIRPFEnPeriodo(g, '2027-01-01', '2027-03-31')).toBe(0);
   });
 });

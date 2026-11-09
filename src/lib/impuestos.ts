@@ -8,10 +8,11 @@ import {
   trimestreDe,
   type Trimestre,
 } from './facturas';
-import { cifrasGasto } from './gastosNegocio';
+import { cifrasGasto, gastoIRPFEnPeriodo } from './gastosNegocio';
 
 type FacturaFiscal = Pick<Factura, 'fecha' | 'lineas' | 'retencion' | 'cobradaEn'>;
-type GastoFiscal = Pick<GastoNegocio, 'fecha' | 'base' | 'cuotaIVA' | 'deducibleIVA' | 'deducibleIRPF'>;
+type GastoFiscal = Pick<GastoNegocio, 'fecha' | 'base' | 'cuotaIVA' | 'deducibleIVA' | 'deducibleIRPF'> &
+  Pick<Partial<GastoNegocio>, 'amortizacion'>;
 type Perfil = Pick<PerfilNegocio, 'regimenIVA' | 'regimenIRPF' | 'cuotaMensual' | 'fechaAlta'>;
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -138,7 +139,8 @@ function irpfAcumulado(
     ingresos += t.base;
     retenciones += t.retencion;
   }
-  const gastosFacturas = gastos.filter((g) => enPeriodo(g.fecha)).reduce((s, g) => s + cifrasGasto(g).gastoIRPF, 0);
+  // Los gastos normales cuentan en su fecha; el equipo caro, repartido por días desde la compra.
+  const gastosFacturas = gastos.reduce((s, g) => s + gastoIRPFEnPeriodo(g, desde, hasta), 0);
   const cuotaAutonomos = perfil.cuotaMensual * mesesDeCuota(q, perfil.fechaAlta);
   const previo = ingresos - gastosFacturas - cuotaAutonomos;
   const { porcentaje, maximoAnual } = config.autonomo.dificilJustificacion;

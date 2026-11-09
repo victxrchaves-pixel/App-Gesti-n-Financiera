@@ -7,6 +7,8 @@ import { todayISO } from '../lib/dates';
 import { aplicarPorcentaje, perfilNegocio } from '../lib/facturas';
 import {
   CATEGORIAS_GASTO,
+  amortizacionSugerida,
+  aniosDeReparto,
   categoriaGasto,
   cifrasGasto,
   deduciblesSugeridos,
@@ -16,6 +18,7 @@ import {
 } from '../lib/gastosNegocio';
 import { centsToInput, formatMoney, parseMoney } from '../lib/money';
 import { AmountInput } from './AmountInput';
+import { Icon } from './Icon';
 import { Modal, useConfirm, useToast } from './Modal';
 import { Segmented } from './Segmented';
 
@@ -75,6 +78,8 @@ export function GastoNegocioForm({ gasto, onClose }: { gasto?: GastoNegocio; onC
     deducibleIVA: Number.isFinite(deducibleIVA) ? deducibleIVA : 0,
     deducibleIRPF: Number.isFinite(deducibleIRPF) ? deducibleIRPF : 0,
   });
+  // Equipo de más de 300 €: en el IRPF se reparte en varios años (el IVA se recupera entero).
+  const amortizacion = amortizacionSugerida(categoria, base);
   const proveedores = useMemo(() => [...new Set(gastos.map((g) => g.proveedor))].sort(), [gastos]);
   const cat = categoriaGasto(categoria);
   const sinMetros = categoria === 'casa' && !(perfil.metrosVivienda && perfil.metrosTrabajo);
@@ -102,6 +107,7 @@ export function GastoNegocioForm({ gasto, onClose }: { gasto?: GastoNegocio; onC
       cuotaIVA,
       deducibleIVA,
       deducibleIRPF,
+      amortizacion,
       cuentaId: cuentaId || null,
       nota,
     };
@@ -322,6 +328,16 @@ export function GastoNegocioForm({ gasto, onClose }: { gasto?: GastoNegocio; onC
               </>
             )}
           </span>
+          {amortizacion !== null && cifras.gastoIRPF > 0 && (
+            <span className="expense-spread">
+              <Icon name="calendario" size={16} />
+              <span>
+                Como pasa de {formatMoney(config.autonomo.amortizacion.umbral)}, Hacienda no deja contarlo todo este
+                año: se reparte en unos {aniosDeReparto(amortizacion)} años, un {amortizacion} % cada año. Neto lo hace
+                solo. El IVA sí lo recuperas entero ahora.
+              </span>
+            </span>
+          )}
           {categoria === 'dietas' && cifras.total > limiteDietaDiaria && (
             <span className="field-hint expense-warning">
               Supera el límite diario de {formatMoney(limiteDietaDiaria)}: comprueba con tu gestor qué parte puedes
@@ -346,7 +362,12 @@ export function GastoNegocioForm({ gasto, onClose }: { gasto?: GastoNegocio; onC
             <dd>{formatMoney(cifras.ivaDeducible)}</dd>
           </div>
           <div>
-            <dt>Cuenta como gasto en el IRPF</dt>
+            <dt>
+              Cuenta como gasto en el IRPF
+              {amortizacion !== null && cifras.gastoIRPF > 0 && (
+                <small> · {formatMoney(Math.round((cifras.gastoIRPF * amortizacion) / 100))} al año</small>
+              )}
+            </dt>
             <dd>{formatMoney(cifras.gastoIRPF)}</dd>
           </div>
           <div className="invoice-totals-total">

@@ -1,6 +1,6 @@
 import { config } from '../config/neto.config';
 import type { GastoNegocio, PerfilNegocio } from '../db/types';
-import { isISODate } from './dates';
+import { addDays, isISODate } from './dates';
 import { aplicarPorcentaje } from './facturas';
 
 export type CategoriaGasto = (typeof config.autonomo.categoriasGasto)[number];
@@ -62,6 +62,41 @@ export function cifrasGasto(
   return { total: g.base + g.cuotaIVA, ivaDeducible, gastoIRPF };
 }
 
+/** Porcentaje anual de reparto que toca a un gasto de esta categoría y base, o null si se deduce de golpe. */
+export function amortizacionSugerida(categoria: string, base: number): number | null {
+  const { umbral, porCategoria } = config.autonomo.amortizacion;
+  const pct = porCategoria[categoria];
+  return pct && base > umbral ? pct : null;
+}
+
+/** Años (redondeados hacia arriba) en que se reparte un gasto a un porcentaje anual. */
+export const aniosDeReparto = (pct: number) => Math.ceil(100 / pct);
+
+const diasEntre = (desde: string, hasta: string) =>
+  Math.round((Date.parse(`${hasta}T00:00:00Z`) - Date.parse(`${desde}T00:00:00Z`)) / 86400000);
+
+/** Lo repartido de un gasto amortizable desde su compra hasta `fecha` (incluida), en céntimos. */
+function amortizadoHasta(total: number, pct: number, compra: string, fecha: string): number {
+  if (fecha < compra) return 0;
+  const dias = diasEntre(compra, fecha) + 1;
+  return Math.min(total, Math.round((total * pct * dias) / (100 * 365)));
+}
+
+/**
+ * Lo que un gasto cuenta en el IRPF entre dos fechas (incluidas). Un gasto normal cuenta entero en
+ * su fecha; uno amortizable se reparte por días desde la compra.
+ */
+export function gastoIRPFEnPeriodo(
+  g: Pick<GastoNegocio, 'fecha' | 'base' | 'cuotaIVA' | 'deducibleIVA' | 'deducibleIRPF' | 'amortizacion'>,
+  desde: string,
+  hasta: string,
+): number {
+  const total = cifrasGasto(g).gastoIRPF;
+  if (!g.amortizacion) return g.fecha >= desde && g.fecha <= hasta ? total : 0;
+  const antes = amortizadoHasta(total, g.amortizacion, g.fecha, addDays(desde, -1));
+  return amortizadoHasta(total, g.amortizacion, g.fecha, hasta) - antes;
+}
+
 export interface ResumenGastos {
   gastos: number;
   base: number;
@@ -102,7 +137,8 @@ export type DatosGastoNegocio = Pick<
   | 'deducibleIRPF'
   | 'cuentaId'
   | 'nota'
->;
+> &
+  Pick<Partial<GastoNegocio>, 'amortizacion'>;
 
 const esPct = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 100;
 
@@ -120,5 +156,16 @@ export function validarGastoNegocio(g: DatosGastoNegocio): string | null {
   if (Math.abs(g.cuotaIVA - aplicarPorcentaje(g.base, g.tipoIVA)) > 2)
     return `El IVA no cuadra con el ${g.tipoIVA} % de la base.`;
   if (!esPct(g.deducibleIVA) || !esPct(g.deducibleIRPF)) return 'Los porcentajes deducibles van de 0 a 100.';
+  if (g.amortizacion != null && (!esPct(g.amortizacion) || g.amortizacion <= 0))
+    return 'El porcentaje de reparto por año no es válido.';
   return null;
+}
+
+/** Suma de lo que cuentan en el IRPF varios gastos entre dos fechas (con el equipo caro repartido). */
+export function gastoIRPFPeriodo(
+  gastos: readonly Parameters<typeof gastoIRPFEnPeriodo>[0][],
+  desde: string,
+  hasta: string,
+): number {
+  return gastos.reduce((s, g) => s + gastoIRPFEnPeriodo(g, desde, hasta), 0);
 }

@@ -8944,3 +8944,77 @@ select {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+.expense-spread {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--card-sunken);
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.expense-spread > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.invoice-totals dt small {
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+/* ── Beneficio real y «Me pago a mí» ─────────────────────────────────────── */
+.pay-yourself {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 28px;
+}
+.pay-yourself-steps .card-title {
+  margin: 0;
+}
+.pay-yourself-steps > .muted {
+  margin: 4px 0 8px;
+  font-size: 14px;
+}
+.pay-yourself-result {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px;
+  border-radius: 18px;
+  background: var(--card-sunken);
+}
+.pay-yourself-result .eyebrow {
+  color: var(--text-2);
+}
+.pay-yourself-result > strong {
+  font-size: clamp(30px, 3vw, 40px);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.pay-yourself-result > p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.pay-yourself-result > .btn {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+.pay-yourself-result > small {
+  font-size: 12px;
+}
+@media (max-width: 860px) {
+  .pay-yourself {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .pay-yourself-result > .btn {
+    align-self: stretch;
+  }
+}

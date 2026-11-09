@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import { PageHeader } from '../layout/Shell';
-import { useAjustes, useGastosNegocio } from '../db/hooks';
+import { useAjustes, useCuentas, useGastosNegocio } from '../db/hooks';
+import { csvGastos } from '../lib/exportar';
+import { guardarArchivo } from '../lib/platform';
+import { useToast } from '../ui/Modal';
 import type { GastoNegocio } from '../db/types';
 import { shortDate, todayISO } from '../lib/dates';
 import {
@@ -11,7 +14,16 @@ import {
   trimestreDe,
   type Trimestre,
 } from '../lib/facturas';
-import { CATEGORIAS_GASTO, categoriaGasto, cifrasGasto, resumirGastos } from '../lib/gastosNegocio';
+import {
+  CATEGORIAS_GASTO,
+  aniosDeReparto,
+  categoriaGasto,
+  cifrasGasto,
+  gastoIRPFEnPeriodo,
+  gastoIRPFPeriodo,
+  resumirGastos,
+} from '../lib/gastosNegocio';
+import { finTrimestre, inicioTrimestre } from '../lib/impuestos';
 import { formatMoney } from '../lib/money';
 import { contar } from '../lib/plural';
 import { GastoNegocioForm } from '../ui/GastoNegocioForm';
@@ -33,6 +45,7 @@ function FilaGasto({ g, hoy, abrir }: { g: GastoNegocio; hoy: string; abrir: () 
         : g.deducibleIVA === g.deducibleIRPF
           ? `Deducible al ${pct(g.deducibleIRPF)}`
           : `IVA ${pct(g.deducibleIVA)} · IRPF ${pct(g.deducibleIRPF)}`;
+  const etiqueta = g.amortizacion ? `Se reparte en ${aniosDeReparto(g.amortizacion)} años` : deducible;
   return (
     <li className="invoice-row">
       <button type="button" className="invoice-row-main" onClick={abrir}>
@@ -53,7 +66,7 @@ function FilaGasto({ g, hoy, abrir }: { g: GastoNegocio; hoy: string; abrir: () 
           <span
             className={`invoice-status${g.deducibleIRPF === 0 && (g.deducibleIVA === 0 || g.cuotaIVA === 0) ? ' is-vencida' : ''}`}
           >
-            {g.deducibleIRPF === 0 && (g.deducibleIVA === 0 || g.cuotaIVA === 0) ? 'No deducible' : deducible}
+            {g.deducibleIRPF === 0 && (g.deducibleIVA === 0 || g.cuotaIVA === 0) ? 'No deducible' : etiqueta}
           </span>
         </span>
       </button>
@@ -63,6 +76,8 @@ function FilaGasto({ g, hoy, abrir }: { g: GastoNegocio; hoy: string; abrir: () 
 
 export function GastosNegocio() {
   const gastos = useGastosNegocio();
+  const cuentas = useCuentas();
+  const avisar = useToast();
   const ajustes = useAjustes();
   const perfil = perfilNegocio(ajustes?.negocio);
   const hoy = todayISO();
@@ -73,6 +88,24 @@ export function GastosNegocio() {
 
   const delTrimestre = useMemo(() => gastos.filter((g) => enTrimestre(g.fecha, trimestre)), [gastos, trimestre]);
   const resumen = resumirGastos(delTrimestre);
+  // En el IRPF, el equipo caro cuenta repartido: lo que toca a este trimestre, aunque se comprara antes.
+  const irpfTrimestre = gastoIRPFPeriodo(gastos, inicioTrimestre(trimestre), finTrimestre(trimestre));
+
+  // Se exportan los gastos del trimestre y el equipo comprado antes que todavía se está repartiendo.
+  const desde = inicioTrimestre(trimestre);
+  const hasta = finTrimestre(trimestre);
+  const paraExportar = gastos.filter(
+    (g) => enTrimestre(g.fecha, trimestre) || (g.amortizacion && gastoIRPFEnPeriodo(g, desde, hasta) > 0),
+  );
+  const exportar = async () => {
+    const mapa = new Map(cuentas.map((c) => [c.id, c]));
+    const ok = await guardarArchivo(
+      `neto-gastos-${trimestre.anio}-T${trimestre.t}.csv`,
+      csvGastos(paraExportar, mapa, desde, hasta),
+      { descripcion: 'Hoja de cálculo (CSV)', extension: 'csv', tipoMime: 'text/csv;charset=utf-8' },
+    );
+    if (ok) avisar(contar(paraExportar.length, 'gasto exportado', 'gastos exportados'));
+  };
 
   const q = busqueda.trim().toLocaleLowerCase('es-ES');
   const buscando = q.length > 0;
@@ -90,10 +123,21 @@ export function GastosNegocio() {
         titulo="Gastos"
         subtitulo="Las facturas y tickets de tu negocio, con lo que puedes deducir de cada uno."
         acciones={
-          <button className="btn btn-primary" onClick={() => setForm({})}>
-            <Icon name="mas" size={16} />
-            Registrar gasto
-          </button>
+          <>
+            <button
+              className="btn btn-secondary"
+              onClick={() => void exportar()}
+              disabled={paraExportar.length === 0}
+              title={paraExportar.length === 0 ? 'No hay gastos en este trimestre' : undefined}
+            >
+              <Icon name="descargar" size={16} />
+              Exportar
+            </button>
+            <button className="btn btn-primary" onClick={() => setForm({})}>
+              <Icon name="mas" size={16} />
+              Registrar gasto
+            </button>
+          </>
         }
       />
 
@@ -162,7 +206,7 @@ export function GastosNegocio() {
               <Icon name="cuentas" size={20} />
             </span>
             <span>Gasto deducible en el IRPF</span>
-            <strong>{formatMoney(resumen.gastoIRPF)}</strong>
+            <strong>{formatMoney(irpfTrimestre)}</strong>
             <small>
               {perfil.cuotaMensual > 0
                 ? `Más tu cuota de autónomos, ${formatMoney(perfil.cuotaMensual)} al mes.`
