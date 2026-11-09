@@ -166,7 +166,32 @@ export const config = {
     categoriaCobros: 'Facturación',
     /** Formato del número sugerido para la primera factura del año: AAAA-001. */
     cifrasNumeroFactura: 3,
-    categoriasGasto: ['Software', 'Cuota de autónomos', 'Equipo', 'Coworking', 'Formación', 'Otros'],
+    /**
+     * Categorías de los gastos del negocio con lo que se suele poder deducir (en %), el IVA habitual
+     * de sus facturas y su icono. Son propuestas: cada gasto se puede ajustar a mano.
+     * - casa: el porcentaje se multiplica por la parte de la vivienda dedicada a trabajar (metros).
+     * - La cuota de autónomos no está aquí: se toma de Ajustes › Tu negocio.
+     */
+    categoriasGasto: [
+      { id: 'software', nombre: 'Software y suscripciones', icono: 'software', iva: 100, irpf: 100, tipoIVA: 21 },
+      { id: 'equipo', nombre: 'Equipo e informática', icono: 'equipo', iva: 100, irpf: 100, tipoIVA: 21 },
+      { id: 'oficina', nombre: 'Oficina y coworking', icono: 'coworking', iva: 100, irpf: 100, tipoIVA: 21 },
+      { id: 'casa', nombre: 'Luz, agua e internet de casa', icono: 'casa', iva: 30, irpf: 30, tipoIVA: 21 },
+      { id: 'telefono', nombre: 'Móvil (uso mixto)', icono: 'movil', iva: 50, irpf: 50, tipoIVA: 21 },
+      { id: 'vehiculo', nombre: 'Coche y gasolina', icono: 'coche', iva: 50, irpf: 0, tipoIVA: 21 },
+      { id: 'dietas', nombre: 'Comidas de trabajo', icono: 'restaurante', iva: 100, irpf: 100, tipoIVA: 10 },
+      { id: 'viajes', nombre: 'Viajes de trabajo', icono: 'avion', iva: 100, irpf: 100, tipoIVA: 21 },
+      { id: 'formacion', nombre: 'Formación y libros', icono: 'educacion', iva: 100, irpf: 100, tipoIVA: 21 },
+      { id: 'asesoria', nombre: 'Gestoría y asesoría', icono: 'impuestos', iva: 100, irpf: 100, tipoIVA: 21 },
+      { id: 'publicidad', nombre: 'Publicidad y marketing', icono: 'diseno', iva: 100, irpf: 100, tipoIVA: 21 },
+      { id: 'seguros', nombre: 'Seguros del negocio', icono: 'seguros', iva: 0, irpf: 100, tipoIVA: 0 },
+      { id: 'bancos', nombre: 'Comisiones del banco', icono: 'comisiones', iva: 0, irpf: 100, tipoIVA: 0 },
+      { id: 'otros', nombre: 'Otros gastos del negocio', icono: 'otros', iva: 100, irpf: 100, tipoIVA: 21 },
+    ],
+    /** Límites diarios de dietas de autónomos (céntimos), pagadas con tarjeta en hostelería. */
+    dietas: { espana: 2667, espanaPernoctando: 5334, extranjero: 4808, extranjeroPernoctando: 9135 },
+    /** Categoría de gasto donde se apuntan los pagos de gastos del negocio. Se crea sola la primera vez. */
+    categoriaPagos: 'Gastos del negocio',
     /** Plazos de presentación por trimestre (mes 1–12; el 4T se presenta en enero del año siguiente). */
     plazos: [
       { trimestre: 1, mes: 4, diaInicio: 1, diaFin: 20, anioSiguiente: false },
@@ -180,7 +205,7 @@ export const config = {
 
   copiaSeguridad: {
     /** Versión del formato del archivo de copia. Súbela si cambia la estructura de los datos. */
-    version: 11,
+    version: 12,
     prefijoArchivo: 'neto-copia',
   },
 } as const;

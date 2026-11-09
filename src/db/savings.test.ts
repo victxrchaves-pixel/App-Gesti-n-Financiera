@@ -237,7 +237,7 @@ it('restaurar copias antiguas agrupa el ahorro y las nuevas copias mantienen la 
   expect((await d.cuentas.toArray()).filter((c) => !c.cuentaPadreId && !c.eliminada)).toHaveLength(2);
   expect(await total()).toBe(115000);
   const nueva = await crearCopia(d);
-  expect(nueva.version).toBe(11);
+  expect(nueva.version).toBe(12);
   expect(validarCopia(nueva).ok).toBe(true);
   await restaurarCopia(nueva, d);
   expect(await crearCopia(d, new Date(nueva.exportadaEn))).toEqual(nueva);

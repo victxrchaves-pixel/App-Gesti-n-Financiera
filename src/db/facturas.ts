@@ -120,17 +120,19 @@ export async function actualizarFactura(id: string, datos: DatosFactura, d: Neto
 const notaCobro = (f: Pick<Factura, 'numero' | 'clienteNombre'>) => `Factura ${f.numero} · ${f.clienteNombre}`;
 
 /** Categoría de ingreso donde se apuntan los cobros. Se crea la primera vez. */
-async function categoriaCobros(d: NetoDB): Promise<string> {
-  const nombre = config.autonomo.categoriaCobros;
-  const existente = (await d.categorias.where('tipo').equals('ingreso').toArray()).find(
+/** Categoría del negocio que Neto crea la primera vez que la necesita (cobros, pagos de gastos). */
+export async function asegurarCategoria(nombre: string, tipo: 'ingreso' | 'gasto', d: NetoDB): Promise<string> {
+  const existente = (await d.categorias.where('tipo').equals(tipo).toArray()).find(
     (c) => clave(c.nombre) === clave(nombre),
   );
   if (existente) return existente.id;
   const id = newId();
-  const orden = await d.categorias.where('tipo').equals('ingreso').count();
-  await d.categorias.add({ id, nombre, tipo: 'ingreso', color: colorCategoriaSugerido(nombre), orden });
+  const orden = await d.categorias.where('tipo').equals(tipo).count();
+  await d.categorias.add({ id, nombre, tipo, color: colorCategoriaSugerido(nombre), orden });
   return id;
 }
+
+const categoriaCobros = (d: NetoDB) => asegurarCategoria(config.autonomo.categoriaCobros, 'ingreso', d);
 
 /**
  * Marca una factura como cobrada. Con «cuentaId» apunta además el ingreso (lo que paga el cliente:

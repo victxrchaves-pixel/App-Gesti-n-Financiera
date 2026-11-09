@@ -12,7 +12,8 @@ import { db, TABLAS, type NetoDB, type NombreTabla } from '../db/db';
 import { isISODate } from './dates';
 import { validarSuscripcion } from './subscriptions';
 import { validarInversion } from './investments';
-import type { Inversion, Suscripcion, Presupuesto, Factura, PerfilNegocio } from '../db/types';
+import type { Inversion, Suscripcion, Presupuesto, Factura, PerfilNegocio, GastoNegocio } from '../db/types';
+import { validarGastoNegocio } from './gastosNegocio';
 import { validarFactura, validarPerfilNegocio } from './facturas';
 import { validarPresupuesto } from './budgets';
 
@@ -199,6 +200,15 @@ export function validarCopia(entrada: unknown): ResultadoValidacion {
     if (f.movimientoId !== null && (!f.cobradaEn || !idsMovimientos.has(f.movimientoId)))
       return { ok: false, error: `El cobro de la factura ${f.numero} no está en la copia.` };
   }
+  const idsCuentas = new Set((datos.cuentas as { id: string }[]).map((c) => c.id));
+  for (const g of datos.gastosNegocio as GastoNegocio[]) {
+    const error = validarGastoNegocio(g);
+    if (error) return { ok: false, error: `Gasto del negocio no válido: ${error}` };
+    if (g.cuentaId !== null && !idsCuentas.has(g.cuentaId))
+      return { ok: false, error: 'Un gasto del negocio apunta a una cuenta que no está en la copia.' };
+    if (g.movimientoId !== null && (!g.cuentaId || !idsMovimientos.has(g.movimientoId)))
+      return { ok: false, error: 'El pago de un gasto del negocio no está en la copia.' };
+  }
   for (const h of datos.historialCartera as Record<string, unknown>[]) {
     if (
       typeof h.fecha !== 'string' ||
@@ -346,5 +356,6 @@ export function resumenCopia(copia: CopiaNeto): string {
     `${n('pagosRegistrados')} pagos/cobros registrados`,
   ];
   if (n('facturas')) partes.push(`${n('facturas')} facturas`);
+  if (n('gastosNegocio')) partes.push(`${n('gastosNegocio')} gastos del negocio`);
   return `${partes.slice(0, -1).join(', ')} y ${partes[partes.length - 1]}`;
 }

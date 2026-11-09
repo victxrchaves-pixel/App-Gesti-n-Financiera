@@ -42,9 +42,11 @@ export interface Movimiento {
   /** Ingresos y gastos; las transferencias no llevan categoría. */
   categoriaId?: string;
   nota: string;
-  origen: 'manual' | 'recurrente' | 'importado' | 'ejemplo' | 'factura';
+  origen: 'manual' | 'recurrente' | 'importado' | 'ejemplo' | 'factura' | 'gasto-negocio';
   /** Cobro de una factura registrada en Negocio. */
   facturaId?: string;
+  /** Pago de un gasto registrado en Negocio. */
+  gastoNegocioId?: string;
   creadoEn: string;
   actualizadoEn: string;
 }
@@ -88,6 +90,35 @@ export interface PerfilNegocio {
   cuotaMensual: number;
   /** Porcentaje del beneficio que se aparta para el IRPF. */
   reservaIRPF: number;
+  /** Trabajo desde casa: metros de la vivienda y de la parte dedicada a trabajar (o null). */
+  metrosVivienda?: number | null;
+  metrosTrabajo?: number | null;
+}
+
+/** Factura o ticket de un gasto del negocio. */
+export interface GastoNegocio {
+  id: string;
+  /** "AAAA-MM-DD" de la factura o el ticket. */
+  fecha: string;
+  proveedor: string;
+  /** Número de la factura del proveedor, opcional. */
+  numero: string;
+  concepto: string;
+  /** Id de config.autonomo.categoriasGasto. */
+  categoria: string;
+  /** Base imponible, IVA en % y cuota de IVA tal como vienen en la factura (céntimos). */
+  base: number;
+  tipoIVA: number;
+  cuotaIVA: number;
+  /** Partes deducibles, en %. */
+  deducibleIVA: number;
+  deducibleIRPF: number;
+  /** Pago apuntado en una cuenta del negocio, o null si no se apuntó. */
+  cuentaId: string | null;
+  movimientoId: string | null;
+  nota: string;
+  creadoEn: string;
+  actualizadoEn: string;
 }
 
 export interface Cliente {

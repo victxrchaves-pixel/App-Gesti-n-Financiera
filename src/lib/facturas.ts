@@ -205,5 +205,10 @@ export function validarPerfilNegocio(p: PerfilNegocio): string | null {
   if (!Number.isSafeInteger(p.cuotaMensual) || p.cuotaMensual < 0) return 'La cuota de autónomos no es válida.';
   if (typeof p.reservaIRPF !== 'number' || !Number.isFinite(p.reservaIRPF) || p.reservaIRPF < 0 || p.reservaIRPF > 60)
     return 'La reserva para el IRPF tiene que estar entre 0 % y 60 %.';
+  for (const m of [p.metrosVivienda, p.metrosTrabajo])
+    if (m != null && (typeof m !== 'number' || !Number.isFinite(m) || m <= 0 || m > 10000))
+      return 'Escribe los metros como un número mayor que 0.';
+  if (p.metrosVivienda != null && p.metrosTrabajo != null && p.metrosTrabajo > p.metrosVivienda)
+    return 'La zona de trabajo no puede ser más grande que la vivienda.';
   return null;
 }

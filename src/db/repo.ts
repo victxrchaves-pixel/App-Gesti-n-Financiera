@@ -212,10 +212,15 @@ export async function actualizarMovimiento(id: string, datos: DatosMovimiento, d
 }
 
 export async function borrarMovimiento(id: string, d: NetoDB = db): Promise<void> {
-  await d.transaction('rw', d.movimientos, async () => {
+  await d.transaction('rw', [d.movimientos, d.facturas, d.gastosNegocio], async () => {
     if (await d.movimientos.filter((m) => m.devolucionDe === id).count())
       throw new Error('Anula primero las devoluciones vinculadas antes de borrar el gasto original.');
+    const m = await d.movimientos.get(id);
     await d.movimientos.delete(id);
+    // El cobro de una factura o el pago de un gasto del negocio dejan de estar apuntados en la cuenta,
+    // pero la factura sigue cobrada y el gasto sigue registrado.
+    if (m?.facturaId) await d.facturas.update(m.facturaId, { movimientoId: null });
+    if (m?.gastoNegocioId) await d.gastosNegocio.update(m.gastoNegocioId, { movimientoId: null, cuentaId: null });
   });
 }
 

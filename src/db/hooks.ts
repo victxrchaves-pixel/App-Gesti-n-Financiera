@@ -88,3 +88,6 @@ export function useFacturas() {
 export function useClientes() {
   return useLiveQuery(() => db.clientes.orderBy('nombre').toArray(), [], []);
 }
+export function useGastosNegocio() {
+  return useLiveQuery(() => db.gastosNegocio.orderBy('fecha').reverse().toArray(), [], []);
+}

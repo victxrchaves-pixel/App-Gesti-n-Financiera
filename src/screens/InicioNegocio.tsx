@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { PageHeader } from '../layout/Shell';
-import { useAjustes, useCuentas, useFacturas, useMapaCategorias, useMovimientos } from '../db/hooks';
+import { useAjustes, useCuentas, useFacturas, useGastosNegocio, useMapaCategorias, useMovimientos } from '../db/hooks';
+import { resumirGastos } from '../lib/gastosNegocio';
+import { GastoNegocioForm } from '../ui/GastoNegocioForm';
 import type { Factura, TipoMovimiento } from '../db/types';
 import { patrimonio, esRepartoInterno } from '../lib/balances';
 import { longDate, shortDate, todayISO } from '../lib/dates';
@@ -40,6 +42,8 @@ export function InicioNegocio() {
   const [factura, setFactura] = useState(false);
   const [cobro, setCobro] = useState<Factura | null>(null);
   const [nuevaCuenta, setNuevaCuenta] = useState(false);
+  const [gasto, setGasto] = useState(false);
+  const gastos = useGastosNegocio();
 
   const mapaCuentas = useMemo(() => new Map(todasCuentas.map((c) => [c.id, c])), [todasCuentas]);
   const cuentas = todasCuentas.filter(
@@ -57,6 +61,7 @@ export function InicioNegocio() {
     perfil.regimenIVA === 'caja'
       ? resumirFacturas(facturas.filter((f) => f.cobradaEn && enTrimestre(f.cobradaEn, trimestre))).iva
       : resumen.iva;
+  const gastosTrimestre = resumirGastos(gastos.filter((g) => enTrimestre(g.fecha, trimestre)));
   const pendientes = [...facturas.filter((f) => !f.cobradaEn)].sort((a, b) =>
     a.vencimiento.localeCompare(b.vencimiento),
   );
@@ -145,7 +150,7 @@ export function InicioNegocio() {
                 <strong>Factura</strong>
                 <Icon name="mas" size={18} />
               </button>
-              <button className="quick-movement" onClick={() => setForm({ tipo: 'gasto' })} disabled={!cuentas.length}>
+              <button className="quick-movement" onClick={() => setGasto(true)}>
                 <span className="expense-text">
                   <Icon name="gasto" />
                 </span>
@@ -204,23 +209,35 @@ export function InicioNegocio() {
             </span>
             <span>Facturado este trimestre</span>
             <strong>{formatMoney(resumen.base)}</strong>
-            <small>{contar(resumen.facturas, 'factura', 'facturas')} · sin IVA</small>
+            <small>
+              {contar(resumen.facturas, 'factura', 'facturas')} · sin IVA
+              {resumen.retencion > 0 ? ` · ${formatMoney(resumen.retencion)} retenidos` : ''}
+            </small>
+          </div>
+          <div>
+            <span className="summary-icon">
+              <Icon name="gastos" size={20} />
+            </span>
+            <span>Gastos deducibles</span>
+            <strong>{formatMoney(gastosTrimestre.gastoIRPF)}</strong>
+            <small>
+              <a className="text-link" href="#/gastos">
+                {contar(gastosTrimestre.gastos, 'gasto', 'gastos')} este trimestre
+              </a>
+            </small>
           </div>
           <div>
             <span className="summary-icon">
               <Icon name="impuestos" size={20} />
             </span>
-            <span>IVA que has cobrado</span>
-            <strong>{formatMoney(ivaTrimestre)}</strong>
-            <small>No es tuyo: se lo pagas a Hacienda en el 303.</small>
-          </div>
-          <div>
-            <span className="summary-icon">
-              <Icon name="cuentas" size={20} />
-            </span>
-            <span>Retenciones de IRPF</span>
-            <strong>{formatMoney(resumen.retencion)}</strong>
-            <small>Ya adelantadas a Hacienda por tus clientes.</small>
+            <span>IVA del trimestre</span>
+            <strong>{formatMoney(ivaTrimestre - gastosTrimestre.ivaDeducible)}</strong>
+            <small>
+              {formatMoney(ivaTrimestre)} cobrado − {formatMoney(gastosTrimestre.ivaDeducible)} de tus gastos.{' '}
+              {ivaTrimestre - gastosTrimestre.ivaDeducible < 0
+                ? 'A tu favor: se compensa más adelante.'
+                : 'No es tuyo: es para Hacienda.'}
+            </small>
           </div>
         </section>
 
@@ -306,6 +323,7 @@ export function InicioNegocio() {
         />
       )}
       {factura && <FacturaForm onClose={() => setFactura(false)} />}
+      {gasto && <GastoNegocioForm onClose={() => setGasto(false)} />}
       {cobro && <CobroForm factura={cobro} onClose={() => setCobro(null)} />}
       {nuevaCuenta && <CuentaForm ambitoInicial="negocio" onClose={() => setNuevaCuenta(false)} />}
     </>

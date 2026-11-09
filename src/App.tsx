@@ -21,6 +21,7 @@ import { Movimientos } from './screens/Movimientos';
 import { Onboarding } from './screens/Onboarding';
 import { Proximamente } from './screens/Proximamente';
 import { Facturas } from './screens/Facturas';
+import { GastosNegocio } from './screens/GastosNegocio';
 import { ConfirmProvider, ToastProvider } from './ui/Modal';
 
 if (esEscritorio() && esMac()) document.documentElement.classList.add('is-mac');
@@ -72,7 +73,8 @@ function Pantalla() {
         {efectiva === 'presupuestos' && <Presupuestos />}
         {efectiva === 'ajustes' && <Ajustes />}
         {efectiva === 'facturas' && <Facturas />}
-        {['gastos', 'impuestos'].includes(efectiva) && <Proximamente key={efectiva} seccion={efectiva} />}
+        {efectiva === 'gastos' && <GastosNegocio />}
+        {efectiva === 'impuestos' && <Proximamente key={efectiva} seccion={efectiva} />}
       </Shell>
     </EspacioContext.Provider>
   );

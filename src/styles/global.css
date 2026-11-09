@@ -8693,3 +8693,41 @@ select {
 .business-lists .invoice-row-text {
   gap: 4px;
 }
+
+/* Gastos del negocio. */
+.expense-amount {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px;
+  gap: 8px;
+}
+.expense-warning {
+  color: var(--danger);
+}
+.expense-concept {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1 !important;
+}
+.link-button {
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* El título de una fila (cliente o proveedor y su concepto) baja de línea antes que partir palabras. */
+.invoice-row-title {
+  flex-wrap: wrap;
+  column-gap: 8px;
+  row-gap: 0;
+}
+.invoice-row-title strong {
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+.expense-concept {
+  max-width: 100%;
+}

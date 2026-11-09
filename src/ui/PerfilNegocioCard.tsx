@@ -3,6 +3,7 @@ import { config } from '../config/neto.config';
 import { guardarPerfilNegocio } from '../db/repo';
 import type { PerfilNegocio } from '../db/types';
 import { perfilNegocio, retencionSugerida } from '../lib/facturas';
+import { afectacionVivienda } from '../lib/gastosNegocio';
 import { todayISO } from '../lib/dates';
 import { AmountInput, useAmountField } from './AmountInput';
 import { useToast } from './Modal';
@@ -29,6 +30,19 @@ export function PerfilNegocioCard({ perfil: guardado }: { perfil?: PerfilNegocio
   const cuota = useAmountField(perfil.cuotaMensual || undefined);
   const [reserva, setReserva] = useState(String(perfil.reservaIRPF));
   useEffect(() => setReserva(String(perfil.reservaIRPF)), [perfil.reservaIRPF]);
+  const [metros, setMetros] = useState({
+    vivienda: perfil.metrosVivienda ? String(perfil.metrosVivienda) : '',
+    trabajo: perfil.metrosTrabajo ? String(perfil.metrosTrabajo) : '',
+  });
+  // Sin sincronizar desde la base: al guardar un campo no se borra lo que se escribe en el otro.
+  const guardarMetros = () => {
+    const leer = (t: string) => (t.trim() ? Number(t.replace(',', '.')) : null);
+    const v = leer(metros.vivienda);
+    const t = leer(metros.trabajo);
+    if (v === (perfil.metrosVivienda ?? null) && t === (perfil.metrosTrabajo ?? null)) return;
+    void guardar({ metrosVivienda: v, metrosTrabajo: t });
+  };
+  const afectacion = afectacionVivienda(perfil);
 
   const guardar = async (cambios: Partial<PerfilNegocio>) => {
     try {
@@ -147,6 +161,53 @@ export function PerfilNegocioCard({ perfil: guardado }: { perfil?: PerfilNegocio
           {perfil.regimenIRPF === 'simplificada'
             ? 'El más común. Permite deducir un 5 % de gastos de difícil justificación, con un máximo de 2.000 € al año.'
             : 'Obligatorio si facturas más de 600.000 € al año o si lo elegiste.'}
+        </span>
+      </div>
+
+      <div className="field">
+        <span className="field-label">Trabajo desde casa</span>
+        <div className="field-row">
+          <div className="field">
+            <label className="field-hint" htmlFor="pn-m-vivienda">
+              Metros de la vivienda
+            </label>
+            <div className="input-suffix">
+              <input
+                id="pn-m-vivienda"
+                className="input num"
+                inputMode="decimal"
+                value={metros.vivienda}
+                onChange={(e) =>
+                  /^\d{0,5}([.,]\d?)?$/.test(e.target.value) && setMetros({ ...metros, vivienda: e.target.value })
+                }
+                onBlur={guardarMetros}
+              />
+              <span aria-hidden="true">m²</span>
+            </div>
+          </div>
+          <div className="field">
+            <label className="field-hint" htmlFor="pn-m-trabajo">
+              Metros donde trabajas
+            </label>
+            <div className="input-suffix">
+              <input
+                id="pn-m-trabajo"
+                className="input num"
+                inputMode="decimal"
+                value={metros.trabajo}
+                onChange={(e) =>
+                  /^\d{0,5}([.,]\d?)?$/.test(e.target.value) && setMetros({ ...metros, trabajo: e.target.value })
+                }
+                onBlur={guardarMetros}
+              />
+              <span aria-hidden="true">m²</span>
+            </div>
+          </div>
+        </div>
+        <span className="field-hint">
+          {afectacion > 0
+            ? `Trabajas en el ${afectacion.toLocaleString('es-ES')} % de tu casa: de la luz, el agua y el internet puedes deducir el 30 % de esa parte, un ${(Math.round(30 * afectacion) / 100).toLocaleString('es-ES')} %.`
+            : 'Si trabajas en casa, de la luz, el agua y el internet puedes deducir el 30 % de la parte que usas para trabajar. Déjalo vacío si no trabajas en casa.'}
         </span>
       </div>
 

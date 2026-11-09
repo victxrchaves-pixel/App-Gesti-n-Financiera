@@ -204,7 +204,7 @@ it('las copias v10 conservan reparto, viajes y cuentas eliminadas; detectan repa
   );
   await borrarCuenta(cuenta, d);
   const copia = await crearCopia(d);
-  expect(copia.version).toBe(11);
+  expect(copia.version).toBe(12);
   expect(validarCopia(copia).ok).toBe(true);
   await restaurarCopia(copia, d);
   expect(await crearCopia(d, new Date(copia.exportadaEn))).toEqual(copia);

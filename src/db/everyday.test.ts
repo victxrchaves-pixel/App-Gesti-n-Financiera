@@ -322,7 +322,7 @@ it('las nuevas copias preservan revisión mensual, reparto, devoluciones y perio
   const id = await crearMovimiento(movimiento(), d);
   await registrarDevolucion({ gastoId: id, importe: 1000, fecha: hoy, cuentaId: banco, operacionId: 'refund' }, d);
   const copia = await crearCopia(d);
-  expect(copia.version).toBe(11);
+  expect(copia.version).toBe(12);
   expect(validarCopia(copia).ok).toBe(true);
   await restaurarCopia(copia, d);
   expect(await crearCopia(d, new Date(copia.exportadaEn))).toEqual(copia);
