@@ -19,9 +19,9 @@ import { Cuentas } from './screens/Cuentas';
 import { Inicio } from './screens/Inicio';
 import { Movimientos } from './screens/Movimientos';
 import { Onboarding } from './screens/Onboarding';
-import { Proximamente } from './screens/Proximamente';
 import { Facturas } from './screens/Facturas';
 import { GastosNegocio } from './screens/GastosNegocio';
+import { Impuestos } from './screens/Impuestos';
 import { ConfirmProvider, ToastProvider } from './ui/Modal';
 
 if (esEscritorio() && esMac()) document.documentElement.classList.add('is-mac');
@@ -74,7 +74,7 @@ function Pantalla() {
         {efectiva === 'ajustes' && <Ajustes />}
         {efectiva === 'facturas' && <Facturas />}
         {efectiva === 'gastos' && <GastosNegocio />}
-        {efectiva === 'impuestos' && <Proximamente key={efectiva} seccion={efectiva} />}
+        {efectiva === 'impuestos' && <Impuestos />}
       </Shell>
     </EspacioContext.Provider>
   );

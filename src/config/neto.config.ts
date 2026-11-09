@@ -194,11 +194,20 @@ export const config = {
     categoriaPagos: 'Gastos del negocio',
     /** Plazos de presentación por trimestre (mes 1–12; el 4T se presenta en enero del año siguiente). */
     plazos: [
-      { trimestre: 1, mes: 4, diaInicio: 1, diaFin: 20, anioSiguiente: false },
-      { trimestre: 2, mes: 7, diaInicio: 1, diaFin: 20, anioSiguiente: false },
-      { trimestre: 3, mes: 10, diaInicio: 1, diaFin: 20, anioSiguiente: false },
-      { trimestre: 4, mes: 1, diaInicio: 1, diaFin: 30, anioSiguiente: true },
+      { trimestre: 1, mes: 4, diaInicio: 1, diaFin: 20, diaDomiciliacion: 15, anioSiguiente: false },
+      { trimestre: 2, mes: 7, diaInicio: 1, diaFin: 20, diaDomiciliacion: 15, anioSiguiente: false },
+      { trimestre: 3, mes: 10, diaInicio: 1, diaFin: 20, diaDomiciliacion: 15, anioSiguiente: false },
+      { trimestre: 4, mes: 1, diaInicio: 1, diaFin: 30, diaDomiciliacion: 25, anioSiguiente: true },
     ],
+    /**
+     * Festivos nacionales fijos ("MM-DD"). El Viernes Santo se calcula cada año. Los festivos de cada
+     * comunidad no se tienen en cuenta: un plazo que caiga en uno de ellos puede durar un día más.
+     */
+    festivosNacionales: ['01-01', '01-06', '05-01', '08-15', '10-12', '11-01', '12-06', '12-08', '12-25'],
+    /** Estimación directa simplificada: gastos de difícil justificación sobre el rendimiento neto. */
+    dificilJustificacion: { porcentaje: 5, maximoAnual: 200000 },
+    /** El modelo 130 no es obligatorio si el año anterior al menos este % de los ingresos llevó retención. */
+    exencion130PorRetenciones: 70,
     avisoDiasAntes: 7,
     notaImpuestos: 'Cálculo orientativo, confírmalo con tu gestor.',
   },

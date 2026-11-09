@@ -17,6 +17,7 @@ import {
 } from '../lib/facturas';
 import { formatMoney } from '../lib/money';
 import { diasHasta, siguientePlazo } from '../lib/plazos';
+import { exentoDel130, modelo130, modelo303 } from '../lib/impuestos';
 import { contar } from '../lib/plural';
 import { ordenarMovimientos } from '../lib/stats';
 import { CobroForm } from '../ui/CobroForm';
@@ -69,6 +70,10 @@ export function InicioNegocio() {
   const vencidas = pendientes.filter((f) => estadoFactura(f, hoy) === 'vencida').length;
 
   const plazo = siguientePlazo(hoy);
+  const qPlazo = { anio: plazo.anio, t: plazo.trimestre };
+  const aPagar =
+    Math.max(0, modelo303(facturas, gastos, qPlazo, perfil).resultado) +
+    (exentoDel130(facturas, plazo.anio) ? 0 : modelo130(facturas, gastos, qPlazo, perfil).resultado);
   const faltan = diasHasta(hoy, plazo.fin);
   const abierto = hoy >= plazo.inicio;
 
@@ -189,6 +194,10 @@ export function InicioNegocio() {
               <span className={`business-deadline-left${faltan <= 7 ? ' is-soon' : ''}`}>
                 {faltan === 0 ? 'Termina hoy' : faltan === 1 ? 'Queda 1 día' : `Quedan ${faltan} días`}
               </span>
+            </div>
+            <div className="business-deadline-amount">
+              <span>Estimado a pagar</span>
+              <strong>{formatMoney(aPagar)}</strong>
             </div>
             <p className="muted">
               IVA (modelo 303) y pago de IRPF (modelo 130) del{' '}
