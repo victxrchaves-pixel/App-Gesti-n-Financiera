@@ -200,7 +200,7 @@ export function Cuentas() {
       />
 
       <div className="stack">
-        <section className="card hero-dark accounts-hero">
+        <section className="card accounts-hero">
           <div className="accounts-hero-main">
             <div className="eyebrow">{negocio ? 'Dinero del negocio' : 'Patrimonio'}</div>
             <div className="big-number">{formatMoney(total)}</div>

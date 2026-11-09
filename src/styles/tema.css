@@ -1,0 +1,1158 @@
+/* ── Neto · tema ─────────────────────────────────────────────────────────────
+   Capa visual que manda sobre global.css. Lenguaje de app de banca y bolsa:
+   fondo gris muy claro, superficies blancas sin bordes, cifras grandes y
+   apretadas, acciones en píldora y color solo cuando significa algo
+   (ingresos en verde, avisos y excesos en rojo). */
+
+:root {
+  --bg: #f4f4f6;
+  --card: #ffffff;
+  --text: #0e0e10;
+  --text-2: #5d6068;
+  --text-3: #6a6d74;
+  --line: rgba(14, 14, 16, 0.07);
+  --line-strong: rgba(14, 14, 16, 0.12);
+  --fill: #efeff2;
+  --fill-hover: #e6e6ea;
+  --card-sunken: #f4f4f6;
+  /* El color de destaque elegido en Ajustes llega en --primary-ink; sin elección es casi negro. */
+  --ink: var(--primary-ink, #0e0e10);
+  --positive: #0b7f43;
+  --radius-card: 24px;
+  --radius-tile: 18px;
+  --shadow-card: none;
+  --shadow-float: 0 1px 2px rgba(14, 14, 16, 0.04), 0 8px 24px rgba(14, 14, 16, 0.08);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ── Estructura ───────────────────────────────────────────────────────────── */
+
+.page {
+  max-width: 1120px;
+  margin-inline: auto;
+}
+
+@media (min-width: 641px) {
+  .main {
+    padding-inline: 40px;
+  }
+}
+
+/* Cabecera de página: título grande y limpio, sin la ficha del icono. */
+.scene-identity {
+  display: none !important;
+}
+
+.page-header {
+  align-items: flex-end;
+  margin-bottom: 28px;
+}
+
+.page-heading {
+  gap: 0;
+}
+
+.page-title {
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.page-subtitle {
+  margin-top: 6px;
+  color: var(--text-2);
+  font-size: 15px;
+}
+
+/* ── Superficies ─────────────────────────────────────────────────────────── */
+
+.card,
+.list-card {
+  background: var(--card);
+  border: 0;
+  border-radius: var(--radius-card);
+  box-shadow: none;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.card-sub {
+  color: var(--text-2);
+}
+
+/* Las antiguas tarjetas negras pasan a ser blancas: el protagonismo lo dan las cifras. */
+.hero-dark,
+.overview-grid > .hero-dark,
+.savings-overview.hero-dark,
+.recurring-summary.hero-dark,
+.portfolio-overview.hero-dark,
+.plan-overview.hero-dark,
+.accounts-hero.hero-dark,
+.tax-hero.hero-dark,
+.business-hero.hero-dark,
+.card.card-inverse {
+  --text: #0e0e10;
+  --text-2: #5d6068;
+  --text-3: #6a6d74;
+  --line: rgba(14, 14, 16, 0.07);
+  --line-strong: rgba(14, 14, 16, 0.12);
+  --card-sunken: #f4f4f6;
+  --positive: #0b7f43;
+  --chart-income: #0b7f43;
+  --chart-expense: #c73535;
+  --primary-ink: #0e0e10;
+  background: var(--card);
+  color: var(--text);
+  border: 0;
+  box-shadow: none;
+}
+
+/* ── Cifras ──────────────────────────────────────────────────────────────── */
+
+.big-number,
+.kpi-value,
+.mid-number,
+.account-balance,
+.portfolio-value > strong {
+  font-family: var(--font-display);
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* En las listas de movimientos, el gasto va en el color del texto y el ingreso en verde. */
+.list-row .row-amount.expense-text {
+  color: var(--text);
+}
+
+.row-amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Controles ───────────────────────────────────────────────────────────── */
+
+.btn {
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover:not(:disabled) {
+    background: #2a2a2e;
+    filter: none;
+  }
+}
+
+.btn-secondary {
+  background: var(--fill);
+  color: var(--text);
+  box-shadow: none;
+}
+
+.card .btn-secondary,
+.list-card .btn-secondary,
+.modal .btn-secondary {
+  background: var(--fill);
+}
+
+.btn-ghost {
+  color: var(--text-2);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+}
+
+.segmented {
+  padding: 3px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--fill);
+}
+
+.segmented button,
+.segmented.has-indicator > .segmented-indicator {
+  border-radius: var(--radius-pill);
+}
+
+.segmented button[aria-pressed='true'],
+.segmented.has-indicator > .segmented-indicator {
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(14, 14, 16, 0.1);
+}
+
+.chip {
+  border: 0;
+  background: var(--fill);
+}
+
+.input,
+.select,
+textarea.input {
+  border: 1px solid transparent;
+  background-color: var(--fill);
+  box-shadow: none;
+}
+
+.input:focus,
+.select:focus,
+textarea.input:focus {
+  border-color: var(--text);
+  background-color: #fff;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--ink);
+}
+
+a.text-link,
+.text-link {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ── Navegación ──────────────────────────────────────────────────────────── */
+
+@media (min-width: 641px) {
+  .sidebar {
+    background: var(--bg);
+    border-right: 0;
+  }
+  .sidebar .nav-link {
+    border-radius: var(--radius-pill);
+    color: var(--text-2);
+    font-weight: 500;
+  }
+  .sidebar .nav-link.active {
+    background: #fff;
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: none;
+  }
+}
+
+/* Móvil: barra inferior blanca de ancho completo, como en las apps de banca. */
+@media (max-width: 640px) {
+  .mobile-dock {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    border: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    box-shadow: none;
+  }
+  .mobile-dock .nav-link {
+    height: 54px;
+    border-radius: 14px;
+    color: var(--text-3);
+  }
+  .mobile-dock .nav-link.active {
+    background: transparent;
+    color: var(--text);
+  }
+  .mobile-dock .nav-link.active svg {
+    color: var(--text);
+  }
+  .mobile-dock .nav-link.active span {
+    font-weight: 650;
+  }
+  .main {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+  .toasts {
+    bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ── Ventanas ────────────────────────────────────────────────────────────── */
+
+.modal {
+  border: 0;
+  border-radius: 28px;
+  box-shadow: 0 24px 80px rgba(14, 14, 16, 0.18);
+}
+
+.modal::backdrop {
+  background: rgba(14, 14, 16, 0.32);
+}
+
+.modal-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.modal-heading {
+  border-bottom: 0;
+}
+
+/* En el móvil, las ventanas salen desde abajo como una hoja. */
+@media (max-width: 640px) {
+  .modal {
+    width: 100%;
+    max-width: none;
+    margin: auto 0 0;
+    max-height: calc(100dvh - 40px);
+    padding: 22px 20px calc(20px + env(safe-area-inset-bottom));
+    border-radius: 28px 28px 0 0;
+  }
+  .modal-sm {
+    max-width: none;
+  }
+}
+
+/* ── Inicio y piezas de panel ───────────────────────────────────────────── */
+
+/* Inicio: saldo protagonista centrado y acciones redondas */
+
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0 30px;
+  text-align: center;
+}
+
+.home-hero-label {
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.big-amount {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-size: clamp(40px, 6vw, 52px);
+  font-weight: 650;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+
+.big-amount small {
+  font-size: 0.55em;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.pill-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 6px 12px 6px 16px;
+  border-radius: var(--radius-pill);
+  background: white;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color var(--dur-press, 120ms) var(--ease-out, ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pill-link:hover {
+    background: var(--fill);
+  }
+}
+
+.round-actions {
+  display: flex;
+  justify-content: center;
+  gap: clamp(14px, 4vw, 32px);
+  margin-top: 18px;
+}
+
+.round-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 64px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.round-action-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: white;
+  color: var(--text);
+  transition:
+    background-color var(--dur-press, 120ms) var(--ease-out, ease-out),
+    transform var(--dur-press, 120ms) var(--ease-out, ease-out);
+}
+
+.round-action:active .round-action-icon {
+  transform: scale(0.94);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .round-action:hover .round-action-icon {
+    background: var(--fill-hover);
+  }
+}
+
+.round-action:focus-visible {
+  outline: none;
+}
+
+.round-action:focus-visible .round-action-icon {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* Inicio: columnas */
+
+.home-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  gap: 20px;
+  align-items: start;
+  max-width: 1080px;
+  margin-inline: auto;
+}
+
+.home-main,
+.home-side {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
+@media (max-width: 1080px) {
+  .home-columns {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 680px;
+  }
+  .home-side {
+    order: -1;
+  }
+}
+
+/* Tarjeta de lista agrupada */
+
+.list-card {
+  padding: 18px 8px 8px;
+  border-radius: var(--radius-card);
+  background: white;
+}
+
+.list-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px 8px;
+}
+
+.list-card-header h2 {
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+
+.list-card-link {
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .list-card-link:hover {
+    color: var(--text);
+  }
+}
+
+.list-card .empty {
+  padding: 18px 12px 22px;
+}
+
+.account-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.account-rows a {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .account-rows a:hover {
+    background: var(--card-sunken);
+  }
+}
+
+.account-row-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--fill);
+}
+
+.account-row-text {
+  display: grid;
+  min-width: 0;
+}
+
+.account-row-text strong,
+.account-row-text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-row-text strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.account-row-text small {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.account-row-amount {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Pequeños resúmenes en rejilla */
+
+.widget-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.widget {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 112px;
+  padding: 16px;
+  border: 0;
+  border-radius: 20px;
+  background: white;
+  color: var(--text);
+  text-align: left;
+  text-decoration: none;
+  transition: background-color var(--dur-press, 120ms) var(--ease-out, ease-out);
+}
+
+button.widget,
+a.widget {
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button.widget:hover,
+  a.widget:hover {
+    background: #fafafa;
+  }
+}
+
+.widget-label {
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.widget strong {
+  margin-top: auto;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.widget small {
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.widget small.income-text {
+  color: var(--positive);
+}
+
+@media (max-width: 720px) {
+  .home-hero {
+    padding: 4px 0 22px;
+  }
+  .round-action-icon {
+    width: 48px;
+    height: 48px;
+  }
+  .list-card {
+    border-radius: 20px;
+  }
+}
+
+/* Filas de movimientos dentro de una tarjeta de lista: sin líneas, con respiro lateral. */
+.list-card .list {
+  display: grid;
+  gap: 2px;
+}
+
+.list-card .list-row {
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 16px;
+}
+
+.list-card .list-row + .list-row {
+  border-top: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .list-card button.list-row:hover {
+    background: var(--card-sunken);
+  }
+}
+
+/* En la columna estrecha del Inicio, los avisos se apilan en vez de partir el texto. */
+.home-side .home-budgets-empty {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.home-side .home-budgets-empty .btn {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.home-side .backup-reminder,
+.home-main .backup-reminder {
+  flex-wrap: wrap;
+  border: 0;
+  border-radius: 20px;
+}
+
+.home-side .backup-reminder > div {
+  flex-basis: calc(100% - 80px);
+}
+
+.home-side .backup-reminder > .btn-secondary {
+  order: 3;
+  margin-left: 40px;
+}
+
+/* En pantallas estrechas: saldo, movimientos, resúmenes, cuentas y el resto. */
+@media (max-width: 1080px) {
+  .home-columns {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .home-main,
+  .home-side {
+    display: contents;
+  }
+  .home-movements {
+    order: 1;
+  }
+  .home-side > .widget-grid {
+    order: 2;
+  }
+  .home-accounts {
+    order: 3;
+  }
+  .home-side > * {
+    order: 4;
+  }
+  .evolution-card {
+    order: 5;
+  }
+}
+
+.list-card .list-row,
+.list-card .list-row + .list-row {
+  box-shadow: none;
+}
+
+.home-side .backup-reminder > div {
+  flex-basis: calc(100% - 110px);
+}
+
+/* Presupuestos del Inicio en la columna estrecha: una sola columna, cifra debajo del nombre. */
+.home-side .home-budgets .card-header {
+  flex-wrap: nowrap;
+  align-items: baseline;
+}
+
+.home-side .home-budgets-list {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.home-budget {
+  margin: 0;
+  padding: 10px 0;
+}
+
+.home-budget-top {
+  flex-wrap: wrap;
+  column-gap: 8px;
+  row-gap: 0;
+}
+
+.home-budget-top b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-budgets-alert {
+  border-radius: var(--radius-pill);
+}
+
+.home-hero-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0 0;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+/* ── Negocio: cobros pendientes junto al próximo plazo ───────────────────── */
+
+.business-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.business-receivable {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.business-receivable > strong {
+  margin-top: 6px;
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.business-receivable > small {
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.business-receivable > small.expense-text {
+  color: var(--danger);
+}
+
+.business-receivable-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 18px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .business-receivable:hover {
+    background: #fafafa;
+  }
+}
+
+@media (max-width: 860px) {
+  .business-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ── Cuentas: patrimonio con su evolución, en claro ──────────────────────── */
+
+.accounts-hero {
+  gap: 32px;
+}
+
+.accounts-hero .eyebrow {
+  color: var(--text-2);
+}
+
+.accounts-hero .gain-chip.is-up {
+  background: rgba(11, 127, 67, 0.1);
+  color: var(--positive);
+}
+
+.accounts-hero .gain-chip.is-down {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.accounts-hero-split {
+  gap: 28px;
+  padding-top: 20px;
+}
+
+.accounts-hero-split > div {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.accounts-hero-split span {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.accounts-hero-split b {
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.accounts-hero-chart {
+  color: var(--text);
+}
+
+.trend-area {
+  opacity: 0.05;
+}
+
+.trend-dot {
+  opacity: 0;
+}
+
+.trend-dot.is-active {
+  opacity: 1;
+  fill: var(--card);
+  stroke: var(--text);
+}
+
+.trend-tooltip {
+  background: var(--fill);
+  color: var(--text);
+}
+
+/* ── Resúmenes de cifras: etiqueta pequeña, cifra grande, nota debajo ────── */
+
+.recurring-summary,
+.savings-overview,
+.plan-overview {
+  border: 0;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: none;
+}
+
+.recurring-summary .summary-icon {
+  display: none;
+}
+
+.recurring-summary > div {
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 4px;
+}
+
+.recurring-summary > div + div {
+  border-left-color: var(--line);
+}
+
+.recurring-summary span {
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.recurring-summary strong,
+.savings-overview strong,
+.plan-overview strong,
+.plan-free b,
+.goal-totals strong {
+  grid-column: 1;
+  font-family: var(--font-display);
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.recurring-summary strong {
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+.recurring-summary small {
+  grid-column: 1;
+  margin-top: 6px;
+  color: var(--text-2);
+}
+
+.summary-strip .kpi-label {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.summary-strip .kpi-value.expense-text {
+  color: var(--text);
+}
+
+/* Un presupuesto superado se marca con color y con su texto, sin rayas. */
+.fill-track.over-limit > span {
+  background: var(--danger);
+}
+
+.fill-track {
+  background: var(--fill);
+}
+
+/* ── Impuestos: cabecera en claro ────────────────────────────────────────── */
+
+.tax-hero-main small,
+.tax-hero-deadline small,
+.tax-open {
+  color: var(--text-2);
+}
+
+.tax-hero-deadline {
+  border-left-color: var(--line);
+}
+
+@media (max-width: 760px) {
+  .tax-hero-deadline {
+    border-top-color: var(--line);
+  }
+}
+
+.tax-hero .eyebrow {
+  color: var(--text-2);
+}
+
+/* ── Fichas dentro de tarjetas: relleno gris, sin bordes ─────────────────── */
+
+.plan-pick,
+.goal-suggestion,
+.tax-calendar > li {
+  border: 0;
+  border-radius: var(--radius-tile);
+  background: var(--card-sunken);
+  box-shadow: none;
+}
+
+.goal-suggestion {
+  background: var(--card);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .plan-pick:hover,
+  .goal-suggestion:hover {
+    background: var(--fill);
+  }
+}
+
+.tax-calendar > li.is-current,
+.tax-calendar > li[aria-current] {
+  background: var(--card);
+  box-shadow: inset 0 0 0 2px var(--text);
+}
+
+/* Avisos: fondo suave y esquinas redondeadas, sin bordes. */
+.finance-notice {
+  border: 0;
+  border-radius: var(--radius-tile);
+  background: var(--fill);
+}
+
+/* La barra del mes no necesita tarjeta: va directamente sobre el fondo. */
+.toolbar {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding-inline: 0;
+}
+
+/* Pestañas de Recurrentes: una píldora gris, como el resto de selectores. */
+.recurring-tabs {
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--fill);
+}
+
+.recurring-tabs button[aria-pressed='true'],
+.recurring-tabs [aria-selected='true'] {
+  border-radius: var(--radius-pill);
+  box-shadow: 0 1px 3px rgba(14, 14, 16, 0.1);
+}
+
+/* Resúmenes en pantallas medianas: dos columnas y la tercera debajo, sin el hueco del icono. */
+@media (max-width: 960px) {
+  .recurring-summary > div:last-child {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+/* En el móvil, cada cifra es una fila: nombre a la izquierda, importe a la derecha. */
+@media (max-width: 640px) {
+  .recurring-summary {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding: 4px 20px;
+  }
+  .recurring-summary > div,
+  .recurring-summary > div + div,
+  .recurring-summary > div:last-child {
+    grid-column: auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 2px 12px;
+    margin: 0;
+    padding: 14px 0;
+    border: 0;
+  }
+  .recurring-summary > div + div {
+    border-top: 1px solid var(--line);
+  }
+  .recurring-summary span {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .recurring-summary strong {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 20px;
+    text-align: right;
+  }
+  .recurring-summary small {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+
+  /* Filtros de cuenta y categoría, uno al lado del otro. */
+  .toolbar > .select {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .home-hero-note {
+    max-width: 300px;
+    text-align: center;
+    text-wrap: balance;
+  }
+}
+
+/* Sin líneas entre movimientos: el espacio ya separa cada fila. */
+.list-row + .list-row,
+.list > .list-row {
+  box-shadow: none;
+}
+
+.list-row {
+  border-radius: 16px;
+}
+
+@media (max-width: 640px) {
+  .recurring-summary > div:last-child > span:not(.summary-icon) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .recurring-summary > div:last-child strong {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 20px;
+  }
+  .recurring-summary > div:last-child small {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+/* Enlaces dentro del texto: del color del texto, subrayados con finura. */
+a:not([class]) {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+/* Asa de la hoja en el móvil, para que se lea como algo que sube desde abajo. */
+@media (max-width: 640px) {
+  .modal::before {
+    content: '';
+    position: sticky;
+    top: -14px;
+    display: block;
+    width: 40px;
+    height: 5px;
+    margin: -10px auto 12px;
+    border-radius: 3px;
+    background: var(--line-strong);
+  }
+}
+
+/* En las listas, la segunda línea no se parte: se recorta con puntos suspensivos. */
+.list-row .row-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-row .row-main {
+  min-width: 0;
+}

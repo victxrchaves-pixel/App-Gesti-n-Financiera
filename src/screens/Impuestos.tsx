@@ -90,7 +90,7 @@ export function Impuestos() {
       </div>
 
       <div className="stack">
-        <section className="card hero-dark tax-hero">
+        <section className="card tax-hero">
           <div className="tax-hero-main">
             <span className="eyebrow">{futuro ? 'Todavía no ha empezado' : 'Para Hacienda este trimestre'}</span>
             <strong className="big-number">{formatMoney(apartar)}</strong>

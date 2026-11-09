@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { PageHeader } from '../layout/Shell';
 import { useAjustes, useCuentas, useFacturas, useGastosNegocio, useMapaCategorias, useMovimientos } from '../db/hooks';
 import { gastoIRPFPeriodo, resumirGastos } from '../lib/gastosNegocio';
 import { GastoNegocioForm } from '../ui/GastoNegocioForm';
@@ -25,6 +24,7 @@ import { CobroForm } from '../ui/CobroForm';
 import { CuentaForm } from '../ui/CuentaForm';
 import { FacturaForm } from '../ui/FacturaForm';
 import { Icon } from '../ui/Icon';
+import { AccionesRedondas, ImporteGrande } from '../ui/Panel';
 import { MovimientoForm } from '../ui/MovimientoForm';
 import { MovimientoRow } from '../ui/MovimientoRow';
 
@@ -105,16 +105,7 @@ export function InicioNegocio() {
 
   return (
     <>
-      <PageHeader
-        titulo="Tu negocio"
-        subtitulo={fechaTexto.charAt(0).toUpperCase() + fechaTexto.slice(1)}
-        acciones={
-          <button className="btn btn-primary" onClick={() => setFactura(true)}>
-            <Icon name="mas" size={16} stroke={2.2} />
-            Registrar factura
-          </button>
-        }
-      />
+      <h1 className="sr-only">Tu negocio</h1>
 
       {cuentas.length === 0 && (
         <div className="card business-start">
@@ -133,75 +124,58 @@ export function InicioNegocio() {
         </div>
       )}
 
-      <div className="stack">
-        <div className="overview-grid">
-          <section className="available-money hero-dark business-hero">
-            <div className="available-main">
-              <span className="eyebrow">Dinero del negocio</span>
-              <strong>{formatMoney(total)}</strong>
-              <small>
-                {cuentas.length === 0
-                  ? 'Todavía sin cuentas del negocio.'
-                  : cuentas.length === 1
-                    ? `En ${cuentas[0].nombre}.`
-                    : `Repartido en ${contar(cuentas.length, 'cuenta', 'cuentas')}.`}
-              </small>
-              <a className="available-explain text-link" href="#/negocio-cuentas">
-                Ver cuentas <Icon name="derecha" size={15} />
-              </a>
-            </div>
-            <div className="available-savings">
-              <span className="savings-symbol">
-                <Icon name={vencidas ? 'alerta' : 'cobrar'} size={22} />
-              </span>
-              <span>Pendiente de cobro</span>
-              <b>{formatMoney(porCobrar.total)}</b>
-              <small>
-                {porCobrar.facturas === 0
-                  ? 'Todas tus facturas están cobradas.'
-                  : `${contar(porCobrar.facturas, 'factura', 'facturas')}${vencidas ? `, ${contar(vencidas, 'vencida', 'vencidas')}` : ''}.`}
-              </small>
-            </div>
-            <div className="quick-movements" aria-label="Registrar en el negocio">
-              <button className="quick-movement is-accent" onClick={() => setFactura(true)}>
-                <span>
-                  <Icon name="facturas" />
-                </span>
-                <strong>Factura</strong>
-                <Icon name="mas" size={18} />
-              </button>
-              <button className="quick-movement" onClick={() => setGasto(true)}>
-                <span className="expense-text">
-                  <Icon name="gasto" />
-                </span>
-                <strong>Gasto</strong>
-                <Icon name="mas" size={18} />
-              </button>
-              <button
-                className="quick-movement"
-                onClick={() =>
-                  setForm({
-                    tipo: 'transferencia',
-                    destino: personales[0]?.id,
-                    importe: real.puedesPasarte || undefined,
-                    nota: 'Me pago a mí',
-                  })
-                }
-                disabled={!cuentas.length || !personales.length}
-              >
-                <span>
-                  <Icon name="transferencia" />
-                </span>
-                <strong>Me pago a mí</strong>
-                <Icon name="flecha" size={18} />
-              </button>
-            </div>
-            <p>
-              <Icon name="check" size={15} />
-              Solo el negocio. Lo personal está en su propio espacio.
-            </p>
-          </section>
+      <section className="home-hero" aria-label="Dinero del negocio">
+        <span className="home-hero-label">
+          {fechaTexto.charAt(0).toUpperCase() + fechaTexto.slice(1)} · Dinero del negocio
+        </span>
+        <ImporteGrande cents={total} />
+        <a className="pill-link" href="#/negocio-cuentas">
+          {cuentas.length === 0
+            ? 'Sin cuentas del negocio'
+            : cuentas.length === 1
+              ? cuentas[0].nombre
+              : contar(cuentas.length, 'cuenta', 'cuentas')}
+          <Icon name="derecha" size={16} />
+        </a>
+        <AccionesRedondas
+          acciones={[
+            { icono: 'facturas', texto: 'Factura', onClick: () => setFactura(true) },
+            { icono: 'gasto', texto: 'Gasto', onClick: () => setGasto(true) },
+            {
+              icono: 'transferencia',
+              texto: 'Me pago a mí',
+              disabled: !cuentas.length || !personales.length,
+              onClick: () =>
+                setForm({
+                  tipo: 'transferencia',
+                  destino: personales[0]?.id,
+                  importe: real.puedesPasarte || undefined,
+                  nota: 'Me pago a mí',
+                }),
+            },
+            { icono: 'impuestos', texto: 'Impuestos', href: '#/impuestos' },
+          ]}
+        />
+        <p className="home-hero-note">
+          <Icon name="check" size={14} />
+          Solo el negocio. Lo personal está en su propio espacio.
+        </p>
+      </section>
 
+      <div className="stack">
+        <div className="business-top">
+          <a className="card business-receivable" href="#/facturas">
+            <span className="eyebrow">Pendiente de cobro</span>
+            <strong>{formatMoney(porCobrar.total)}</strong>
+            <small className={vencidas ? 'expense-text' : undefined}>
+              {porCobrar.facturas === 0
+                ? 'Todas tus facturas están cobradas.'
+                : `${contar(porCobrar.facturas, 'factura', 'facturas')}${vencidas ? `, ${contar(vencidas, 'vencida', 'vencidas')}` : ''}.`}
+            </small>
+            <span className="business-receivable-link">
+              Ver facturas <Icon name="derecha" size={15} />
+            </span>
+          </a>
           <section className="card business-deadline" aria-labelledby="proximo-plazo">
             <div className="hero-heading">
               <span className="eyebrow" id="proximo-plazo">
