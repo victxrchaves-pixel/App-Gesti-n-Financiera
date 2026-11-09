@@ -1,9 +1,9 @@
 import { Icon } from './Icon';
 import { iconoCategoria } from '../lib/iconos';
 import { colorCategoria } from '../config/neto.config';
-import { useEspacio } from './Espacio';
+import { useEspacio, useCategoriasEspacio } from './Espacio';
 import { useMemo, useState } from 'react';
-import { useAjustes, useCategorias, useCuentas, useMovimientos } from '../db/hooks';
+import { useAjustes, useCuentas, useMovimientos } from '../db/hooks';
 import {
   actualizarMovimiento,
   borrarMovimiento,
@@ -105,7 +105,7 @@ export function MovimientoForm({
     () => cuentas.filter((c) => c.ambito === espacio || c.id === movimiento?.cuentaId),
     [cuentas, espacio, movimiento?.cuentaId],
   );
-  const categorias = useCategorias();
+  const categorias = useCategoriasEspacio();
   const movimientos = useMovimientos();
   const confirmar = useConfirm();
   const avisar = useToast();

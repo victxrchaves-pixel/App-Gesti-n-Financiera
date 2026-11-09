@@ -1,4 +1,6 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useMemo } from 'react';
+import { useCategorias } from '../db/hooks';
+import { categoriasDeEspacio } from '../lib/espacio';
 import type { Espacio } from '../lib/espacio';
 
 const CLAVE = 'neto-espacio';
@@ -6,6 +8,13 @@ const CLAVE = 'neto-espacio';
 /** Espacio en el que está la persona: Personal o Negocio. Las pantallas comunes lo usan para filtrar. */
 export const EspacioContext = createContext<Espacio>('personal');
 export const useEspacio = () => useContext(EspacioContext);
+
+/** Las categorías que tienen sentido en el espacio actual (sin las del negocio en Personal). */
+export function useCategoriasEspacio() {
+  const espacio = useEspacio();
+  const categorias = useCategorias();
+  return useMemo(() => categoriasDeEspacio(categorias, espacio), [categorias, espacio]);
+}
 
 /** Último espacio usado en este navegador, para volver a él al abrir Neto. */
 export function leerEspacioGuardado(): Espacio {

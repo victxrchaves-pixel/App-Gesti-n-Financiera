@@ -192,9 +192,9 @@ export function Impuestos() {
               <Fila
                 texto="Cuota de autónomos"
                 nota={
-                  meses
-                    ? `${meses} ${meses === 1 ? 'mes' : 'meses'} × ${formatMoney(perfil.cuotaMensual)}`
-                    : 'Indícala en Ajustes › Tu negocio'
+                  perfil.cuotaMensual === 0
+                    ? 'Indícala en Ajustes › Tu negocio'
+                    : `${meses} ${meses === 1 ? 'mes' : 'meses'} × ${formatMoney(perfil.cuotaMensual)}`
                 }
                 valor={irpf.cuotaAutonomos}
                 signo="−"

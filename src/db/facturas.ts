@@ -128,7 +128,7 @@ export async function asegurarCategoria(nombre: string, tipo: 'ingreso' | 'gasto
   if (existente) return existente.id;
   const id = newId();
   const orden = await d.categorias.where('tipo').equals(tipo).count();
-  await d.categorias.add({ id, nombre, tipo, color: colorCategoriaSugerido(nombre), orden });
+  await d.categorias.add({ id, nombre, tipo, color: colorCategoriaSugerido(nombre), orden, negocio: true });
   return id;
 }
 

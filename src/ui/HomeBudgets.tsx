@@ -43,7 +43,7 @@ export function HomeBudgets({ mes }: { mes: string }) {
             Dinos cuánto ingresas al mes y Neto reparte un límite para cada categoría. Tardas un minuto.
           </p>
         </div>
-        <button className="btn btn-primary" onClick={() => setCrear(true)}>
+        <button className="btn btn-secondary" onClick={() => setCrear(true)}>
           Crear según mis ingresos
         </button>
         {crear && <PlanPorcentajes mes={mes} onClose={() => setCrear(false)} />}

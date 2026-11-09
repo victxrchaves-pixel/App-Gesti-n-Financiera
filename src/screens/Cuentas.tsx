@@ -102,7 +102,9 @@ function Tarjeta({
             <PieTarjeta r={resumen} categorias={categorias} hoy={hoy} />
           </button>
           <div className="wallet-footer">
-            <span>Personal</span>
+            <button type="button" className="wallet-footer-link" onClick={onClick}>
+              Ver detalle
+            </button>
             <a href="#/metas">
               Ver metas <Icon name="flecha" size={18} />
             </a>
@@ -122,7 +124,7 @@ function Tarjeta({
         <span className={`account-balance${saldo < 0 ? ' danger-text' : ''}`}>{formatMoney(saldo)}</span>
         <PieTarjeta r={resumen} categorias={categorias} hoy={hoy} />
         <span className="wallet-footer">
-          {c.ambito === 'negocio' ? 'Negocio' : 'Personal'}
+          Ver detalle
           <Icon name="flecha" size={18} />
         </span>
       </button>

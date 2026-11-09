@@ -1,5 +1,6 @@
+import { useCategoriasEspacio } from './Espacio';
 import { useMemo, useState } from 'react';
-import { useCategorias, useCuentas, useMovimientos } from '../db/hooks';
+import { useCuentas, useMovimientos } from '../db/hooks';
 import { leerCSV, prepararCSV, type ColumnasCSV } from '../lib/csv';
 import { importarCSV } from '../db/csv';
 import { saldosPorCuenta } from '../lib/balances';
@@ -12,7 +13,7 @@ export function ImportCSV({ cerrar }: { cerrar: () => void }) {
   const cuentas = useCuentas().filter(
       (c) => !c.eliminada && !c.archivada && !c.cuentaPadreId && !c.ahorroGeneral && c.ambito === 'personal',
     ),
-    cats = useCategorias(),
+    cats = useCategoriasEspacio(),
     movs = useMovimientos(),
     avisar = useToast();
   const [archivo, setArchivo] = useState<Archivo | null>(null),

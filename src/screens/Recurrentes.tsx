@@ -1,12 +1,6 @@
+import { useCategoriasEspacio } from '../ui/Espacio';
 import { useState } from 'react';
-import {
-  useCategorias,
-  useCuentas,
-  useMovimientos,
-  usePagosFijos,
-  usePagosRegistrados,
-  useSuscripciones,
-} from '../db/hooks';
+import { useCuentas, useMovimientos, usePagosFijos, usePagosRegistrados, useSuscripciones } from '../db/hooks';
 import type { PagoFijo, Suscripcion } from '../db/types';
 import { db } from '../db/db';
 import { guardarPagoFijo, registrarPago, omitirPeriodo, deshacerPago } from '../db/recurring';
@@ -29,7 +23,7 @@ function FormFijo({ actual, tipo, cerrar }: { actual?: PagoFijo; tipo: 'gasto' |
   const cuentas = useCuentas().filter(
     (c) => !c.eliminada && !c.archivada && !c.cuentaPadreId && !c.ahorroGeneral && c.ambito === 'personal',
   );
-  const categorias = useCategorias().filter((c) => c.tipo === tipo);
+  const categorias = useCategoriasEspacio().filter((c) => c.tipo === tipo);
   const confirmar = useConfirm();
   const [nombre, setNombre] = useState(actual?.nombre ?? '');
   const importe = useAmountField(actual?.importe);
@@ -239,7 +233,7 @@ export function FormPago({ item, cerrar }: { item: Ficha; cerrar: () => void }) 
   const cuentas = useCuentas().filter(
     (c) => !c.eliminada && !c.archivada && !c.cuentaPadreId && !c.ahorroGeneral && c.ambito === 'personal',
   );
-  const categorias = useCategorias().filter((c) => c.tipo === item.tipo);
+  const categorias = useCategoriasEspacio().filter((c) => c.tipo === item.tipo);
   const avisar = useToast();
   const confirmar = useConfirm();
   const importe = useAmountField(item.importe);
@@ -403,7 +397,7 @@ export function Recurrentes({ soloSuscripciones = false }: { soloSuscripciones?:
   const subs = useSuscripciones().filter((s) => s.ambito === 'personal');
   // Lo que cuestan tus suscripciones activas, pasado a mes y a año (las anuales cuentan 1/12 al mes).
   const subsActivas = subs.filter((x) => x.estado === 'activa');
-  const cats = useCategorias();
+  const cats = useCategoriasEspacio();
   const registros = usePagosRegistrados();
   const movimientos = useMovimientos();
   const [tab, setTab] = useState<'gasto' | 'ingreso'>('gasto');

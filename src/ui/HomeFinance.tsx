@@ -1,7 +1,7 @@
+import { useCategoriasEspacio } from './Espacio';
 import { useState } from 'react';
 import {
   useAjustes,
-  useCategorias,
   useCuentas,
   useMovimientos,
   useMetas,
@@ -96,7 +96,7 @@ export function HomeRecurring() {
   const hoy = useHoy(),
     fijos = usePagosFijos(),
     subs = useSuscripciones(),
-    cats = useCategorias();
+    cats = useCategoriasEspacio();
   const [pago, setPago] = useState<Ficha | null>(null);
   const pendientes = recurrentesPendientes(fichasRecurrentes(fijos, subs, cats), hoy);
   if (!pendientes.length && !pago) return null;
@@ -180,7 +180,7 @@ export function BackupReminder() {
         aria-label="Ocultar recordatorio de copia"
         onClick={() => setOculto(true)}
       >
-        ×
+        <Icon name="cerrar" size={18} />
       </button>
     </aside>
   );

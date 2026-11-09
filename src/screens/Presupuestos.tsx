@@ -1,10 +1,11 @@
+import { useCategoriasEspacio } from '../ui/Espacio';
 import { useEffect } from 'react';
 import { BudgetReview } from '../ui/BudgetReview';
 import { type CSSProperties } from 'react';
 import { ColorPicker } from '../ui/ColorPicker';
 import { esColor, tinta, mezclar } from '../lib/colors';
 import { useRef, useState } from 'react';
-import { useCategorias, useCuentas, useMovimientos, usePresupuestos } from '../db/hooks';
+import { useCuentas, useMovimientos, usePresupuestos } from '../db/hooks';
 import type { Categoria, Movimiento, Presupuesto } from '../db/types';
 import { asegurarPlanMes, borrarPresupuesto, copiarPresupuestos, guardarPresupuesto } from '../db/budgets';
 import { estadoPresupuesto, gastosPresupuesto, mesValido, resumenPresupuestos } from '../lib/budgets';
@@ -183,7 +184,7 @@ function Formulario({
 }
 
 function PlanMes({ mes }: { mes: string }) {
-  const categorias = useCategorias();
+  const categorias = useCategoriasEspacio();
   const cuentas = useCuentas();
   const movimientos = useMovimientos();
   const presupuestos = usePresupuestos(mes).filter((p) => p.mes === mes);
@@ -321,7 +322,7 @@ function PlanMes({ mes }: { mes: string }) {
                     puedes ajustarlo todo.
                   </p>
                 </div>
-                <button className="btn btn-primary" onClick={() => setPorPorcentajes(true)}>
+                <button className="btn btn-secondary" onClick={() => setPorPorcentajes(true)}>
                   Crear según mis ingresos
                 </button>
               </section>
@@ -596,7 +597,6 @@ export function Presupuestos() {
             Volver a este mes
           </button>
         )}
-        <span className="budget-scope">Finanzas personales</span>
       </div>
       <PlanMes key={mes} mes={mes} />
     </>

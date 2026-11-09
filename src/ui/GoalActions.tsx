@@ -1,6 +1,7 @@
+import { useCategoriasEspacio } from './Espacio';
 import { useState } from 'react';
 import type { Meta } from '../db/types';
-import { useCategorias, useCuentas, useMetas } from '../db/hooks';
+import { useCuentas, useMetas } from '../db/hooks';
 import { gastarMeta, reasignarAhorro } from '../db/goals';
 import { newId } from '../lib/id';
 import { todayISO } from '../lib/dates';
@@ -44,7 +45,7 @@ function Editor({
   disponible: number;
   cerrar: () => void;
 }) {
-  const categorias = useCategorias().filter((c) => c.tipo === 'gasto');
+  const categorias = useCategoriasEspacio().filter((c) => c.tipo === 'gasto');
   const cuentas = useCuentas().filter(
     (c) =>
       !c.eliminada &&

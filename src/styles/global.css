@@ -9064,7 +9064,8 @@ a.text-link {
   button.text-link,
   .available-explain,
   .business-deadline-link,
-  .wallet-footer a {
+  .wallet-footer a,
+  .wallet-footer-link {
     position: relative;
   }
   .space-switch.is-compact > button::before,
@@ -9073,7 +9074,8 @@ a.text-link {
   button.text-link::before,
   .available-explain::before,
   .business-deadline-link::before,
-  .wallet-footer a::before {
+  .wallet-footer a::before,
+  .wallet-footer-link::before {
     content: '';
     position: absolute;
     inset: -12px -4px;
@@ -9099,4 +9101,81 @@ a.text-link {
 }
 .business-profile > .card-header {
   margin-bottom: 0;
+}
+
+/* ── Repaso ui-ux-pro-max (2): jerarquía, alineación y móvil ─────────────── */
+/* El título de cada tarjeta y su enlace («Ver todos») comparten línea base. */
+.card-header {
+  align-items: baseline;
+}
+/* La sección activa ya se ve por su fondo: el punto sobraba. */
+.nav-link.active::after {
+  display: none;
+}
+/* «Ver detalle» en las tarjetas de cuenta. */
+.wallet-footer-link {
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  /* Categorías sin presupuesto: nombre arriba, importe debajo y el botón a la derecha. */
+  .budget-unplanned {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'nombre boton'
+      'importe boton';
+    column-gap: 12px;
+    row-gap: 0;
+    align-items: center;
+  }
+  .budget-unplanned-name {
+    grid-area: nombre;
+    padding-left: 0;
+    gap: 10px;
+    min-height: 0;
+  }
+  .budget-unplanned > strong {
+    grid-area: importe;
+    margin-left: 42px;
+    white-space: nowrap;
+    font-size: 14px;
+  }
+  .budget-unplanned > .btn:not(.budget-unplanned-name) {
+    grid-area: boton;
+    white-space: nowrap;
+  }
+  /* Botones de Presupuestos: el principal arriba y los dos secundarios uno junto al otro. */
+  .budget-actions > div:has(> .btn:nth-child(3)) > .btn:not(.btn-primary) {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 13.5px;
+  }
+}
+
+/* Metas: acciones juntas y las propuestas con su título. */
+.savings-full .goal-collection-actions,
+.goal-collection-actions {
+  justify-content: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.goal-ideas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+.goal-ideas .card-title {
+  margin: 0;
+  font-size: 17px;
 }

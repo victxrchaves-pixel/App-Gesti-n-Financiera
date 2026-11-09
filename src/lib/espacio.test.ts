@@ -17,3 +17,22 @@ describe('espacios Personal y Negocio', () => {
     expect(rutaAlCambiar('ajustes', 'negocio')).toBe('ajustes');
   });
 });
+
+describe('categorías de cada espacio', () => {
+  const cats = [
+    { nombre: 'Comida' },
+    { nombre: 'Gastos del negocio', negocio: true },
+    { nombre: 'Facturación' }, // creada antes de marcarlas: se reconoce por el nombre
+    { nombre: 'Casa' },
+  ];
+  it('Personal no muestra las del negocio; Negocio las pone primero', async () => {
+    const { categoriasDeEspacio } = await import('./espacio');
+    expect(categoriasDeEspacio(cats, 'personal').map((c) => c.nombre)).toEqual(['Comida', 'Casa']);
+    expect(categoriasDeEspacio(cats, 'negocio').map((c) => c.nombre)).toEqual([
+      'Gastos del negocio',
+      'Facturación',
+      'Comida',
+      'Casa',
+    ]);
+  });
+});

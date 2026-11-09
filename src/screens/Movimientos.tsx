@@ -1,7 +1,7 @@
 import { ImportCSV } from '../ui/ImportCSV';
 import { useMemo, useState } from 'react';
-import { useCategorias, useCuentas, useMapaCategorias, useMovimientos } from '../db/hooks';
-import { useEspacio } from '../ui/Espacio';
+import { useCuentas, useMapaCategorias, useMovimientos } from '../db/hooks';
+import { useEspacio, useCategoriasEspacio } from '../ui/Espacio';
 import type { Movimiento, TipoMovimiento } from '../db/types';
 import { addMonths, dayHeader, monthKey, monthLabel, todayISO } from '../lib/dates';
 import { formatMoney } from '../lib/money';
@@ -33,7 +33,7 @@ export function Movimientos() {
   // Solo las cuentas de este espacio: lo personal y lo del negocio no se mezclan.
   const cuentas = useMemo(() => todasCuentas.filter((c) => c.ambito === espacio), [todasCuentas, espacio]);
   const todosMovimientos = useMovimientos();
-  const categoriasLista = useCategorias();
+  const categoriasLista = useCategoriasEspacio();
   const categorias = useMapaCategorias();
   const hoy = todayISO();
   const [importar, setImportar] = useState(false);

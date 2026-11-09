@@ -1,7 +1,8 @@
+import { useCategoriasEspacio } from './Espacio';
 import { useEffect, useMemo, useState } from 'react';
 import { colorCategoria, config } from '../config/neto.config';
 import { aplicarPlanPorcentajes } from '../db/budgets';
-import { useCategorias, useCuentas, useMovimientos, usePresupuestos } from '../db/hooks';
+import { useCuentas, useMovimientos, usePresupuestos } from '../db/hooks';
 import { monthLabel, todayISO } from '../lib/dates';
 import { iconoCategoria } from '../lib/iconos';
 import { formatMoney } from '../lib/money';
@@ -25,7 +26,7 @@ const PLANTILLAS = config.presupuestos.plantillas.map((p) => ({ valor: p.id, tex
  * Se puede usar desde Presupuestos, desde Inicio o al terminar la bienvenida.
  */
 export function PlanPorcentajes({ mes, onClose }: { mes: string; onClose: () => void }) {
-  const categorias = useCategorias();
+  const categorias = useCategoriasEspacio();
   const cuentas = useCuentas();
   const movimientos = useMovimientos();
   const actuales = usePresupuestos(mes);

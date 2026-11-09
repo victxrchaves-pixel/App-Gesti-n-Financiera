@@ -61,6 +61,8 @@ export interface Categoria {
   /** Icono elegido en Ajustes (catálogo de src/lib/iconos.ts). Sin él, se deduce del nombre. */
   icono?: string | null;
   orden: number;
+  /** Categoría del espacio Negocio (cobros de facturas, pagos de gastos): no se muestra en Personal. */
+  negocio?: boolean;
 }
 
 export interface Ajustes {

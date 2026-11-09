@@ -1,6 +1,7 @@
+import { useCategoriasEspacio } from './Espacio';
 import { useState } from 'react';
 import { db } from '../db/db';
-import { usePlanMes, usePresupuestos, useMovimientos, useCuentas, useCategorias } from '../db/hooks';
+import { usePlanMes, usePresupuestos, useMovimientos, useCuentas } from '../db/hooks';
 import { addMonths, monthKey, monthLabel, todayISO } from '../lib/dates';
 import { gastosPresupuesto, resumenPresupuestos } from '../lib/budgets';
 import { formatMoney } from '../lib/money';
@@ -17,7 +18,7 @@ export function BudgetReview({ mes = monthKey(todayISO()) }: { mes?: string }) {
     actuales = usePresupuestos(mes),
     cuentas = useCuentas(),
     movimientos = useMovimientos(),
-    cats = useCategorias();
+    cats = useCategoriasEspacio();
   const resumen = resumenPresupuestos(previos, gastosPresupuesto(movimientos, cuentas, anterior, todayISO()));
   if (!plan?.repetidoDe || plan.revisado || mes > monthKey(todayISO())) return null;
   return (

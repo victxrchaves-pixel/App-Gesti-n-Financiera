@@ -573,13 +573,28 @@ export function GoalPlans({ mes = monthKey(todayISO()), completo = false }: { me
           <p>Crea una meta y empieza a separar tu ahorro.</p>
         </div>
       )}
-      {completo && (
-        <>
-          {metas.length > 0 && (
-            <button className="btn btn-primary" onClick={() => setElegirDestino(true)}>
-              Asignar ahorro a una meta existente
-            </button>
-          )}
+      <div className="goal-collection-actions">
+        <button className={`btn ${completo ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setForm({})}>
+          <Icon name="mas" size={16} />
+          Nueva meta
+        </button>
+        {completo && metas.length > 0 && (
+          <button className="btn btn-secondary" onClick={() => setElegirDestino(true)}>
+            <Icon name="transferencia" size={16} />
+            Asignar ahorro a una meta
+          </button>
+        )}
+        {!completo && (
+          <a className="text-link" href="#/metas">
+            Ver todas mis metas <Icon name="flecha" size={16} />
+          </a>
+        )}
+      </div>
+      {completo && PROPUESTAS.some((p) => !metas.some((m) => m.nombre === p.nombre)) && (
+        <section className="goal-ideas" aria-labelledby="ideas-metas">
+          <h2 className="card-title" id="ideas-metas">
+            Ideas para empezar
+          </h2>
           <div className="goal-suggestions">
             {PROPUESTAS.filter((p) => !metas.some((m) => m.nombre === p.nombre)).map((p) => (
               <button className="goal-suggestion" key={p.nombre} onClick={() => setForm({ sugerida: p })}>
@@ -592,19 +607,8 @@ export function GoalPlans({ mes = monthKey(todayISO()), completo = false }: { me
               </button>
             ))}
           </div>
-        </>
+        </section>
       )}
-      <div className="goal-collection-actions">
-        <button className="btn btn-secondary" onClick={() => setForm({})}>
-          <Icon name="mas" size={16} />
-          {completo ? 'Otra meta' : 'Nueva meta'}
-        </button>
-        {!completo && (
-          <a className="text-link" href="#/metas">
-            Ver todas mis metas <Icon name="flecha" size={16} />
-          </a>
-        )}
-      </div>
       {completo && (
         <p className="field-hint">
           Estas propuestas son editables. Las transferencias de ahorro no cuentan como gasto en tus presupuestos.
