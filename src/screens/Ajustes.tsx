@@ -16,6 +16,7 @@ import { CATALOGO_ICONOS, iconoCategoria } from '../lib/iconos';
 import { useConfirm, useToast } from '../ui/Modal';
 import { Switch } from '../ui/Switch';
 import { PerfilNegocioCard } from '../ui/PerfilNegocioCard';
+import { FondoAjustes } from '../ui/FondoAjustes';
 
 const COLORES = [...config.paleta, config.colorOtros];
 
@@ -336,14 +337,15 @@ export function Ajustes() {
 
         {ajustes.autonomo && <PerfilNegocioCard perfil={ajustes.negocio} />}
 
+        <FondoAjustes ajustes={ajustes} />
+
         <section className="card">
           <div className="card-header">
             <h2 className="card-title">Apariencia y colores</h2>
           </div>
           <p className="muted">
-            Fondos blancos y selecciones grises, con colores para entender los datos: ingresos en verde, gastos en rojo
-            y categorías diferenciadas. Personaliza lo que quieras; cada elección se guarda en este navegador y en tus
-            copias de seguridad.
+            Colores para entender los datos: ingresos en verde, gastos en rojo y categorías diferenciadas. Personaliza
+            lo que quieras; cada elección se guarda en este navegador y en tus copias de seguridad.
           </p>
           <div className="stack">
             <ColorPicker

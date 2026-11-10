@@ -2,6 +2,7 @@ import { validarReparto } from '../lib/movements';
 import { perfilNegocio, validarPerfilNegocio } from '../lib/facturas';
 import { isISODate, todayISO } from '../lib/dates';
 import { CAMPOS_COLOR, esColor } from '../lib/colors';
+import { esEstiloFondo, sonTonosFondo } from '../lib/fondo';
 import { config } from '../config/neto.config';
 import { newId } from '../lib/id';
 import { db, type NetoDB } from './db';
@@ -21,6 +22,9 @@ export async function guardarAjustes(cambios: Partial<Omit<Ajustes, 'id'>>, d: N
   for (const campo of CAMPOS_COLOR)
     if (cambios[campo] != null && !esColor(cambios[campo]))
       throw new Error('Color no válido. Usa un código hexadecimal como #336699.');
+  if (cambios.fondoEstilo != null && !esEstiloFondo(cambios.fondoEstilo)) throw new Error('Estilo de fondo no válido.');
+  if (cambios.fondoColores != null && !sonTonosFondo(cambios.fondoColores))
+    throw new Error('Los colores del fondo no son válidos.');
   if (cambios.negocio) {
     const error = validarPerfilNegocio(cambios.negocio);
     if (error) throw new Error(error);

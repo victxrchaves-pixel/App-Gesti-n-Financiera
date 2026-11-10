@@ -3,6 +3,7 @@ import { SavingsSync } from './ui/SavingsSync';
 import { RecurringSync } from './ui/RecurringSync';
 import { Metas } from './screens/Metas';
 import { Theme } from './ui/Theme';
+import { FondoApp } from './ui/FondoApp';
 import { useAjustes } from './db/hooks';
 import { Shell } from './layout/Shell';
 import { esEscritorio, esMac } from './lib/platform';
@@ -84,6 +85,7 @@ export function App() {
   return (
     <ToastProvider>
       <Theme />
+      <FondoApp />
       <SavingsSync />
       <RecurringSync />
       <ConfirmProvider>

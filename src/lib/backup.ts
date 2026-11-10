@@ -7,6 +7,7 @@ import type { PagoFijo, PagoRegistrado } from '../db/types';
 import { validarMeta, validarAporte } from '../db/goals';
 import type { Meta, AporteMeta } from '../db/types';
 import { CAMPOS_COLOR, esColor, neutralizarInicial, colorSemanticoInicial } from './colors';
+import { esEstiloFondo, sonTonosFondo } from './fondo';
 import { config } from '../config/neto.config';
 import { db, TABLAS, type NetoDB, type NombreTabla } from '../db/db';
 import { isISODate } from './dates';
@@ -72,6 +73,12 @@ export function validarCopia(entrada: unknown): ResultadoValidacion {
     for (const campo of CAMPOS_COLOR)
       if (a[campo] != null && !esColor(a[campo]))
         return { ok: false, error: 'La copia contiene un color de apariencia no válido.' };
+  for (const a of datos.ajustes as Record<string, unknown>[])
+    if (
+      (a.fondoEstilo != null && !esEstiloFondo(a.fondoEstilo)) ||
+      (a.fondoColores != null && !sonTonosFondo(a.fondoColores))
+    )
+      return { ok: false, error: 'La copia contiene un fondo de apariencia no válido.' };
   for (const c of datos.categorias as Record<string, unknown>[])
     if (!esColor(c.color)) return { ok: false, error: 'La copia contiene un color de categoría no válido.' };
   for (const c of datos.cuentas as Record<string, unknown>[]) {

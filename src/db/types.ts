@@ -72,6 +72,10 @@ export interface Ajustes {
   colorIngresos?: string | null;
   colorGastos?: string | null;
   colorInversiones?: string | null;
+  /** Fondo de la app: animado (por defecto), quieto o plano. */
+  fondoEstilo?: 'animado' | 'quieto' | 'plano';
+  /** Tres tonos del fondo, del más claro al más intenso, o null para la paleta por defecto. */
+  fondoColores?: [string, string, string] | null;
   nombre: string;
   autonomo: boolean;
   inicioCompletado: boolean;
